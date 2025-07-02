@@ -1,0 +1,11 @@
+name: Blora
+main: blora.plugin.BloraPlugin
+version: "1.0.0"
+api-version: "1.19"
+bootstrapper: blora.plugin.BloraBootstrap
+loader: blora.plugin.library.BloraLibraryLoader
+dependencies:
+  server:
+    ProtocolLib:
+      required: false
+      join-classpath: true
