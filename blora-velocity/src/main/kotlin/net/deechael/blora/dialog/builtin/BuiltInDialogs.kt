@@ -101,7 +101,10 @@ fun loginDialog(warningMessages: Component? = null): Dialog {
         action = ClickAction(
             label = component {
                 text { "确认" }
-            }
+            },
+            action = DynamicCustomClickType(
+                id = "blora_login",
+            )
         )
     )
 }
@@ -147,7 +150,10 @@ fun registerDialog(warningMessages: Component? = null): Dialog {
         action = ClickAction(
             label = component {
                 text { "确认" }
-            }
+            },
+            action = DynamicCustomClickType(
+                id = "blora_register",
+            )
         )
     )
 }
