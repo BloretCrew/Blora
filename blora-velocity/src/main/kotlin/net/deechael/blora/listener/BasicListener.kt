@@ -23,6 +23,8 @@ import net.deechael.blora.config.UUIDGenerator
 import net.deechael.blora.database.BloraPlayer
 import net.deechael.blora.protocol.packet.CustomClickAction
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import plutoproject.adventurekt.component
+import plutoproject.adventurekt.text.mini
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
@@ -43,14 +45,18 @@ object BasicListener {
             } else if (packet.id == "minecraft:blora_login") {
                 AuthDialog.loginDialogCallback(
                     event.player,
-                    ((packet.payload as NbtCompound)["minecraft:blora_password"] as NbtString).value
+                    ((packet.payload as NbtCompound)["blora_password"] as NbtString).value
                 )
             } else if (packet.id == "minecraft:blora_register") {
                 AuthDialog.registerDialogCallback(
                     event.player,
-                    ((packet.payload as NbtCompound)["minecraft:blora_password"] as NbtString).value,
-                    ((packet.payload as NbtCompound)["minecraft:blora_confirm_password"] as NbtString).value
+                    ((packet.payload as NbtCompound)["blora_password"] as NbtString).value,
+                    ((packet.payload as NbtCompound)["blora_confirm_password"] as NbtString).value
                 )
+            } else if (packet.id == "minecraft:blora_exit") {
+                event.player.disconnect(component {
+                    mini(BloraPlugin.configuration.messages.ingameKickExit)
+                })
             }
         }
     }

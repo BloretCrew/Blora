@@ -70,7 +70,7 @@ fun testDialog(): Dialog {
 }
 
 fun loginDialog(warningMessages: Component? = null): Dialog {
-    return NoticeDialog(
+    return ConfirmationDialog(
         title = component {
             text { "登录" }
         },
@@ -98,19 +98,27 @@ fun loginDialog(warningMessages: Component? = null): Dialog {
                 )
             )
         ),
-        action = ClickAction(
+        yes = ClickAction(
             label = component {
                 text { "确认" }
             },
             action = DynamicCustomClickType(
                 id = "blora_login",
             )
+        ),
+        no = ClickAction(
+            label = component {
+                text { "退出" }
+            },
+            action = DynamicCustomClickType(
+                id = "blora_exit",
+            )
         )
     )
 }
 
 fun registerDialog(warningMessages: Component? = null): Dialog {
-    return NoticeDialog(
+    return ConfirmationDialog(
         title = component {
             text { "注册" }
         },
@@ -147,12 +155,20 @@ fun registerDialog(warningMessages: Component? = null): Dialog {
                 )
             )
         ),
-        action = ClickAction(
+        yes = ClickAction(
             label = component {
                 text { "确认" }
             },
             action = DynamicCustomClickType(
                 id = "blora_register",
+            )
+        ),
+        no = ClickAction(
+            label = component {
+                text { "退出" }
+            },
+            action = DynamicCustomClickType(
+                id = "blora_exit",
             )
         )
     )

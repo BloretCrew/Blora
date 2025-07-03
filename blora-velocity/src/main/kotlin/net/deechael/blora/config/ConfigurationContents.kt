@@ -247,6 +247,13 @@ data class Messages(
     val ingameKickTooManyRetries: String = "重试次数超出最大限制 <limit> 次",
     @TomlComment(
         """
+            玩家在登录或注册时主动选择退出是弹出的提示
+    """
+    )
+    @SerialName("ingame_kick_exit")
+    val ingameKickExit: String = "玩家主动退出",
+    @TomlComment(
+        """
         当玩家登录时密码错误弹出的警告
     """
     )
