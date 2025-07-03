@@ -1,33 +1,9 @@
 package net.deechael.blora.converter
 
-import net.benwoodworth.knbt.NbtByte
-import net.benwoodworth.knbt.NbtByteArray
-import net.benwoodworth.knbt.NbtCompound
-import net.benwoodworth.knbt.NbtDouble
-import net.benwoodworth.knbt.NbtFloat
-import net.benwoodworth.knbt.NbtInt
-import net.benwoodworth.knbt.NbtIntArray
-import net.benwoodworth.knbt.NbtList
-import net.benwoodworth.knbt.NbtLong
-import net.benwoodworth.knbt.NbtLongArray
-import net.benwoodworth.knbt.NbtShort
-import net.benwoodworth.knbt.NbtString
-import net.benwoodworth.knbt.NbtTag
-import net.kyori.adventure.key.Key
-import net.kyori.adventure.text.BlockNBTComponent
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.EntityNBTComponent
-import net.kyori.adventure.text.KeybindComponent
-import net.kyori.adventure.text.NBTComponent
-import net.kyori.adventure.text.ScoreComponent
-import net.kyori.adventure.text.SelectorComponent
-import net.kyori.adventure.text.StorageNBTComponent
-import net.kyori.adventure.text.TextComponent
-import net.kyori.adventure.text.TranslatableComponent
+import net.benwoodworth.knbt.*
+import net.kyori.adventure.text.*
 import net.kyori.adventure.text.event.ClickEvent
-import net.kyori.adventure.text.event.DataComponentValue
 import net.kyori.adventure.text.event.HoverEvent
-import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 
 fun Component.toKnbt(): NbtCompound {
@@ -52,12 +28,14 @@ fun Component.toKnbt(): NbtCompound {
         }
     } else if (this is ScoreComponent) {
         map.put("type", NbtString("score"))
-        map.put("score", NbtCompound(
-            mapOf(
-                "name" to NbtString(this.name()),
-                "objective" to NbtString(this.objective())
+        map.put(
+            "score", NbtCompound(
+                mapOf(
+                    "name" to NbtString(this.name()),
+                    "objective" to NbtString(this.objective())
+                )
             )
-        ))
+        )
     } else if (this is SelectorComponent) {
         map.put("type", NbtString("selector"))
         map.put("selector", NbtString(this.pattern()))
@@ -129,9 +107,9 @@ fun Component.toKnbt(): NbtCompound {
         map.put("insertion", NbtString(insertion))
     }
 
-    val clickEvent = this.clickEvent()
+    val clickEvent = this.clickEvent().toKnbt()
     if (clickEvent != null) {
-        map.put("click_event", clickEvent.toKnbt())
+        map.put("click_event", clickEvent)
     }
 
     val hoverEvent = this.hoverEvent().toKnbt()
@@ -186,7 +164,11 @@ fun HoverEvent<*>?.toKnbt(): NbtCompound? {
     }
 }
 
-fun ClickEvent.toKnbt(): NbtCompound {
+
+fun ClickEvent?.toKnbt(): NbtCompound? {
+    if (this == null) {
+        return null
+    }
     return when (this.action()) {
         ClickEvent.Action.OPEN_URL -> NbtCompound(
             mapOf(
@@ -194,321 +176,110 @@ fun ClickEvent.toKnbt(): NbtCompound {
                 "url" to NbtString(this@toKnbt.value())
             )
         )
+
         ClickEvent.Action.OPEN_FILE -> NbtCompound(
             mapOf(
                 "action" to NbtString("open_file"),
                 "path" to NbtString(this@toKnbt.value())
             )
         )
+
         ClickEvent.Action.RUN_COMMAND -> NbtCompound(
             mapOf(
                 "action" to NbtString("run_command"),
                 "command" to NbtString(this@toKnbt.value())
             )
         )
+
         ClickEvent.Action.SUGGEST_COMMAND -> NbtCompound(
             mapOf(
                 "action" to NbtString("suggest_command"),
                 "command" to NbtString(this@toKnbt.value())
             )
         )
+
         ClickEvent.Action.CHANGE_PAGE -> NbtCompound(
             mapOf(
                 "action" to NbtString("change_page"),
                 "page" to NbtInt(this@toKnbt.value().toInt())
             )
         )
+
         ClickEvent.Action.COPY_TO_CLIPBOARD -> NbtCompound(
             mapOf(
                 "action" to NbtString("copy_to_clipboard"),
                 "value" to NbtString(this@toKnbt.value())
             )
         )
+
+        else -> null
     }
 }
 
 /*
 
-fun String.toNBT(): NbtString {
-    return NbtString(this)
-}
-
-fun Boolean.toNBT(): NBTByte {
-    return NBTByte(this)
-}
-
-fun Float.toNBT(): NBTFloat {
-    return NBTFloat(this)
-}
-
-fun Double.toNBT(): NBTDouble {
-    return NBTDouble(this)
-}
-
-fun Byte.toNBT(): NBTByte {
-    return NBTByte(this)
-}
-
-fun Short.toNBT(): NBTShort {
-    return NBTShort(this)
-}
-
-fun Int.toNBT(): NbtInt {
-    return NbtInt(this)
-}
-
-fun Long.toNBT(): NBTLong {
-    return NBTLong(this)
-}
-
-fun Key.toNBT(): NbtString {
-    return NbtString(this.asString())
-}
-
-fun Component.toNBT(): NbtCompound {
-    val compound = NbtCompound()
-    if (this is TextComponent) {
-        compound.setTag("type", NbtString("text"))
-        compound.setTag("text", NbtString(this.content()))
-    } else if (this is TranslatableComponent) {
-        compound.setTag("type", NbtString("translatable"))
-        compound.setTag("translate", NbtString(this.key()))
-        val fallback = this.fallback()
-        if (fallback != null) {
-            compound.setTag("fallback", NbtString(fallback))
-        }
-        val arguments = this.arguments()
-        if (arguments.isNotEmpty()) {
-            val list = NBTList(NBTType.COMPOUND)
-            for (argument in arguments) {
-                list.addTag(argument.asComponent().toNBT())
-            }
-            compound.setTag("with", list)
-        }
-    } else if (this is ScoreComponent) {
-        compound.setTag("type", NbtString("score"))
-        val score = NbtCompound()
-        score.setTag("name", NbtString(this.name()))
-        score.setTag("objective", NbtString(this.objective()))
-        compound.setTag("score", score)
-    } else if (this is SelectorComponent) {
-        compound.setTag("type", NbtString("selector"))
-        compound.setTag("selector", NbtString(this.pattern()))
-        val separator = this.separator()
-        if (separator != null) {
-            compound.setTag("separator", separator.toNBT())
-        }
-    } else if (this is KeybindComponent) {
-        compound.setTag("type", NbtString("keybind"))
-        compound.setTag("keybind", NbtString(this.keybind()))
-    } else if (this is NBTComponent<*, *>) {
-        compound.setTag("type", NbtString("nbt"))
-        compound.setTag("nbt", NbtString(this.nbtPath()))
-        compound.setTag("interpret", NBTByte(if (this.interpret()) 1 else 0))
-        val separator = this.separator()
-        if (separator != null) {
-            compound.setTag("separator", separator.toNBT())
-        }
-        when (this) {
-            is BlockNBTComponent -> {
-                compound.setTag("source", NbtString("block"))
-                compound.setTag("block", NbtString(this.pos().asString()))
-            }
-
-            is EntityNBTComponent -> {
-                compound.setTag("source", NbtString("entity"))
-                compound.setTag("entity", NbtString(this.selector()))
-            }
-
-            is StorageNBTComponent -> {
-                compound.setTag("source", NbtString("storage"))
-                compound.setTag("entity", NbtString(this.storage().asString()))
-            }
-        }
-    }
-
-    val children = this.children()
-    if (children.isNotEmpty()) {
-        val extra = NBTList(NBTType.COMPOUND)
-        for (child in children) {
-            extra.addTag(child.toNBT())
-        }
-        compound.setTag("extra", extra)
-    }
-
-    val color = this.color()
-    if (color != null) {
-        compound.setTag("color", NbtString(color.toString()))
-    }
-
-    val font = this.font()
-    if (font != null) {
-        compound.setTag("font", NbtString(font.asString()))
-    }
-
-    for ((deco, state) in this.decorations()) {
-        if (state != TextDecoration.State.NOT_SET) {
-            compound.setTag(deco.toString(), NBTByte(if (state == TextDecoration.State.TRUE) 1 else 0))
-        }
-    }
-
-    val shadow = this.shadowColor()
-    if (shadow != null) {
-        compound.setTag("shadow_color", NbtInt(shadow.value()))
-    }
-
-    val insertion = this.insertion()
-    if (insertion != null) {
-        compound.setTag("insertion", NbtString(insertion))
-    }
-
-    val clickEvent = this.clickEvent()
-    if (clickEvent != null) {
-        compound.setTag("click_event", clickEvent.toNBT())
-    }
-
-    val hoverEvent = this.hoverEvent().toNBT()
-    if (hoverEvent != null) {
-        compound.setTag("hover_event", hoverEvent)
-    }
-
-    return compound
-}
-
-fun HoverEvent<*>?.toNBT(): NbtCompound? {
-    if (this != null) {
-        return if (this.action() == HoverEvent.Action.SHOW_ITEM) {
-            NbtCompound().apply {
-                this.setTag("action", NbtString("show_text"))
-                this.setTag("value", (this@toNBT.value() as Component).toNBT())
-            }
-        } else if (this.action() == HoverEvent.Action.SHOW_ITEM) {
-            NbtCompound().apply {
-                this.setTag("action", NbtString("show_item"))
-                val showItem = this@toNBT.value() as HoverEvent.ShowItem
-                this.setTag("id", NbtString(showItem.item().asString()))
-                if (showItem.count() > 0) {
-                    this.setTag("count", NbtInt(showItem.count()))
-                }
-                val components = showItem.dataComponents()
-                if (components.isNotEmpty()) {
-                    // TODO
-                }
-            }
-        } else if (this.action() == HoverEvent.Action.SHOW_ENTITY) {
-            NbtCompound().apply {
-                this.setTag("action", NbtString("show_entity"))
-                val showEntity = this@toNBT.value() as HoverEvent.ShowEntity
-                this.setTag("id", NbtString(showEntity.type().asString()))
-
-                val name = showEntity.name()
-                if (name != null) {
-                    this.setTag("name", name.toNBT())
-                }
-
-                this.setTag("uuid", NbtString(showEntity.id().toString()))
-            }
-        } else {
-            null
-        }
-    } else {
+fun ClickEvent?.toKnbt(): NbtCompound? {
+    if (this == null) {
         return null
     }
-}
-
-fun ClickEvent.toNBT(): NbtCompound {
+    val payload = this.payload()
     return when (this.action()) {
-        ClickEvent.Action.OPEN_URL -> NbtCompound().apply {
-            this.setTag("action", NbtString("open_url"))
-            this.setTag("url", NbtString(this@toNBT.value()))
-        }
-        ClickEvent.Action.OPEN_FILE -> NbtCompound().apply {
-            this.setTag("action", NbtString("open_file"))
-            this.setTag("path", NbtString(this@toNBT.value()))
-        }
-        ClickEvent.Action.RUN_COMMAND -> NbtCompound().apply {
-            this.setTag("action", NbtString("run_command"))
-            this.setTag("command", NbtString(this@toNBT.value()))
-        }
-        ClickEvent.Action.SUGGEST_COMMAND -> NbtCompound().apply {
-            this.setTag("action", NbtString("suggest_command"))
-            this.setTag("command", NbtString(this@toNBT.value()))
-        }
-        ClickEvent.Action.CHANGE_PAGE -> NbtCompound().apply {
-            this.setTag("action", NbtString("change_page"))
-            this.setTag("page", NbtInt(this@toNBT.value().toInt()))
-        }
-        ClickEvent.Action.COPY_TO_CLIPBOARD -> NbtCompound().apply {
-            this.setTag("action", NbtString("copy_to_clipboard"))
-            this.setTag("value", NbtString(this@toNBT.value()))
+        ClickEvent.Action.OPEN_URL -> NbtCompound(
+            mapOf(
+                "action" to NbtString("open_url"),
+                "url" to NbtString((payload as ClickEvent.Payload.Text).value())
+            )
+        )
+
+        ClickEvent.Action.OPEN_FILE -> NbtCompound(
+            mapOf(
+                "action" to NbtString("open_file"),
+                "path" to NbtString((payload as ClickEvent.Payload.Text).value())
+            )
+        )
+
+        ClickEvent.Action.RUN_COMMAND -> NbtCompound(
+            mapOf(
+                "action" to NbtString("run_command"),
+                "command" to NbtString((payload as ClickEvent.Payload.Text).value())
+            )
+        )
+
+        ClickEvent.Action.SUGGEST_COMMAND -> NbtCompound(
+            mapOf(
+                "action" to NbtString("suggest_command"),
+                "command" to NbtString((payload as ClickEvent.Payload.Text).value())
+            )
+        )
+
+        ClickEvent.Action.CHANGE_PAGE -> NbtCompound(
+            mapOf(
+                "action" to NbtString("change_page"),
+                "page" to NbtInt((payload as ClickEvent.Payload.Int).integer())
+            )
+        )
+
+        ClickEvent.Action.COPY_TO_CLIPBOARD -> NbtCompound(
+            mapOf(
+                "action" to NbtString("copy_to_clipboard"),
+                "value" to NbtString((payload as ClickEvent.Payload.Text).value())
+            )
+        )
+
+        ClickEvent.Action.SHOW_DIALOG ->
+            if ((payload as ClickEvent.Payload.Dialog).dialog() is Dialog)
+                NbtCompound(
+                    mapOf(
+                        "action" to NbtString("show_dialog"),
+                        "dialog" to NbtString((payload.dialog() as Dialog).toJson())
+                    )
+                )
+            else
+                null
+        ClickEvent.Action.CUSTOM -> compound {
+            "action" to "custom"
+            "id" to (payload as ClickEvent.Payload.Custom).key().asString()
+            "payload" to payload.nbt().string()
         }
     }
-}
-
-fun NbtTag.toPacketEvents(): NBT? {
-    if (this is NbtCompound) {
-        val compound = NbtCompound()
-        for ((key, tag) in this.entries) {
-            val converted = tag.toPacketEvents()
-            if (converted == null) {
-                continue
-            }
-            compound.setTag(key, converted)
-        }
-        return compound
-    } else if (this is NbtList<*>) {
-        if (!this.isEmpty()) { // if empty, there is no need to add an empty list
-            return internalToPacketEventsList(this, this[0].toPacketEvents()!!.type)
-        }
-        return null
-    } else if (this is NbtByte) {
-        return NBTByte(this.value)
-    } else if (this is NbtShort) {
-        return NBTShort(this.value)
-    } else if (this is NbtInt) {
-        return NbtInt(this.value)
-    } else if (this is NbtLong) {
-        return NBTLong(this.value)
-    } else if (this is NbtFloat) {
-        return NBTFloat(this.value)
-    } else if (this is NbtDouble) {
-        return NBTDouble(this.value)
-    } else if (this is NbtString) {
-        return NbtString(this.value)
-    } else if (this is NbtByteArray) {
-        val bytes = mutableListOf<Byte>()
-        for (byte in this) {
-            bytes.add(byte.toByte())
-        }
-        return NBTByteArray(bytes.toByteArray())
-    } else if (this is NbtIntArray) {
-        val integers = mutableListOf<Int>()
-        for (integer in this) {
-            integers.add(integer)
-        }
-        return NbtIntArray(integers.toIntArray())
-    } else if (this is NbtLongArray) {
-        val longs = mutableListOf<Long>()
-        for (long in this) {
-            longs.add(long)
-        }
-        return NBTLongArray(longs.toLongArray())
-    } else {
-        return NBTEnd.INSTANCE
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-internal fun <T: NBT> internalToPacketEventsList(nbtList: NbtList<*>, nbtType: NBTType<T>): NBTList<T> {
-    val list = NBTList(nbtType)
-    for (tag in nbtList) {
-        val converted = tag.toPacketEvents()
-        if (converted == null) {
-            continue
-        }
-        list.addTag(tag.toPacketEvents() as T)
-    }
-    return list
-}
-
-*/
+}*/

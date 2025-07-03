@@ -6,7 +6,7 @@ dependencies {
     compileOnly(libs.velocity.api)
     compileOnly(libs.velocity.proxy)
 
-    // compileOnly(libs.packetevents)
+    compileOnly(files("./libs/VPacketEvents-1.1.0.jar"))
     compileOnly(libs.netty)
 
     implementation(libs.kotlinx.coroutines)

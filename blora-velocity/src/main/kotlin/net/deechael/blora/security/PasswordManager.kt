@@ -28,8 +28,16 @@ object PasswordManager {
                 }
             )
         }
+        if (BloraPlugin.configuration.security.weakPasswords.map { it.lowercase() }.contains(password.lowercase())) {
+            return PasswordStrategyResult.Failure(
+                component {
+                    mini(BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureInWeakPasswordDict)
+                }
+            )
+        }
         if (password.length < BloraPlugin.configuration.security.minPasswordLength ||
-            password.length > BloraPlugin.configuration.security.maxPasswordLength) {
+            password.length > BloraPlugin.configuration.security.maxPasswordLength
+        ) {
             return PasswordStrategyResult.Failure(
                 component {
                     mini(BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureLengthNotSecure) {

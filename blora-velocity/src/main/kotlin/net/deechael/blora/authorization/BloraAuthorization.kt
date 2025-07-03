@@ -3,9 +3,7 @@ package net.deechael.blora.authorization
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.velocitypowered.api.proxy.Player
 import net.deechael.blora.BloraPlugin
-import java.util.UUID
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
+import java.util.*
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
@@ -39,6 +37,7 @@ object BloraAuthorization {
                 this.ips[player.remoteAddress.address.hostAddress] = mutableListOf()
             }
             this.ips[player.remoteAddress.address.hostAddress]!!.add(player)
+            this.playerIps[player] = player.remoteAddress.address.hostAddress
         }
         if (BloraPlugin.configuration.security.sameIpAutoLogin) {
             val session = this.cachePool.getIfPresent(player.uniqueId)
@@ -54,11 +53,13 @@ object BloraAuthorization {
         passwordRetries.remove(player)
         if (this.status.containsKey(player) && this.status[player] == true) {
             // only add player to cache pool when they logged in
-            this.cachePool.put(player.uniqueId, LoginSession(
-                player.uniqueId,
-                this.playerIps[player]!!,
-                System.currentTimeMillis()
-            ))
+            this.cachePool.put(
+                player.uniqueId, LoginSession(
+                    player.uniqueId,
+                    this.playerIps[player]!!,
+                    System.currentTimeMillis()
+                )
+            )
         }
         val status = this.status[player]
         this.status.remove(player)

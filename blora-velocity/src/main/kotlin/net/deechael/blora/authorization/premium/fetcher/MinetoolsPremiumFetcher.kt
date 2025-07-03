@@ -20,11 +20,11 @@ class MinetoolsPremiumFetcher : AbstractPremiumFetcher() {
 
                 var rawId = data["id"]
                 if (rawId == null || rawId.isJsonNull) {
-                    var error = data.get("error");
+                    var error = data.get("error")
                     if (error == null) {
-                        return FetchResult.NotExists;
+                        return FetchResult.NotExists
                     }
-                    var errorMessage = error.asString;
+                    var errorMessage = error.asString
                     return if (errorMessage.equals("Invalid UUID or nickname.")) {
                         FetchResult.InvalidInput
                     } else {
@@ -43,6 +43,7 @@ class MinetoolsPremiumFetcher : AbstractPremiumFetcher() {
                     )
                 }
             }
+
             400 -> FetchResult.NotExists
             else -> FetchResult.ServerError
         }

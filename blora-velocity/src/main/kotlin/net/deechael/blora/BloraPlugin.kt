@@ -5,6 +5,7 @@ import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
+import com.velocitypowered.api.network.ProtocolVersion
 import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
@@ -12,13 +13,17 @@ import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.server.RegisteredServer
 import com.velocitypowered.proxy.connection.client.ConnectedPlayer
+import com.velocitypowered.proxy.protocol.ProtocolUtils
+import com.velocitypowered.proxy.protocol.StateRegistry
+import io.github._4drian3d.vpacketevents.api.register.PacketRegistration
 import net.deechael.blora.authorization.BloraAuthorization
 import net.deechael.blora.config.BloraConfiguration
 import net.deechael.blora.config.ConfigurationContents
 import net.deechael.blora.database.BloraDatabase
 import net.deechael.blora.dialog.asPacket
-import net.deechael.blora.dialog.builtin.eulaDialog
+import net.deechael.blora.dialog.builtin.testDialog
 import net.deechael.blora.listener.BasicListener
+import net.deechael.blora.protocol.packet.CustomClickAction
 import net.deechael.blora.security.PasswordManager
 import net.deechael.blora.security.strategy.CharIncludeStrategy
 import net.deechael.blora.security.strategy.NoConsecutiveStrategy
@@ -36,7 +41,7 @@ import java.nio.file.Path
     authors = ["DeeChael"],
     dependencies = [
         Dependency(id = "luckperms", optional = true),
-        // Dependency(id = "packetevents", optional = false)
+        Dependency(id = "vpacketevents", optional = false)
     ]
 )
 class BloraPlugin @Inject constructor(
@@ -95,6 +100,7 @@ class BloraPlugin @Inject constructor(
 
     @Subscribe
     fun onInitialize(event: ProxyInitializeEvent) {
+        this.registerPackets()
         this.initPasswordStrategies()
 
         // this.server.eventManager.register(this, UnauthorizedListener)
@@ -109,13 +115,11 @@ class BloraPlugin @Inject constructor(
                 BrigadierCommand.literalArgumentBuilder("blora_velocity_test")
                     .requires { true }
                     .executes {
-                        println(it.source)
-                        println(it.source.javaClass)
                         if (it.source is Player) {
                             it.source.send {
                                 text { "wo cao ni ma!" }
                             }
-                            (it.source as ConnectedPlayer).connection.channel.writeAndFlush(eulaDialog().asPacket())
+                            (it.source as ConnectedPlayer).connection.channel.writeAndFlush(testDialog().asPacket())
                             //PacketEvents.getAPI().playerManager.sendPacket(it.source, eulaDialog().asPacketEventsPacket())
                         }
                         return@executes 1
@@ -129,6 +133,17 @@ class BloraPlugin @Inject constructor(
         BloraAuthorization.clearAll()
     }
 
+    private fun registerPackets() {
+        PacketRegistration.of(CustomClickAction::class.java)
+            .direction(ProtocolUtils.Direction.SERVERBOUND)
+            .packetSupplier {
+                CustomClickAction()
+            }
+            .stateRegistry(StateRegistry.PLAY)
+            .mapping(0x41, ProtocolVersion.MINECRAFT_1_21_6, false)
+            .register()
+    }
+
     private fun initPasswordStrategies() {
         PasswordManager.registerStrategy("noUsername", NoUsernameStrategy)
         PasswordManager.registerStrategy("noDuplicated", NoDuplicatedStrategy)
@@ -138,7 +153,11 @@ class BloraPlugin @Inject constructor(
 
     companion object {
 
-        private lateinit var instance: BloraPlugin
+        lateinit var instance: BloraPlugin
+            private set
+
+        val log: Logger
+            get() = instance.logger
 
         val proxyServer: ProxyServer
             get() = instance.server
@@ -157,9 +176,6 @@ class BloraPlugin @Inject constructor(
 
         val lobbyServer: RegisteredServer
             get() = instance.lobbyServer
-
-        val dataFolder: Path
-            get() = instance.dataDirectory
 
     }
 

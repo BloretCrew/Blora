@@ -49,21 +49,13 @@ data class MultiActionDialog(
             if (inputs != null && inputs.isNotEmpty()) {
                 "inputs" eq NbtList(inputs.map { it.toNBT() })
             }
-            if (!canCloseWithEscape) {
-                "can_close_with_escape" eq false
-            }
-            if (!pause) {
-                "pause" eq false
-            }
-            if (afterAction != AfterAction.CLOSE) {
-                "after_action" eq afterAction.toNBT()
-            }
+            "can_close_with_escape" eq canCloseWithEscape
+            "pause" eq pause
+            "after_action" eq afterAction.toNBT()
             if (exitAction != null) {
                 "exit_action" eq exitAction.toNBT()
             }
-            if (columns != 2) {
-                "columns" eq columns
-            }
+            "columns" eq columns
         }
     }
 

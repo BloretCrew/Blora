@@ -8,7 +8,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtList
-import net.benwoodworth.knbt.buildNbtCompound
 import net.deechael.blora.converter.toKnbt
 import net.deechael.blora.dialog.action.ClickAction
 import net.deechael.blora.dialog.body.DialogBody
@@ -43,7 +42,6 @@ data class ConfirmationDialog(
 ) : Dialog() {
 
     override fun toNBT(): NbtCompound {
-        buildNbtCompound {  }
         return compound {
             "type" eq "minecraft:confirmation"
             "title" eq title.toKnbt()
@@ -56,22 +54,11 @@ data class ConfirmationDialog(
             if (inputs != null && inputs.isNotEmpty()) {
                 "inputs" eq NbtList(inputs.map { it.toNBT() })
             }
-            if (!canCloseWithEscape) {
-                "can_close_with_escape" eq false
-            }
-            if (!pause) {
-                "pause" eq false
-            }
-            if (afterAction != AfterAction.CLOSE) {
-                "after_action" eq afterAction.toNBT()
-            }
-            if (yes != defaultYes) {
-                "yes" eq yes.toNBT()
-            }
-            if (no != defaultNo) {
-                "no" eq no.toNBT()
-            }
-
+            "can_close_with_escape" eq canCloseWithEscape
+            "pause" eq pause
+            "after_action" eq afterAction.toNBT()
+            "yes" eq yes.toNBT()
+            "no" eq no.toNBT()
         }
     }
 

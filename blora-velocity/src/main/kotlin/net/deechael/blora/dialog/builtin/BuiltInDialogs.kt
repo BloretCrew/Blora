@@ -5,13 +5,69 @@ import net.deechael.blora.dialog.ConfirmationDialog
 import net.deechael.blora.dialog.Dialog
 import net.deechael.blora.dialog.NoticeDialog
 import net.deechael.blora.dialog.action.ClickAction
+import net.deechael.blora.dialog.action.CustomClickType
+import net.deechael.blora.dialog.action.DynamicCustomClickType
 import net.deechael.blora.dialog.body.PlainMessageDialogBody
-import net.deechael.blora.dialog.input.Multiline
-import net.deechael.blora.dialog.input.TextInputControl
+import net.deechael.blora.dialog.input.*
 import net.kyori.adventure.text.Component
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.raw
 import plutoproject.adventurekt.text.text
+
+fun testDialog(): Dialog {
+    return NoticeDialog(
+        title = component {
+            text { "测试" }
+        },
+        inputs = listOf(
+            TextInputControl(
+                key = "text_input",
+                label = component {
+                    text { "text" }
+                }
+            ),
+            NumberRangeInputControl(
+                key = "number_input",
+                label = component {
+                    text { "number range" }
+                },
+                start = 0.0f,
+                end = 10.0f
+            ),
+            BooleanInputControl(
+                key = "boolean_input",
+                label = component {
+                    text { "boolean" }
+                }
+            ),
+            SingleOptionInputControl(
+                key = "single_option_input",
+                label = component {
+                    text { "single option" }
+                },
+                options = listOf(
+                    InputControlOption(
+                        id = "option1",
+                    ),
+                    InputControlOption(
+                        id = "option2",
+                    ),
+                    InputControlOption(
+                        id = "option3",
+                    )
+                )
+            )
+        ),
+        action = ClickAction(
+            label = component {
+                text { "do it" }
+            },
+            action = DynamicCustomClickType(
+                id = "blora_test",
+            )
+        )
+    )
+}
 
 fun loginDialog(warningMessages: Component? = null): Dialog {
     return NoticeDialog(
@@ -29,9 +85,11 @@ fun loginDialog(warningMessages: Component? = null): Dialog {
         } else {
             null
         },
+        canCloseWithEscape = false,
+        pause = false,
         inputs = listOf(
             TextInputControl(
-                key = "password",
+                key = "blora_password",
                 label = component {
                     text { "密码" }
                 },
@@ -64,9 +122,11 @@ fun registerDialog(warningMessages: Component? = null): Dialog {
         } else {
             null
         },
+        canCloseWithEscape = false,
+        pause = false,
         inputs = listOf(
             TextInputControl(
-                key = "password",
+                key = "blora_password",
                 label = component {
                     text { "密码" }
                 },
@@ -75,7 +135,7 @@ fun registerDialog(warningMessages: Component? = null): Dialog {
                 )
             ),
             TextInputControl(
-                key = "confirm_password",
+                key = "blora_confirm_password",
                 label = component {
                     text { "确认密码" }
                 },
@@ -97,6 +157,8 @@ fun eulaDialog(): Dialog {
         title = component {
             text { "百络谷玩家守则" }
         },
+        canCloseWithEscape = false,
+        pause = false,
         body = listOf(
             PlainMessageDialogBody(
                 contents = component {
@@ -166,22 +228,27 @@ fun eulaDialog(): Dialog {
                 }
             )
         ),
-        // swap no and yes button to adjust human habit
-        no = ClickAction(
+        yes = ClickAction(
             label = component {
                 text { "同意" }
             },
             tooltip = component {
                 text { "同意后可以正常进入百络谷游玩" }
-            }
+            },
+            action = CustomClickType(
+                id = "blora_eula_accept"
+            )
         ),
-        yes = ClickAction(
+        no = ClickAction(
             label = component {
                 text { "不同意" }
             },
             tooltip = component {
                 text { "不同意将无法进入服务器，被服务器踢出" }
-            }
+            },
+            action = CustomClickType(
+                id = "blora_eula_reject"
+            )
         )
     )
 }

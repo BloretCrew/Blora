@@ -51,6 +51,7 @@ data class TextInputControl(
     override fun toNBT(): NbtCompound {
         return compound {
             "type" eq "minecraft:text"
+            "key" eq key
             "label" eq label.toKnbt()
             if (width != 200) {
                 "width" eq width

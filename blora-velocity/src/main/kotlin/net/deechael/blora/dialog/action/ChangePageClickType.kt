@@ -6,7 +6,7 @@ import net.benwoodworth.knbt.NbtInt
 import net.benwoodworth.knbt.NbtString
 
 @Serializable
-data class ChangePageCommandClickType(
+data class ChangePageClickType(
     val page: Int,
     val type: String = "change_page"
 ) : ClickType() {

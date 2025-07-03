@@ -6,9 +6,8 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import net.benwoodworth.knbt.NbtCompound
-import net.benwoodworth.knbt.NbtInt
-import net.benwoodworth.knbt.NbtTag
 import net.deechael.blora.converter.toKnbt
+import net.deechael.blora.serialization.nbt.compound
 import net.kyori.adventure.text.Component
 
 @Serializable
@@ -22,23 +21,16 @@ data class ClickAction(
 ) {
 
     fun toNBT(): NbtCompound {
-        return NbtCompound(
-            mapOf<String, NbtTag>(
-                "label" to this.label.toKnbt()
-            ).let { map ->
-                val mutable = map.toMutableMap()
-                if (this.tooltip != null) {
-                    mutable["tooltip"] = this.tooltip.toKnbt()
-                }
-                if (this.width != 150) { // because 150 is default value, not set to reduce size if same as default
-                    mutable["width"] = NbtInt(this.width)
-                }
-                if (action != null) {
-                    mutable["action"] = action.toNBT()
-                }
-                mutable.toMap()
+        return compound {
+            "label" eq label.toKnbt()
+            if (tooltip != null) {
+                "tooltip" eq tooltip.toKnbt()
             }
-        )
+            "width" eq width
+            if (action != null) {
+                "action" eq action.toNBT()
+            }
+        }
     }
 
 }

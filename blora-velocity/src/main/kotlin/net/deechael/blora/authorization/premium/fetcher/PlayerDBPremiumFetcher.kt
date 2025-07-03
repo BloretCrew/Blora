@@ -4,7 +4,7 @@ import com.google.gson.JsonParser
 import net.deechael.blora.authorization.premium.PremiumPlayer
 import net.deechael.blora.authorization.premium.fetcher.PremiumFetcher.FetchResult
 import java.io.InputStreamReader
-import java.util.UUID
+import java.util.*
 import kotlin.uuid.ExperimentalUuidApi
 
 class PlayerDBPremiumFetcher : AbstractPremiumFetcher() {
@@ -28,6 +28,7 @@ class PlayerDBPremiumFetcher : AbstractPremiumFetcher() {
                     )
                 )
             }
+
             400 -> FetchResult.NotExists
             else -> FetchResult.ServerError
         }

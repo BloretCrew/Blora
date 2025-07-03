@@ -9,7 +9,9 @@ interface PremiumFetcher {
     sealed interface FetchResult {
         object ServerError : FetchResult
         object InvalidInput : FetchResult
-        object RateLimit : FetchResult // only appears when using mojang as mojang will always be the latest one be triggered
+        object RateLimit :
+            FetchResult // only appears when using mojang as mojang will always be the latest one be triggered
+
         object NotExists : FetchResult
         class Exists(val player: PremiumPlayer) : FetchResult
     }

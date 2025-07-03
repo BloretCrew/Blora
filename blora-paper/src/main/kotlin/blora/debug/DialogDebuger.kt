@@ -16,6 +16,9 @@ import net.minecraft.core.Holder
 import net.minecraft.network.chat.Component
 import net.minecraft.network.protocol.common.ClientboundShowDialogPacket
 import net.minecraft.server.dialog.*
+import net.minecraft.server.dialog.body.ItemBody
+import net.minecraft.server.dialog.body.PlainMessage
+import net.minecraft.server.dialog.input.TextInput
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import java.io.File
 import java.util.*
@@ -48,8 +51,34 @@ object DialogDebuger {
                             false,
                             false,
                             DialogAction.CLOSE,
-                            listOf(),
-                            listOf()
+                            listOf(
+                                PlainMessage(
+                                    Component.literal("test"),
+                                    150
+                                ),
+                                PlainMessage(
+                                    Component.literal("test2"),
+                                    150
+                                )
+                            ),
+                            listOf(
+                                Input(
+                                    "test",
+                                    TextInput(
+                                        150,
+                                        Component.literal("test"),
+                                        true,
+                                        "aaa",
+                                        150,
+                                        Optional.of(
+                                            TextInput.MultilineOptions(
+                                                Optional.of(100),
+                                                Optional.of(200)
+                                            )
+                                        )
+                                    )
+                                )
+                            )
                         ),
                         ActionButton(
                             CommonButtonData(

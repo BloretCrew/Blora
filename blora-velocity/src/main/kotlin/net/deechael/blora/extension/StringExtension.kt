@@ -2,6 +2,30 @@ package net.deechael.blora.extension
 
 val PASSWORD_CHARS = "!@#$%^&*()_+-={}[]:;,.<>/?\\|"
 
+fun Appendable.appendNbtString(value: String, forceQuote: Boolean = false): Appendable {
+    fun Appendable.appendQuoted(): Appendable = apply {
+        append('"')
+        value.forEach {
+            if (it == '"') append("\\\"") else append(it)
+        }
+        append('"')
+    }
+
+    fun Char.isSafeCharacter(): Boolean = when (this) {
+        '-', '_', in 'a'..'z', in 'A'..'Z', in '0'..'9' -> true
+        else -> false
+    }
+
+    return when {
+        forceQuote -> appendQuoted()
+        value.isEmpty() -> append("\"\"")
+        value.all { it.isSafeCharacter() } -> append(value)
+        !value.contains('"') -> append('"').append(value).append('"')
+        !value.contains('\'') -> append('\'').append(value).append('\'')
+        else -> appendQuoted()
+    }
+}
+
 fun String.hasRepeatedCharRegex(n: Int): Boolean {
     if (n <= 1)
         return false
@@ -43,6 +67,7 @@ fun String.containsSymbol(): Boolean {
     }
     return false
 }
+
 fun String.hasConsecutiveSequence(minimum: Int = 3): Boolean {
     if (minimum < 3)
         return false
@@ -54,7 +79,8 @@ fun String.hasConsecutiveSequence(minimum: Int = 3): Boolean {
         if (!valid) continue
 
         if ((i + 3 < this.length) &&
-            (1..3).all { j -> isSameType(type, this[i + j]) }) {
+            (1..3).all { j -> isSameType(type, this[i + j]) }
+        ) {
 
             val asc = this[i] + 1 == this[i + 1] &&
                     this[i + 1] + 1 == this[i + 2] &&

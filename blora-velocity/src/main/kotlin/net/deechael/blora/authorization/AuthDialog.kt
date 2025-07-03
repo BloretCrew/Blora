@@ -2,10 +2,12 @@ package net.deechael.blora.authorization
 
 import com.velocitypowered.api.proxy.Player
 import net.deechael.blora.BloraPlugin
+import net.deechael.blora.dialog.asPacket
 import net.deechael.blora.dialog.builtin.eulaDialog
 import net.deechael.blora.dialog.builtin.loginDialog
 import net.deechael.blora.dialog.builtin.registerDialog
 import net.deechael.blora.extension.notNull
+import net.deechael.blora.extension.sendPacket
 import net.deechael.blora.security.PasswordHasher
 import net.deechael.blora.security.PasswordManager
 import net.deechael.blora.security.strategy.PasswordStrategyResult
@@ -16,7 +18,13 @@ import plutoproject.adventurekt.text.mini
 object AuthDialog {
 
     fun autoShowLoginDialog(player: Player) {
-        if (player.isOnlineMode && BloraPlugin.configuration.security.allowOnlinePlayerAutoLogin) {
+        if (player.isOnlineMode || BloraAuthorization.isAuthorized(player)) {
+            val currentServer = player.currentServer
+            if (currentServer.isPresent) {
+                if (currentServer.get().server.serverInfo.name != BloraPlugin.limboServer.serverInfo.name) {
+                    return
+                }
+            }
             BloraPlugin.database.getPlayerByName(player.username).notNull {
                 player.createConnectionRequest(
                     BloraPlugin.proxyServer
@@ -34,29 +42,26 @@ object AuthDialog {
         }
     }
 
-    fun showEulaDialog(player: Player, then: (player: Player) -> Unit) {
-        val dialog = eulaDialog()
-        // TODO: send dialog
+    fun showEulaDialog(player: Player) {
+        player.sendPacket(eulaDialog().asPacket())
     }
 
     fun showLoginDialog(player: Player, warningMessage: Component? = null) {
-        val dialog = loginDialog(warningMessage)
-        // TODO: send dialog
+        player.sendPacket(loginDialog(warningMessage).asPacket())
     }
 
     fun showRegisterDialog(player: Player, warningMessage: Component? = null) {
-        val dialog = registerDialog(warningMessage)
-        // TODO: send dialog
+        player.sendPacket(registerDialog(warningMessage).asPacket())
     }
 
-    fun eulaDialogCallback(player: Player, accepted: Boolean, then: (Player) -> Unit) {
+    fun eulaDialogCallback(player: Player, accepted: Boolean) {
         if (accepted) {
             val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
             BloraPlugin.database.trans {
                 databasePlayer.eulaAccepted = true
                 databasePlayer.flush()
             }
-            then(player)
+            autoShowLoginDialog(player)
         } else {
             player.disconnect(component {
                 mini(BloraPlugin.configuration.messages.ingameKickNotAcceptEULA)

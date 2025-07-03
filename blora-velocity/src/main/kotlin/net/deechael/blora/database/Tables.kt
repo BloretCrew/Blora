@@ -4,9 +4,9 @@ import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.javatime.date
-import java.time.LocalDate
-import java.util.UUID
+import org.jetbrains.exposed.sql.javatime.datetime
+import java.time.LocalDateTime
+import java.util.*
 
 object PlayerTable : IntIdTable("blora_players") {
 
@@ -16,8 +16,8 @@ object PlayerTable : IntIdTable("blora_players") {
     val hashedPassword1 = text("hashed_password_1")
     val hashedPassword2 = text("hashed_password_2")
     val hashedPassword3 = text("hashed_password_3")
-    val firstJoin = date("first_join")
-    val lastJoin = date("last_join")
+    val firstJoin = datetime("first_join")
+    val lastJoin = datetime("last_join")
     val firstIp = text("first_ip")
     val lastIp = text("last_ip")
     val lastServer = text("last_server")
@@ -37,8 +37,8 @@ class BloraPlayer(id: EntityID<Int>) : IntEntity(id) {
     var hashedPassword1: String by PlayerTable.hashedPassword1
     var hashedPassword2: String by PlayerTable.hashedPassword2
     var hashedPassword3: String by PlayerTable.hashedPassword3
-    var firstJoin: LocalDate by PlayerTable.firstJoin
-    var lastJoin: LocalDate by PlayerTable.lastJoin
+    var firstJoin: LocalDateTime by PlayerTable.firstJoin
+    var lastJoin: LocalDateTime by PlayerTable.lastJoin
     var firstIp: String by PlayerTable.firstIp
     var lastIp: String by PlayerTable.lastIp
     var lastServer: String by PlayerTable.lastServer

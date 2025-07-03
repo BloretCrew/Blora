@@ -4,7 +4,6 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.command.CommandExecuteEvent
 import com.velocitypowered.api.event.player.PlayerChatEvent
 import com.velocitypowered.api.proxy.Player
-import net.deechael.blora.BloraPlugin
 import net.deechael.blora.authorization.BloraAuthorization
 
 object UnauthorizedListener {

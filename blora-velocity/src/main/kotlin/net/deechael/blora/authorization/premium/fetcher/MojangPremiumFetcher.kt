@@ -28,6 +28,7 @@ class MojangPremiumFetcher : AbstractPremiumFetcher() {
                     )
                 }
             }
+
             204, 404 -> FetchResult.NotExists
             else -> FetchResult.RateLimit
         }

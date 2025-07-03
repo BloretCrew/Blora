@@ -39,7 +39,7 @@ data class NoticeDialog(
 
     override fun toNBT(): NbtCompound {
         return compound {
-            "type" eq "minecraft:confirmation"
+            "type" eq "minecraft:notice"
             "title" eq title.toKnbt()
             if (externalTitle != null) {
                 "external_title" eq externalTitle.toKnbt()
@@ -50,17 +50,11 @@ data class NoticeDialog(
             if (inputs != null && inputs.isNotEmpty()) {
                 "inputs" eq NbtList(inputs.map { it.toNBT() })
             }
-            if (!canCloseWithEscape) {
-                "can_close_with_escape" eq false
-            }
-            if (!pause) {
-                "pause" eq false
-            }
-            if (afterAction != AfterAction.CLOSE) {
-                "after_action" eq afterAction.toNBT()
-            }
+            "can_close_with_escape" eq canCloseWithEscape
+            "pause" eq pause
+            "after_action" eq afterAction.toNBT()
             if (action != defaultAction) {
-                "yes" eq action.toNBT()
+                "action" eq action.toNBT()
             }
 
         }

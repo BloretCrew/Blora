@@ -1,6 +1,6 @@
 package net.deechael.blora.authorization.premium
 
-import java.util.UUID
+import java.util.*
 
 data class PremiumPlayer(
     val uuid: UUID,

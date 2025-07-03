@@ -1,6 +1,6 @@
 package net.deechael.blora.authorization
 
-import java.util.UUID
+import java.util.*
 
 data class LoginSession(
     val uuid: UUID,

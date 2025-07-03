@@ -26,7 +26,8 @@ object PremiumAuthorizer {
     // Exists and NotExists are easily understand
     // Server Error for reach the callback fetcher, still cannot fetch valid data (even not exists should have a valid data)
     fun fetchUserByName(username: String): PremiumFetcher.FetchResult {
-        for (fetcher in fetchers.toMutableList().apply { this.add(this@PremiumAuthorizer.fallback) /* add fallback fetcher at the last fetcher*/ }) {
+        for (fetcher in fetchers.toMutableList()
+            .apply { this.add(this@PremiumAuthorizer.fallback) /* add fallback fetcher at the last fetcher*/ }) {
             val result = fetcher.fetchPlayer(username)
             return when (result) {
                 is PremiumFetcher.FetchResult.Exists ->
