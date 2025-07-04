@@ -22,7 +22,15 @@ object AuthorizationFunctions {
         val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
 
         fun enable() {
-            player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+            val currentServer = player.currentServer
+            if (currentServer != null) {
+                // to prevent showing "You have already connected to the server"
+                if (currentServer.get().serverInfo.name != BloraPlugin.lobbyServer.serverInfo.name) {
+                    player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+                }
+            } else {
+                player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+            }
         }
 
         fun disable() {
@@ -35,8 +43,6 @@ object AuthorizationFunctions {
                                 .getServer(databasePlayer.lastServer)
                                 .orElse(BloraPlugin.lobbyServer)
                         ).fireAndForget()
-                    } else {
-                        player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
                     }
                 } else {
                     player.createConnectionRequest(
