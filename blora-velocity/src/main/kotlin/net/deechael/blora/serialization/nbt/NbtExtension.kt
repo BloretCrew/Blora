@@ -58,78 +58,78 @@ fun ByteBuf.readNbtList(): NbtList<*>? {
         1 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtByte() }
-                .toList())
+                    .map { readNbtByte() }
+                    .toList())
         }
 
         2 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtShort() }
-                .toList())
+                    .map { readNbtShort() }
+                    .toList())
         }
 
         3 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtInt() }
-                .toList())
+                    .map { readNbtInt() }
+                    .toList())
         }
 
         4 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtLong() }
-                .toList())
+                    .map { readNbtLong() }
+                    .toList())
         }
 
         5 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtFloat() }
-                .toList())
+                    .map { readNbtFloat() }
+                    .toList())
         }
 
         6 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtDouble() }
-                .toList())
+                    .map { readNbtDouble() }
+                    .toList())
         }
 
         7 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtByteArray() }
-                .toList())
+                    .map { readNbtByteArray() }
+                    .toList())
         }
 
         8 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtString() }
-                .toList())
+                    .map { readNbtString() }
+                    .toList())
         }
 
         10 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtCompound() }
-                .toList())
+                    .map { readNbtCompound() }
+                    .toList())
         }
 
         11 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtIntArray() }
-                .toList())
+                    .map { readNbtIntArray() }
+                    .toList())
         }
 
         12 -> {
             NbtList(
                 (0 until size)
-                .map { readNbtLongArray() }
-                .toList())
+                    .map { readNbtLongArray() }
+                    .toList())
         }
 
         else -> {

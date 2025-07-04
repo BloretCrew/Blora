@@ -1,5 +1,7 @@
 package net.deechael.blora.database
 
+import net.deechael.blora.options.PLAYER_OPTIONS_JSON
+import net.deechael.blora.options.PlayerOptions
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -24,6 +26,7 @@ object PlayerTable : IntIdTable("blora_players") {
     val email = text("email").nullable()
     val autoLogin = bool("auto_login")
     val eulaAccepted = bool("eula_accepted")
+    val playerOptions = text("player_options")
 
 }
 
@@ -45,6 +48,12 @@ class BloraPlayer(id: EntityID<Int>) : IntEntity(id) {
     var email: String? by PlayerTable.email
     var autoLogin: Boolean by PlayerTable.autoLogin
     var eulaAccepted: Boolean by PlayerTable.eulaAccepted
+    var playerOptions: String by PlayerTable.playerOptions
+    var jsonOptions: PlayerOptions
+        get() = PLAYER_OPTIONS_JSON.decodeFromString(playerOptions)
+        set(value) {
+            playerOptions = PLAYER_OPTIONS_JSON.encodeToString(value)
+        }
 
     fun hashedPassword(): Triple<String, String, String> {
         return Triple(hashedPassword1, hashedPassword2, hashedPassword3)

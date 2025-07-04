@@ -8,6 +8,7 @@ import net.deechael.blora.dialog.builtin.loginDialog
 import net.deechael.blora.dialog.builtin.registerDialog
 import net.deechael.blora.extension.notNull
 import net.deechael.blora.extension.sendPacket
+import net.deechael.blora.options.OptionStatus
 import net.deechael.blora.security.PasswordHasher
 import net.deechael.blora.security.PasswordManager
 import net.deechael.blora.security.strategy.PasswordStrategyResult
@@ -15,23 +16,62 @@ import net.kyori.adventure.text.Component
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.mini
 
-object AuthDialog {
+object AuthorizationFunctions {
+
+    fun transferPlayerToSuitableServer(player: Player) {
+        val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
+
+        fun enable() {
+            player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+        }
+
+        fun disable() {
+            if (BloraAuthorization.isAuthorized(player)) {
+                val currentServer = player.currentServer
+                if (currentServer.isPresent) {
+                    if (currentServer.get().server.serverInfo.name != databasePlayer.lastServer) {
+                        player.createConnectionRequest(
+                            BloraPlugin.proxyServer
+                                .getServer(databasePlayer.lastServer)
+                                .orElse(BloraPlugin.lobbyServer)
+                        ).fireAndForget()
+                    } else {
+                        player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+                    }
+                } else {
+                    player.createConnectionRequest(
+                        BloraPlugin.proxyServer
+                            .getServer(databasePlayer.lastServer)
+                            .orElse(BloraPlugin.lobbyServer)
+                    ).fireAndForget()
+                }
+            } else {
+                player.createConnectionRequest(BloraPlugin.limboServer).fireAndForget()
+            }
+        }
+
+        when (databasePlayer.jsonOptions.alwaysLobby) {
+            OptionStatus.ENABLE -> {
+                enable()
+            }
+
+            OptionStatus.DISABLE -> {
+                disable()
+            }
+
+            OptionStatus.NOT_SET -> {
+                if (BloraPlugin.configuration.authorization.alwaysLobby) {
+                    enable()
+                } else {
+                    disable()
+                }
+            }
+        }
+    }
 
     fun autoShowLoginDialog(player: Player) {
         if (player.isOnlineMode || BloraAuthorization.isAuthorized(player)) {
-            val currentServer = player.currentServer
-            if (currentServer.isPresent) {
-                if (currentServer.get().server.serverInfo.name != BloraPlugin.limboServer.serverInfo.name) {
-                    return
-                }
-            }
-            BloraPlugin.database.getPlayerByName(player.username).notNull {
-                player.createConnectionRequest(
-                    BloraPlugin.proxyServer
-                        .getServer(this.lastServer)
-                        .orElse(BloraPlugin.lobbyServer)
-                ).fireAndForget()
-            }
+            this.transferPlayerToSuitableServer(player)
         } else {
             val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
             if (databasePlayer.hashedPassword1 != "%unregistered%") {
@@ -86,11 +126,7 @@ object AuthDialog {
                 }
             } else {
                 BloraAuthorization.authorize(player)
-                player.createConnectionRequest(
-                    BloraPlugin.proxyServer
-                        .getServer(this.lastServer)
-                        .orElse(BloraPlugin.lobbyServer)
-                ).fireAndForget()
+                transferPlayerToSuitableServer(player)
             }
         }
     }
@@ -115,7 +151,7 @@ object AuthDialog {
                     databasePlayer.flush()
                 }
                 BloraAuthorization.authorize(player)
-                player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+                transferPlayerToSuitableServer(player)
             }
         }
     }

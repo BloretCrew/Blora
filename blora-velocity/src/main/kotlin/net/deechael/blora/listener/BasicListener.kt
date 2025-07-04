@@ -13,7 +13,7 @@ import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtString
 import net.deechael.blora.BloraConstants
 import net.deechael.blora.BloraPlugin
-import net.deechael.blora.authorization.AuthDialog
+import net.deechael.blora.authorization.AuthorizationFunctions
 import net.deechael.blora.authorization.BloraAuthorization
 import net.deechael.blora.authorization.premium.PremiumAuthorizer
 import net.deechael.blora.authorization.premium.PremiumPlayer
@@ -21,6 +21,9 @@ import net.deechael.blora.authorization.premium.fetcher.PremiumFetcher
 import net.deechael.blora.config.Order
 import net.deechael.blora.config.UUIDGenerator
 import net.deechael.blora.database.BloraPlayer
+import net.deechael.blora.options.OptionStatus
+import net.deechael.blora.options.OptionsFunctions
+import net.deechael.blora.options.PlayerOptions
 import net.deechael.blora.protocol.packet.CustomClickAction
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import plutoproject.adventurekt.component
@@ -39,16 +42,16 @@ object BasicListener {
         val packet = event.packet
         if (packet is CustomClickAction) {
             if (packet.id == "minecraft:blora_eula_accept") {
-                AuthDialog.eulaDialogCallback(event.player, true)
+                AuthorizationFunctions.eulaDialogCallback(event.player, true)
             } else if (packet.id == "minecraft:blora_eula_reject") {
-                AuthDialog.eulaDialogCallback(event.player, false)
+                AuthorizationFunctions.eulaDialogCallback(event.player, false)
             } else if (packet.id == "minecraft:blora_login") {
-                AuthDialog.loginDialogCallback(
+                AuthorizationFunctions.loginDialogCallback(
                     event.player,
                     ((packet.payload as NbtCompound)["blora_password"] as NbtString).value
                 )
             } else if (packet.id == "minecraft:blora_register") {
-                AuthDialog.registerDialogCallback(
+                AuthorizationFunctions.registerDialogCallback(
                     event.player,
                     ((packet.payload as NbtCompound)["blora_password"] as NbtString).value,
                     ((packet.payload as NbtCompound)["blora_confirm_password"] as NbtString).value
@@ -57,8 +60,11 @@ object BasicListener {
                 event.player.disconnect(component {
                     mini(BloraPlugin.configuration.messages.ingameKickExit)
                 })
+            } else if (packet.id == "minecraft:blora_player_options_exit") {
+                OptionsFunctions.updatePlayerOptions(event.player, packet.payload as NbtCompound)
             }
         }
+
     }
 
     @Subscribe
@@ -67,30 +73,13 @@ object BasicListener {
             BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} is connecting to server ${event.server.serverInfo.name}")
             // notice: when testing, comment the check below to avoid cannot do test
             val databasePlayer = BloraPlugin.database.getPlayerByName(event.player.username)
-            if (event.server.serverInfo.name == BloraPlugin.limboServer.serverInfo.name) {
-                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} is in limbo server")
-                if (!databasePlayer!!.eulaAccepted) {
-                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} hasn't accepted EULA, sending EULA")
-                    AuthDialog.showEulaDialog(event.player)
-                } else {
-                    if (BloraAuthorization.isAuthorized(event.player)) {
-                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} is authorized, stay in their server")
-                        if (!databasePlayer.eulaAccepted) {
-                            AuthDialog.showEulaDialog(event.player)
-                        }
-                        return@buildTask
-                    }
-
-                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} accepted EULA, sending them login or register dialog")
-                    AuthDialog.autoShowLoginDialog(event.player)
-                }
-                return@buildTask
-            }
 
             if (BloraAuthorization.isAuthorized(event.player)) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} is authorized, stay in their server")
                 if (!databasePlayer!!.eulaAccepted) {
-                    AuthDialog.showEulaDialog(event.player)
+                    AuthorizationFunctions.showEulaDialog(event.player)
+                } else {
+                    AuthorizationFunctions.transferPlayerToSuitableServer(event.player)
                 }
                 return@buildTask
             }
@@ -105,10 +94,10 @@ object BasicListener {
             // show eula to the player if they haven't accepted the eula yet
             if (!databasePlayerByName!!.eulaAccepted) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} hasn't accepted EULA, sending EULA first")
-                AuthDialog.showEulaDialog(event.player)
+                AuthorizationFunctions.showEulaDialog(event.player)
             } else {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} accepted EULA, sending them login or register dialog")
-                AuthDialog.autoShowLoginDialog(event.player)
+                AuthorizationFunctions.autoShowLoginDialog(event.player)
             }
         }
             .delay(1.seconds.toJavaDuration())
@@ -203,6 +192,9 @@ object BasicListener {
                         this.email = null
                         this.autoLogin = false
                         this.eulaAccepted = false
+                        this.jsonOptions = PlayerOptions(
+                            alwaysLobby = OptionStatus.NOT_SET
+                        )
                     }
 
                     databasePlayerByName.flush()
@@ -237,6 +229,9 @@ object BasicListener {
                         this.email = null
                         this.autoLogin = false
                         this.eulaAccepted = false
+                        this.jsonOptions = PlayerOptions(
+                            alwaysLobby = OptionStatus.NOT_SET
+                        )
                     }
 
                     databasePlayerByName.flush()

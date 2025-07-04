@@ -1,7 +1,6 @@
 package net.deechael.blora
 
 import com.google.inject.Inject
-import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
@@ -9,19 +8,16 @@ import com.velocitypowered.api.network.ProtocolVersion
 import com.velocitypowered.api.plugin.Dependency
 import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.annotation.DataDirectory
-import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.server.RegisteredServer
-import com.velocitypowered.proxy.connection.client.ConnectedPlayer
 import com.velocitypowered.proxy.protocol.ProtocolUtils
 import com.velocitypowered.proxy.protocol.StateRegistry
 import io.github._4drian3d.vpacketevents.api.register.PacketRegistration
 import net.deechael.blora.authorization.BloraAuthorization
+import net.deechael.blora.command.OptionsCommand
 import net.deechael.blora.config.BloraConfiguration
 import net.deechael.blora.config.ConfigurationContents
 import net.deechael.blora.database.BloraDatabase
-import net.deechael.blora.dialog.asPacket
-import net.deechael.blora.dialog.builtin.testDialog
 import net.deechael.blora.listener.BasicListener
 import net.deechael.blora.protocol.packet.CustomClickAction
 import net.deechael.blora.security.PasswordManager
@@ -30,8 +26,6 @@ import net.deechael.blora.security.strategy.NoConsecutiveStrategy
 import net.deechael.blora.security.strategy.NoDuplicatedStrategy
 import net.deechael.blora.security.strategy.NoUsernameStrategy
 import org.slf4j.Logger
-import plutoproject.adventurekt.audience.send
-import plutoproject.adventurekt.text.text
 import java.nio.file.Path
 
 @Plugin(
@@ -101,36 +95,21 @@ class BloraPlugin @Inject constructor(
     @Subscribe
     fun onInitialize(event: ProxyInitializeEvent) {
         this.registerPackets()
+        this.registerCommands()
+
         this.initPasswordStrategies()
 
         // this.server.eventManager.register(this, UnauthorizedListener)
         this.server.eventManager.register(this, BasicListener)
-
-        this.server.commandManager.register(
-            this.server.commandManager
-                .metaBuilder("blora_velocity_test")
-                .plugin(this)
-                .build(),
-            BrigadierCommand(
-                BrigadierCommand.literalArgumentBuilder("blora_velocity_test")
-                    .requires { true }
-                    .executes {
-                        if (it.source is Player) {
-                            it.source.send {
-                                text { "wo cao ni ma!" }
-                            }
-                            (it.source as ConnectedPlayer).connection.channel.writeAndFlush(testDialog().asPacket())
-                            //PacketEvents.getAPI().playerManager.sendPacket(it.source, eulaDialog().asPacketEventsPacket())
-                        }
-                        return@executes 1
-                    }
-            )
-        )
     }
 
     @Subscribe
     fun onShutdown(event: ProxyShutdownEvent) {
         BloraAuthorization.clearAll()
+    }
+
+    private fun registerCommands() {
+        OptionsCommand.register()
     }
 
     private fun registerPackets() {

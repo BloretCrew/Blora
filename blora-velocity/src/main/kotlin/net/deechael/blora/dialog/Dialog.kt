@@ -15,6 +15,12 @@ sealed class Dialog /*: DialogLike*/ {
 
 }
 
+enum class DialogPacketState(val id: Int) {
+
+    PLAY(0x85), CONFIGURATION(0x12)
+
+}
+
 fun Dialog.toJson(): String {
     return this.toNBT().entries.joinToString(separator = ",", prefix = "{", postfix = "}") { (name, value) ->
         buildString {
@@ -25,10 +31,12 @@ fun Dialog.toJson(): String {
     }
 }
 
-fun Dialog.asPacket(): ByteBuf {
+fun Dialog.asPacket(state: DialogPacketState = DialogPacketState.PLAY): ByteBuf {
     val byteBuf = Unpooled.buffer()
-    byteBuf.writeVarInt(0x85)
-    byteBuf.writeVarInt(0)
+    byteBuf.writeVarInt(state.id)
+    if (state == DialogPacketState.PLAY) {
+        byteBuf.writeVarInt(0)
+    }
     this.toNBT().writeToByteBufRoot(byteBuf)
     return byteBuf
 }

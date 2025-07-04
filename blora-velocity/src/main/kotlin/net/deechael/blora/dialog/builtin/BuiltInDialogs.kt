@@ -12,7 +12,9 @@ import net.deechael.blora.dialog.input.*
 import net.kyori.adventure.text.Component
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.raw
+import plutoproject.adventurekt.text.style.showText
 import plutoproject.adventurekt.text.text
+import plutoproject.adventurekt.text.with
 
 fun testDialog(): Dialog {
     return NoticeDialog(
@@ -65,6 +67,62 @@ fun testDialog(): Dialog {
             action = DynamicCustomClickType(
                 id = "blora_test",
             )
+        )
+    )
+}
+
+fun optionsDialog(): Dialog {
+    return ConfirmationDialog(
+        title = component {
+            text { "百络谷服务器玩家设置选项" }
+        },
+        externalTitle = component {
+            text { "百络谷设置" }
+        },
+        inputs = listOf(
+            SingleOptionInputControl(
+                key = "blora_playerOptions_alwaysLobby",
+                label = component {
+                    text { "始终进入大厅" } with showText {
+                        text { "开启此选项后，无论退出前停留在什么服务器，都会被传送回大厅服务器" }
+                    }
+                },
+                options = listOf(
+                    InputControlOption(
+                        id = "not_set",
+                        display = component {
+                            text { "服务器默认" }
+                        },
+                        initial = true
+                    ),
+                    InputControlOption(
+                        id = "enable",
+                        display = component {
+                            text { "开启" }
+                        }
+                    ),
+                    InputControlOption(
+                        id = "disable",
+                        display = component {
+                            text { "关闭" }
+                        }
+                    )
+                )
+            )
+        ),
+        canCloseWithEscape = true,
+        yes = ClickAction(
+            label = component {
+                text { "保存" }
+            },
+            action = DynamicCustomClickType(
+                id = "blora_player_options_exit"
+            )
+        ),
+        no = ClickAction(
+            label = component {
+                text { "取消" }
+            }
         )
     )
 }
