@@ -19,7 +19,6 @@ minedown = "1.7.4-SNAPSHOT"
 [libraries]
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = 'velocity' }
 velocity-proxy = { module = "com.velocitypowered:velocity-proxy", version.ref = 'velocity' }
-packetevents = { module = "com.github.retrooper:packetevents-velocity", version.ref = "packetevents" }
 paper-api = { module = 'io.papermc.paper:paper-api', version.ref = 'paper' }
 kotlinx-coroutines = { group = 'org.jetbrains.kotlinx', name = 'kotlinx-coroutines-core-jvm', version.ref = 'kotlinx' }
 kotlinx-serialization-core = { group = 'org.jetbrains.kotlinx', name = 'kotlinx-serialization-core', version.ref = 'serialization' }

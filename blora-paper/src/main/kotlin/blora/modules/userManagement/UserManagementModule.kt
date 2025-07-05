@@ -1,12 +1,12 @@
 package blora.modules.userManagement
 
+import blora.modules.Module
 import net.kyori.adventure.text.Component
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.style.rgb
 import plutoproject.adventurekt.text.style.text
 import plutoproject.adventurekt.text.text
 import plutoproject.adventurekt.text.with
-import blora.modules.Module
 
 object UserManagementModule : Module {
 

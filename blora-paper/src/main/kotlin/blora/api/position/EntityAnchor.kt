@@ -1,8 +1,8 @@
 package blora.api.position
 
+import blora.api.extension.eyeHeight
 import org.bukkit.entity.Entity
 import org.bukkit.util.Vector
-import blora.api.extension.eyeHeight
 
 enum class EntityAnchor(
     private val transform: (vector: Vector, entity: Entity) -> Vector

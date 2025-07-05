@@ -3,7 +3,6 @@ plugins {
 }
 
 dependencies {
-    compileOnly(files("./ProtocolLib-5.4.0.jar"))
     paperweight.paperDevBundle("1.21.6-R0.1-SNAPSHOT")
     compileOnly(libs.paper.api)
 
@@ -11,13 +10,15 @@ dependencies {
 
     compileOnly(libs.kotlinx.serialization.core)
     compileOnly(libs.kotlinx.serialization.json)
+    compileOnly(libs.tomlkt)
+    compileOnly(libs.knbt)
 
     compileOnly(libs.exposed.core)
     compileOnly(libs.exposed.jdbc)
-
+    compileOnly(libs.exposed.dao)
+    compileOnly(libs.exposed.javatime)
     compileOnly(libs.hikaricp)
 
-    compileOnly(libs.tomlkt)
     compileOnly(libs.advkt)
 }
 

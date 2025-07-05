@@ -1,7 +1,7 @@
 package blora.player
 
-import org.bukkit.entity.Player
 import blora.command.CommandInvokerWrapper
+import org.bukkit.entity.Player
 
 class QuickPlayerWrapper(
     private val player: Player

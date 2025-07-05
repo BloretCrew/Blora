@@ -1,0 +1,19 @@
+package blora.messaging.packet
+
+enum class PacketType(
+    val id: Int
+) {
+
+    SHUTDOWN(0x00),
+    PING(0x01),
+    PONG(0x02),
+    UNAUTHORIZED(0x03),
+    AUTHORIZE(0x04),
+    AUTHORIZATION_FAILED(0x05),
+    AUTHORIZED(0x06),
+    DEBUG_MESSAGE(0x07),
+    PLAYER_AUTHORIZATION_REQUEST(0x08),
+    PLAYER_AUTHORIZATION_RESPONSE(0x09),
+    PLAYER_AUTHORIZATION_UPDATE(0x0a),
+
+}

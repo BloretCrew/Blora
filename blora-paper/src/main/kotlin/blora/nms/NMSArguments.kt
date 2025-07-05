@@ -1,37 +1,12 @@
 package blora.nms
 
-import com.mojang.brigadier.arguments.BoolArgumentType
-import com.mojang.brigadier.arguments.DoubleArgumentType
-import com.mojang.brigadier.arguments.FloatArgumentType
-import com.mojang.brigadier.arguments.IntegerArgumentType
-import com.mojang.brigadier.arguments.LongArgumentType
-import com.mojang.brigadier.arguments.StringArgumentType
-import io.papermc.paper.adventure.PaperAdventure
-import net.minecraft.commands.arguments.AngleArgument
-import net.minecraft.commands.arguments.ColorArgument
-import net.minecraft.commands.arguments.ComponentArgument
-import net.minecraft.commands.arguments.DimensionArgument
-import net.minecraft.commands.arguments.EntityAnchorArgument
-import net.minecraft.commands.arguments.EntityArgument
 import blora.api.command.CommandContext
 import blora.api.command.argument.ArgumentType
 import blora.api.position.EntityAnchor
-import blora.command.argument.ArgumentAngle
-import blora.command.argument.ArgumentColor
-import blora.command.argument.ArgumentComponent
-import blora.command.argument.ArgumentEntities
-import blora.command.argument.ArgumentEntity
-import blora.command.argument.ArgumentEntityAnchor
-import blora.command.argument.ArgumentGreedyString
-import blora.command.argument.ArgumentInt
-import blora.command.argument.ArgumentOptionalEntities
-import blora.command.argument.ArgumentOptionalPlayers
-import blora.command.argument.ArgumentPlayer
-import blora.command.argument.ArgumentPlayers
-import blora.command.argument.ArgumentString
-import blora.command.argument.ArgumentWord
-import blora.command.argument.ArgumentWorld
-import blora.command.argument.nms
+import blora.command.argument.*
+import com.mojang.brigadier.arguments.*
+import io.papermc.paper.adventure.PaperAdventure
+import net.minecraft.commands.arguments.*
 import com.mojang.brigadier.arguments.ArgumentType as NMSArgumentType
 
 @Suppress("UNCHECKED_CAST")

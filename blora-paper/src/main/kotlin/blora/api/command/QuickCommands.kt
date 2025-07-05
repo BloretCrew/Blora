@@ -1,14 +1,14 @@
 package blora.api.command
 
+import blora.api.command.argument.ArgumentType
+import blora.api.command.argument.QuickArgumentLib
+import blora.api.player.QuickPlayer
 import net.kyori.adventure.text.Component
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Entity
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.ComponentKt
-import blora.api.command.argument.ArgumentType
-import blora.api.command.argument.QuickArgumentLib
-import blora.api.player.QuickPlayer
 import java.util.function.Predicate
 
 interface Argument

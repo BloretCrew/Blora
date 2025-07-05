@@ -1,14 +1,14 @@
 package blora.command.argument
 
-import io.papermc.paper.adventure.PaperAdventure
-import net.kyori.adventure.text.Component
-import net.minecraft.network.chat.ComponentUtils
-import org.bukkit.entity.Entity
 import blora.api.command.CommandContext
 import blora.api.command.argument.ArgumentType
 import blora.command.CommandContextWrapper
 import blora.nms.internalGetArgumentValue
 import blora.nms.nms
+import io.papermc.paper.adventure.PaperAdventure
+import net.kyori.adventure.text.Component
+import net.minecraft.network.chat.ComponentUtils
+import org.bukkit.entity.Entity
 import com.mojang.brigadier.context.CommandContext as NMSCommandContext
 
 internal fun CommandContext.nms(): NMSCommandContext<net.minecraft.commands.CommandSourceStack> {

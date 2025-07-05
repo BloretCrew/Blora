@@ -13,19 +13,17 @@ dependencies {
 
     implementation(libs.kotlinx.serialization.core)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.tomlkt)
+    implementation(libs.knbt)
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.dao)
     implementation(libs.exposed.javatime)
-
     implementation(libs.hikaricp)
     implementation(libs.mariadb)
 
     implementation(libs.okhttp3)
-
-    implementation(libs.tomlkt)
-    implementation(libs.knbt)
 
     implementation(libs.minedown)
     implementation(libs.advkt)

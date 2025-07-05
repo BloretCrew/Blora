@@ -2,6 +2,8 @@
 
 package blora.modules.configuration
 
+import blora.modules.Module
+import blora.plugin.BloraPlugin
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
@@ -11,8 +13,6 @@ import plutoproject.adventurekt.text.style.rgb
 import plutoproject.adventurekt.text.style.text
 import plutoproject.adventurekt.text.text
 import plutoproject.adventurekt.text.with
-import blora.modules.Module
-import blora.plugin.BloraPlugin
 import java.io.File
 
 object ConfigurationModule : Module {

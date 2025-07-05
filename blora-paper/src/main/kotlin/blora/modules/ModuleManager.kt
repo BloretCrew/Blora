@@ -5,7 +5,11 @@ import blora.exception.ModuleNotFoundException
 
 object ModuleManager {
 
-    private fun enable_cleanNotAvailableModules(cleanedUpModules: MutableList<String>, modules: MutableList<String>, module: Module) {
+    private fun enable_cleanNotAvailableModules(
+        cleanedUpModules: MutableList<String>,
+        modules: MutableList<String>,
+        module: Module
+    ) {
         if (!modules.containsAll(module.dependencies)) {
             modules.remove(module.id)
             for (storedModule in this.modules) {
@@ -36,7 +40,7 @@ object ModuleManager {
 
     internal val modules: MutableMap<String, Module> = mutableMapOf()
 
-    fun <T: Module> registerModule(module: T) {
+    fun <T : Module> registerModule(module: T) {
         if (modules.contains(module.id)) {
             throw ModuleDuplicatedException("Duplicated module: ${module.id}")
         }
@@ -47,7 +51,7 @@ object ModuleManager {
         return this.modules.values.toList()
     }
 
-    inline fun <reified T: Module> module(id: String): T {
+    inline fun <reified T : Module> module(id: String): T {
         for (module in this.listModules()) {
             if (module.id == id) {
                 if (module !is T)

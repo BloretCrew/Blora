@@ -1,9 +1,9 @@
 package blora.api.command.argument
 
-import net.kyori.adventure.text.Component
-import org.bukkit.entity.Entity
 import blora.api.command.CommandContext
 import blora.api.command.QuickCommandLib
+import net.kyori.adventure.text.Component
+import org.bukkit.entity.Entity
 
 interface QuickArgumentLib {
 

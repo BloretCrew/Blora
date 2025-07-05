@@ -1,8 +1,8 @@
 package blora.message
 
-import plutoproject.adventurekt.component
 import blora.api.message.commandPrefix
 import blora.api.message.errorMessage
+import plutoproject.adventurekt.component
 
 object DefaultMessages {
 

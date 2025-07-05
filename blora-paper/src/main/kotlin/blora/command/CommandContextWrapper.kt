@@ -1,9 +1,9 @@
 package blora.command
 
+import blora.player.QuickPlayerWrapper
 import com.mojang.brigadier.suggestion.SuggestionsBuilder
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
-import blora.player.QuickPlayerWrapper
 import com.mojang.brigadier.context.CommandContext as NMSCommandContext
 
 open class CommandContextWrapper(

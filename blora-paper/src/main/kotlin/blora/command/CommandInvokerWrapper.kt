@@ -1,10 +1,10 @@
 package blora.command
 
+import blora.player.QuickPlayerWrapper
 import org.bukkit.command.BlockCommandSender
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
 import org.bukkit.entity.Player
-import blora.player.QuickPlayerWrapper
 
 open class CommandInvokerWrapper(
     private val commandSender: CommandSender

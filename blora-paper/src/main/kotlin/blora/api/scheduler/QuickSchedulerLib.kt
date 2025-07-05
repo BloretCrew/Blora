@@ -1,8 +1,8 @@
 package blora.api.scheduler
 
+import blora.api.QuickLib
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Deferred
-import blora.api.QuickLib
 
 interface QuickSchedulerLib {
 

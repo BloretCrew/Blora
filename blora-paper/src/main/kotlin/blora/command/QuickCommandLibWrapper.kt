@@ -1,13 +1,5 @@
 package blora.command
 
-import com.mojang.brigadier.CommandDispatcher
-import com.mojang.brigadier.arguments.ArgumentType
-import com.mojang.brigadier.builder.ArgumentBuilder
-import io.papermc.paper.command.brigadier.APICommandMeta
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.future.asCompletableFuture
-import org.bukkit.command.BlockCommandSender
-import org.bukkit.entity.Player
 import blora.api.command.CommandExecutor
 import blora.api.command.CommandMeta
 import blora.api.scheduler.BukkitAsync
@@ -17,6 +9,14 @@ import blora.nms.nms
 import blora.nms.nmsServer
 import blora.player.QuickPlayerWrapper
 import blora.plugin.BloraPlugin
+import com.mojang.brigadier.CommandDispatcher
+import com.mojang.brigadier.arguments.ArgumentType
+import com.mojang.brigadier.builder.ArgumentBuilder
+import io.papermc.paper.command.brigadier.APICommandMeta
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.future.asCompletableFuture
+import org.bukkit.command.BlockCommandSender
+import org.bukkit.entity.Player
 import java.util.function.Predicate
 import com.mojang.brigadier.tree.ArgumentCommandNode as NMSArgumentCommandNode
 import com.mojang.brigadier.tree.LiteralCommandNode as NMSLiteralCommandNode

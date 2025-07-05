@@ -1,28 +1,15 @@
 package blora.command.defaults
 
-import plutoproject.adventurekt.text.newline
-import plutoproject.adventurekt.text.raw
-import plutoproject.adventurekt.text.space
+import blora.api.command.*
+import blora.api.command.argument.Arguments
+import blora.api.message.*
+import blora.messaging.packet.common.DebugMessagePacket
+import blora.modules.ModuleManager
+import blora.plugin.BloraPlugin
+import plutoproject.adventurekt.text.*
 import plutoproject.adventurekt.text.style.gray
 import plutoproject.adventurekt.text.style.showText
 import plutoproject.adventurekt.text.style.text
-import plutoproject.adventurekt.text.text
-import plutoproject.adventurekt.text.with
-import blora.api.command.QuickCommandLib
-import blora.api.command.argument
-import blora.api.command.argument.Arguments
-import blora.api.command.blockExecutor
-import blora.api.command.executor
-import blora.api.command.literal
-import blora.api.command.meta
-import blora.api.command.playerExecutor
-import blora.api.command.requires
-import blora.api.message.QuickColors
-import blora.api.message.commandPrefix
-import blora.api.message.managementPrefix
-import blora.api.message.primaryHighlightMessage
-import blora.api.message.primaryMessage
-import blora.modules.ModuleManager
 
 object BloraCommand {
 
@@ -58,6 +45,17 @@ object BloraCommand {
                                     text("未启用") with QuickColors.error.text
                                 }
                             }
+                        }
+                    }
+                }
+            }
+
+            literal("proxy") {
+                literal("debug") {
+                    argument("message", Arguments.greedyString) { messageFunc ->
+                        executor {
+                            val message = messageFunc()
+                            BloraPlugin.client.send(DebugMessagePacket().apply { this.message = message })
                         }
                     }
                 }

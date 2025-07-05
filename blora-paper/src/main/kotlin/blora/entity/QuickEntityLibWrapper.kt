@@ -1,8 +1,8 @@
 package blora.entity
 
-import org.bukkit.entity.Entity
 import blora.api.QuickEntityLib
 import blora.nms.nms
+import org.bukkit.entity.Entity
 
 object QuickEntityLibWrapper : QuickEntityLib {
 
