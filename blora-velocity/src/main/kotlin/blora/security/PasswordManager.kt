@@ -2,11 +2,11 @@ package blora.security
 
 import blora.BloraPlugin
 import blora.extension.containsIllegalCharacters
+import blora.extension.localization
 import blora.security.strategy.PasswordStrategy
 import blora.security.strategy.PasswordStrategyResult
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.component
-import plutoproject.adventurekt.text.mini
 import plutoproject.adventurekt.text.parsedPlaceholder
 
 object PasswordManager {
@@ -24,14 +24,18 @@ object PasswordManager {
         if (password.containsIllegalCharacters()) {
             return PasswordStrategyResult.Failure(
                 component {
-                    mini(BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureIllegalCharacters)
+                    localization(player) {
+                        this.warningRegisterPassword_strategy_failure_illegal_characters
+                    }
                 }
             )
         }
         if (BloraPlugin.configuration.security.weakPasswords.map { it.lowercase() }.contains(password.lowercase())) {
             return PasswordStrategyResult.Failure(
                 component {
-                    mini(BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureInWeakPasswordDict)
+                    localization(player) {
+                        this.warningRegisterPassword_strategy_failure_in_weak_password_dict
+                    }
                 }
             )
         }
@@ -40,9 +44,14 @@ object PasswordManager {
         ) {
             return PasswordStrategyResult.Failure(
                 component {
-                    mini(BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureLengthNotSecure) {
-                        parsedPlaceholder("max", BloraPlugin.configuration.security.maxPasswordLength.toString())
-                        parsedPlaceholder("min", BloraPlugin.configuration.security.minPasswordLength.toString())
+                    localization(
+                        player = player,
+                        tags = {
+                            parsedPlaceholder("max", BloraPlugin.configuration.security.maxPasswordLength.toString())
+                            parsedPlaceholder("min", BloraPlugin.configuration.security.minPasswordLength.toString())
+                        }
+                    ) {
+                        this.warningRegisterPassword_strategy_failure_length_not_secure
                     }
                 }
             )

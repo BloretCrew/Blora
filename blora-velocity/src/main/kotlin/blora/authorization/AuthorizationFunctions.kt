@@ -2,9 +2,9 @@ package blora.authorization
 
 import blora.BloraPlugin
 import blora.dialog.asPacket
-import blora.dialog.builtin.eulaDialog
-import blora.dialog.builtin.loginDialog
-import blora.dialog.builtin.registerDialog
+import blora.eula.eulaDialog
+import blora.extension.disconnect
+import blora.extension.localization
 import blora.extension.notNull
 import blora.extension.sendPacket
 import blora.options.OptionStatus
@@ -14,7 +14,6 @@ import blora.security.strategy.PasswordStrategyResult
 import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component
 import plutoproject.adventurekt.component
-import plutoproject.adventurekt.text.mini
 
 object AuthorizationFunctions {
 
@@ -76,7 +75,7 @@ object AuthorizationFunctions {
     }
 
     fun autoShowLoginDialog(player: Player) {
-        if (player.isOnlineMode || BloraAuthorization.isAuthorized(player)) {
+        if (BloraAuthorization.isAuthorized(player)) {
             this.transferPlayerToSuitableServer(player)
         } else {
             val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
@@ -89,15 +88,15 @@ object AuthorizationFunctions {
     }
 
     fun showEulaDialog(player: Player) {
-        player.sendPacket(eulaDialog().asPacket())
+        player.sendPacket(eulaDialog(player).asPacket())
     }
 
     fun showLoginDialog(player: Player, warningMessage: Component? = null) {
-        player.sendPacket(loginDialog(warningMessage).asPacket())
+        player.sendPacket(loginDialog(player, warningMessage).asPacket())
     }
 
     fun showRegisterDialog(player: Player, warningMessage: Component? = null) {
-        player.sendPacket(registerDialog(warningMessage).asPacket())
+        player.sendPacket(registerDialog(player, warningMessage).asPacket())
     }
 
     fun eulaDialogCallback(player: Player, accepted: Boolean) {
@@ -109,9 +108,11 @@ object AuthorizationFunctions {
             }
             autoShowLoginDialog(player)
         } else {
-            player.disconnect(component {
-                mini(BloraPlugin.configuration.messages.ingameKickNotAcceptEULA)
-            })
+            player.disconnect {
+                localization(player) {
+                    this.kickIngameNot_accept_eula
+                }
+            }
         }
     }
 
@@ -122,12 +123,16 @@ object AuthorizationFunctions {
                     && BloraAuthorization.passwordRetries
                         .getOrDefault(player, 0) > BloraPlugin.configuration.security.maxRetries
                 ) {
-                    player.disconnect(component {
-                        mini(BloraPlugin.configuration.messages.ingameKickTooManyRetries)
-                    })
+                    player.disconnect {
+                        localization(player) {
+                            this.kickLoginToo_many_retries
+                        }
+                    }
                 } else {
                     showLoginDialog(player, component {
-                        mini(BloraPlugin.configuration.messages.loginWarningLoginPasswordIncorrect)
+                        localization(player) {
+                            this.warningLoginPassword_incorrect
+                        }
                     })
                 }
             } else {
@@ -140,7 +145,9 @@ object AuthorizationFunctions {
     fun registerDialogCallback(player: Player, password: String, confirm: String) {
         if (password != confirm) {
             showRegisterDialog(player, component {
-                mini(BloraPlugin.configuration.messages.loginWarningLoginPasswordIncorrect)
+                localization(player) {
+                    this.warningRegisterConfirm_not_same
+                }
             })
         } else {
             val result = PasswordManager.securePassword(player, password)

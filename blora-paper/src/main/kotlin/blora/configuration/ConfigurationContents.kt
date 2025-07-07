@@ -1,38 +1,77 @@
 package blora.configuration
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import kotlinx.serialization.Serializable
-import net.peanuuutz.tomlkt.TomlComment
 
 @Serializable
 data class ConfigurationContents(
-    @TomlComment("服务器间通信，插件部分重要功能都依赖此功能")
     val messageing: Messaging = Messaging(),
-    @TomlComment("模块化管理，关闭后，模块中部分功能将无法在本服务器使用，具体功能请看各自模块的注释")
+    val security: Security = Security(),
     val modules: Modules = Modules(),
+    val database: Database = Database(),
 )
 
 @Serializable
 data class Messaging(
-    @TomlComment("通信服务器 IP")
     val host: String = "127.0.0.1",
-    @TomlComment("通信服务器端口")
     val port: Int = 11732,
-    @TomlComment("请保证每个子服务器的该值都不相同")
-    val conv: Int = 0,
-    @TomlComment("当前服务器在代理端的名称，填写错误将会被代理端拒绝连接")
     val serverName: String = "server",
-    @TomlComment("服务器通信密码")
     val password: String = "X1$&al1*&lakd*#@kak!LKD",
 )
 
 @Serializable
+data class Security(
+    val ensureAuthorized: Boolean = false,
+)
+
+@Serializable
 data class Modules(
-    @TomlComment(
-        """
-        邮件模块
-        - 无论是否开启都可以浏览邮件内容
-        - 关闭后将无法在此服务器领取邮件的附件
-    """
-    )
     val mail: Boolean = true
 )
+
+@Serializable
+data class Database(
+    val host: String = "",
+    val port: Int = 3306,
+    val username: String = "",
+    val password: String = "",
+    val database: String = "",
+    val maxLifeTime: Long = 600000,
+    val jdbcUrl: String = "jdbc:mariadb://%host%:%port%/%database%?autoReconnect=true&zeroDateTimeBehavior=convertToNull",
+) {
+
+    fun buildDataSource(): HikariDataSource {
+        return HikariDataSource(
+            HikariConfig().apply {
+                this@apply.username = this@Database.username
+                this@apply.password = this@Database.password
+
+                this@apply.poolName = "Blora MariaDB Connection Pool"
+
+                this@apply.driverClassName = "org.mariadb.jdbc.Driver"
+                this@apply.jdbcUrl = this@Database.jdbcUrl.replace("%host%", host)
+                    .replace("%port%", "${this@Database.port}")
+                    .replace("%database%", this@Database.database)
+
+                this@apply.addDataSourceProperty("cachePrepStmts", "true")
+                this@apply.addDataSourceProperty("prepStmtCacheSize", "250")
+                this@apply.addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
+
+                this@apply.maxLifetime = this@Database.maxLifeTime
+            }
+        )
+    }
+
+    fun verify(): Boolean {
+        try {
+            val dataSource = this.buildDataSource()
+            dataSource.connection.close()
+            dataSource.close()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+}

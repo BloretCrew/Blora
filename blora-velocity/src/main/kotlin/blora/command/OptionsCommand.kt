@@ -2,8 +2,8 @@ package blora.command
 
 import blora.BloraPlugin
 import blora.dialog.asPacket
-import blora.dialog.builtin.optionsDialog
 import blora.extension.sendPacket
+import blora.options.optionsDialog
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.audience.send
@@ -25,7 +25,7 @@ object OptionsCommand {
                     .requires { it.hasPermission("blora.command.options") }
                     .executes {
                         if (it.source is Player) {
-                            (it.source as Player).sendPacket(optionsDialog().asPacket())
+                            (it.source as Player).sendPacket(optionsDialog(it.source as Player).asPacket())
                         } else {
                             it.source.send {
                                 text { "只有玩家可以运行这个命令" } with red.text

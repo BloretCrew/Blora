@@ -96,6 +96,31 @@ fun String.hasConsecutiveSequence(minimum: Int = 3): Boolean {
     return false
 }
 
+fun String.convertCamelCase(
+    delimiter: Char
+): String {
+    if (isEmpty())
+        return this
+
+    return buildString(length * 2) {
+        append(this@convertCamelCase[0].lowercaseChar())
+
+        for (i in 1 until this@convertCamelCase.length) {
+            val c = this@convertCamelCase[i]
+            val prev = this@convertCamelCase[i - 1]
+
+            if (c.isUpperCase()) {
+                if (!prev.isWhitespace()) {
+                    append(delimiter)
+                }
+                append(c.lowercaseChar())
+            } else {
+                append(c)
+            }
+        }
+    }
+}
+
 private fun getCharType(c: Char): Pair<Int, Boolean> {
     return when {
         c in '0'..'9' -> Pair(1, true)   // 数字类型

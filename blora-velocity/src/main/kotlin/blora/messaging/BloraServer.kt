@@ -3,12 +3,15 @@ package blora.messaging
 import blora.BloraPlugin
 import blora.authorization.BloraAuthorization
 import blora.messaging.packet.Packet
+import blora.messaging.packet.PacketHandler
+import blora.messaging.packet.PacketHandlerManager
 import blora.messaging.packet.PacketType
 import blora.messaging.packet.clientbound.*
 import blora.messaging.packet.common.DebugMessagePacket
-import blora.messaging.packet.common.PingPacket
+import blora.messaging.packet.common.ReloadConfigurationPacket
 import blora.messaging.packet.serverbound.AuthorizePacket
 import blora.messaging.packet.serverbound.PlayerAuthorizationRequestPacket
+import blora.messaging.packet.serverbound.PongPacket
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
@@ -18,6 +21,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import kotlinx.coroutines.*
 
+@ChannelHandler.Sharable
 class BloraServer(
     val port: Int
 ) : ChannelInboundHandlerAdapter() {
@@ -34,6 +38,10 @@ class BloraServer(
     private val pongs: MutableMap<Channel, Long> = mutableMapOf()
 
     private val authorized: MutableMap<String, BloraConnection> = mutableMapOf()
+
+    init {
+        this.registerHandlers()
+    }
 
     fun start() {
         val bootstrap = ServerBootstrap()
@@ -122,62 +130,15 @@ class BloraServer(
             val packetId = msg.readInt()
             val channel = ctx.channel()
             val connection = channels[channel]!!
-            when (packetId) {
-                PacketType.PONG.id -> {
-                    this.pongs[channel] = System.currentTimeMillis()
-                }
+            val packetType = PacketType.fromId(packetId)
 
-                PacketType.AUTHORIZE.id -> {
-                    val connection = channels[channel]!!
-                    val authorizePacket = AuthorizePacket().apply { this.decode(msg) }
-                    val serverOptional = BloraPlugin.proxyServer.getServer(authorizePacket.serverName)
-                    if (serverOptional.isEmpty) {
-                        connection.send(AuthorizationFailedPacket)
-                        println("server not exists")
-                        return
-                    }
-                    val server = serverOptional.get()
-                    /* FIXME: a better check
-                    if (connection.address != server.serverInfo.address) {
-                        println(connection.address)
-                        println(server.serverInfo.address)
-                        connection.send(AuthorizationFailedPacket)
-                        println("host not match")
-                        return
-                    }*/
-                    if (authorizePacket.password != BloraPlugin.configuration.messageing.password) {
-                        println("wrong password")
-                        connection.send(AuthorizationFailedPacket)
-                        return
-                    }
-                    connection.send(AuthorizedPacket)
-                    this.authorized[authorizePacket.serverName] = connection
-                    this.waitingAuthorization.remove(channel)?.cancel()
-                    BloraPlugin.log.info("服务器 ${authorizePacket.serverName} 的 Blora 通讯系统成功连接")
-                }
+            if (packetType == null)
+                return
 
-                PacketType.DEBUG_MESSAGE.id -> {
-                    if (!this.isAuthorized(channel))
-                        return
-                    val debugMessagePacket = DebugMessagePacket()
-                    debugMessagePacket.decode(msg)
-                    BloraPlugin.log.info("收到了调试信息：${debugMessagePacket.message}")
-                }
+            val packet = packetType.packetConstructor()
+            packet.decode(msg)
 
-                PacketType.PLAYER_AUTHORIZATION_REQUEST.id -> {
-                    if (!this.isAuthorized(channel))
-                        return
-                    val packet = PlayerAuthorizationRequestPacket()
-                    packet.decode(msg)
-                    val player = BloraPlugin.proxyServer.getPlayer(packet.playerName)
-                    player.ifPresent {
-                        val response = PlayerAuthorizationResponsePacket()
-                        response.playerName = packet.playerName
-                        response.authorized = BloraAuthorization.isAuthorized(it)
-                        connection.send(response)
-                    }
-                }
-            }
+            PacketHandlerManager.handle(connection, packet)
         }
     }
 
@@ -200,6 +161,85 @@ class BloraServer(
         if (name != null) {
             this.authorized.remove(name)
         }
+    }
+
+    private fun registerHandlers() {
+        PacketHandlerManager.register(false, PacketType.PONG, object : PacketHandler<PongPacket> {
+            override fun handlePacket(
+                connection: BloraConnection,
+                packet: PongPacket
+            ) {
+                this@BloraServer.pongs[connection.channel] = System.currentTimeMillis()
+            }
+        })
+        PacketHandlerManager.register(false, PacketType.AUTHORIZE, object : PacketHandler<AuthorizePacket> {
+            override fun handlePacket(
+                connection: BloraConnection,
+                packet: AuthorizePacket
+            ) {
+                val serverOptional = BloraPlugin.proxyServer.getServer(packet.serverName)
+                if (serverOptional.isEmpty) {
+                    connection.send(AuthorizationFailedPacket)
+                    println("server not exists")
+                    return
+                }
+                val server = serverOptional.get()
+                /* FIXME: a better check
+                if (connection.address != server.serverInfo.address) {
+                    println(connection.address)
+                    println(server.serverInfo.address)
+                    connection.send(AuthorizationFailedPacket)
+                    println("host not match")
+                    return
+                }*/
+                if (packet.password != BloraPlugin.configuration.messageing.password) {
+                    println("wrong password")
+                    connection.send(AuthorizationFailedPacket)
+                    return
+                }
+                connection.send(AuthorizedPacket)
+                this@BloraServer.authorized[packet.serverName] = connection
+                this@BloraServer.waitingAuthorization.remove(connection.channel)?.cancel()
+                BloraPlugin.log.info("服务器 ${packet.serverName} 的 Blora 通讯系统成功连接")
+            }
+        })
+        PacketHandlerManager.register(true, PacketType.DEBUG_MESSAGE, object : PacketHandler<DebugMessagePacket> {
+            override fun handlePacket(
+                connection: BloraConnection,
+                packet: DebugMessagePacket
+            ) {
+                BloraPlugin.log.info("收到了调试信息：${packet.message}")
+            }
+        })
+        PacketHandlerManager.register(
+            true,
+            PacketType.PLAYER_AUTHORIZATION_REQUEST,
+            object : PacketHandler<PlayerAuthorizationRequestPacket> {
+                override fun handlePacket(
+                    connection: BloraConnection,
+                    packet: PlayerAuthorizationRequestPacket
+                ) {
+                    val player = BloraPlugin.proxyServer.getPlayer(packet.playerName)
+                    player.ifPresent {
+                        val response = PlayerAuthorizationResponsePacket()
+                        response.playerName = packet.playerName
+                        response.authorized = BloraAuthorization.isAuthorized(it)
+                        connection.send(response)
+                    }
+                }
+            })
+        PacketHandlerManager.register(
+            true,
+            PacketType.RELOAD_CONFIGURATION,
+            object : PacketHandler<ReloadConfigurationPacket> {
+                override fun handlePacket(
+                    connection: BloraConnection,
+                    packet: ReloadConfigurationPacket
+                ) {
+                    this@BloraServer.broadcast(packet)
+                    BloraPlugin.reloadConfiguration()
+                }
+            })
     }
 
     companion object {

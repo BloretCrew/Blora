@@ -4,6 +4,7 @@ import blora.api.command.*
 import blora.api.command.argument.Arguments
 import blora.api.message.*
 import blora.messaging.packet.common.DebugMessagePacket
+import blora.messaging.packet.common.ReloadConfigurationPacket
 import blora.modules.ModuleManager
 import blora.plugin.BloraPlugin
 import plutoproject.adventurekt.text.*
@@ -58,6 +59,12 @@ object BloraCommand {
                             BloraPlugin.client.send(DebugMessagePacket().apply { this.message = message })
                         }
                     }
+                }
+            }
+
+            literal("reload") {
+                executor {
+                    BloraPlugin.client.send(ReloadConfigurationPacket)
                 }
             }
 

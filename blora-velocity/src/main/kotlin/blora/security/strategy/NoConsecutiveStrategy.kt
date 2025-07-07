@@ -1,10 +1,9 @@
 package blora.security.strategy
 
-import blora.BloraPlugin
 import blora.extension.hasRepeatedCharRegex
+import blora.extension.localization
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.component
-import plutoproject.adventurekt.text.mini
 import plutoproject.adventurekt.text.parsedPlaceholder
 
 object NoConsecutiveStrategy : PasswordStrategy {
@@ -22,8 +21,13 @@ object NoConsecutiveStrategy : PasswordStrategy {
         return if (password.hasRepeatedCharRegex(times)) {
             PasswordStrategyResult.Failure(
                 component {
-                    mini(BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureNoConsecutive) {
-                        parsedPlaceholder("limit", times.toString())
+                    localization(
+                        player = player,
+                        tags = {
+                            parsedPlaceholder("limit", times.toString())
+                        }
+                    ) {
+                        this.warningRegisterPassword_strategy_failure_no_consecutive
                     }
                 }
             )

@@ -1,7 +1,11 @@
 package blora.command
 
 import blora.BloraPlugin
+import blora.dialog.asPacket
+import blora.extension.sendPacket
+import blora.mail.mailDialog
 import com.velocitypowered.api.command.BrigadierCommand
+import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.space
@@ -21,7 +25,7 @@ object BloraProxyCommand {
                 .build(),
             BrigadierCommand(
                 BrigadierCommand.literalArgumentBuilder("bloraproxy")
-                    .requires { it.hasPermission("blora.command.bloraproxy") }
+                    // .requires { it.hasPermission("blora.command.bloraproxy") }
                     .then(
                         BrigadierCommand.literalArgumentBuilder("list")
                             .executes {
@@ -29,7 +33,7 @@ object BloraProxyCommand {
                                     text { "服务器连接状态：" }
                                     for (server in BloraPlugin.proxyServer.allServers) {
                                         newline()
-                                        text { "⚪" } with if (BloraPlugin.server.isConnected(server.serverInfo.name))
+                                        text { "●" } with if (BloraPlugin.server.isConnected(server.serverInfo.name))
                                             green.text
                                         else
                                             red.text
@@ -39,6 +43,18 @@ object BloraProxyCommand {
                                 }
                                 return@executes 1
                             }
+                    )
+                    .then(
+                        BrigadierCommand.literalArgumentBuilder("debug")
+                            .then(
+                                BrigadierCommand.literalArgumentBuilder("mailDialog")
+                                    .executes {
+                                        if (it.source is Player) {
+                                            (it.source as Player).sendPacket(mailDialog().asPacket())
+                                        }
+                                        return@executes 1
+                                    }
+                            )
                     )
             )
         )

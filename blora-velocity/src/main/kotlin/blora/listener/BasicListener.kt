@@ -1,6 +1,5 @@
 package blora.listener
 
-import blora.BloraConstants
 import blora.BloraPlugin
 import blora.authorization.AuthorizationFunctions
 import blora.authorization.BloraAuthorization
@@ -10,6 +9,8 @@ import blora.authorization.premium.fetcher.PremiumFetcher
 import blora.configuration.Order
 import blora.configuration.UUIDGenerator
 import blora.database.BloraPlayer
+import blora.extension.disconnect
+import blora.extension.localization
 import blora.options.OptionStatus
 import blora.options.OptionsFunctions
 import blora.options.PlayerOptions
@@ -25,9 +26,8 @@ import com.velocitypowered.api.util.GameProfile
 import io.github._4drian3d.vpacketevents.api.event.PacketReceiveEvent
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtString
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import plutoproject.adventurekt.component
-import plutoproject.adventurekt.text.mini
+import plutoproject.adventurekt.text.parsedPlaceholder
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
@@ -57,9 +57,13 @@ object BasicListener {
                     ((packet.payload as NbtCompound)["blora_confirm_password"] as NbtString).value
                 )
             } else if (packet.id == "minecraft:blora_exit") {
-                event.player.disconnect(component {
-                    mini(BloraPlugin.configuration.messages.ingameKickExit)
-                })
+                if (!BloraPlugin.configuration.administration.debug) {
+                    event.player.disconnect {
+                        localization(event.player) {
+                            this.kickLoginExit
+                        }
+                    }
+                }
             } else if (packet.id == "minecraft:blora_player_options_exit") {
                 OptionsFunctions.updatePlayerOptions(event.player, packet.payload as NbtCompound)
             }
@@ -125,11 +129,9 @@ object BasicListener {
             BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s is under online mode")
             if (premiumPlayer == null) { // why could this happen?
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s premium data is null")
-                event.player.disconnect(
-                    BloraConstants.Objects.miniMessage.deserialize(
-                        BloraPlugin.configuration.messages.loginKickErrorProfiling
-                    )
-                )
+                event.player.disconnect {
+                    localization(event.player) { this.kickLoginError_profiling }
+                }
                 return
             }
 
@@ -137,11 +139,9 @@ object BasicListener {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s database data queried by name exists")
                 if (databasePlayerByName.premiumUuid == null || databasePlayerByPremiumUuid == null) {
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s database data queried by name has no premium uuid")
-                    event.player.disconnect(
-                        BloraConstants.Objects.miniMessage.deserialize(
-                            BloraPlugin.configuration.messages.loginKickSameNameOfflinePlayer
-                        )
-                    )
+                    event.player.disconnect {
+                        localization(event.player) { this.kickLoginSame_name_offline_player }
+                    }
                     return
                 }
 
@@ -151,11 +151,9 @@ object BasicListener {
                 ) {
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip) seems to swap username with another player")
                     // this will happen when two of premium player swap username
-                    event.player.disconnect(
-                        BloraConstants.Objects.miniMessage.deserialize(
-                            BloraPlugin.configuration.messages.loginKickSwapPremiumUsername
-                        )
-                    )
+                    event.player.disconnect {
+                        localization(event.player) { this.kickLoginSwap_premium_username }
+                    }
                     return
                 }
 
@@ -204,11 +202,9 @@ object BasicListener {
             BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s is under offline mode")
             if (premiumPlayer != null) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s database data queried by premium uuid exists, but he's cracked player, kick")
-                event.player.disconnect(
-                    BloraConstants.Objects.miniMessage.deserialize(
-                        BloraPlugin.configuration.messages.loginKickOnlineProfileButOfflineJoin
-                    )
-                )
+                event.player.disconnect {
+                    localization(event.player) { this.kickLoginOnline_profile_but_offline_join }
+                }
                 return
             } else if (databasePlayerByName == null) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s database data queried by name not exists")
@@ -244,9 +240,6 @@ object BasicListener {
                     databasePlayerByName.flush()
                 }
             }
-
-            // send player to limbo server and wait for logging in, only crack player needs this
-            event.player.createConnectionRequest(BloraPlugin.limboServer).fireAndForget()
         }
 
         BloraPlugin.log.info("[LOGIN SYSTEM] Finishing data updating for player ${event.player.username}($ip)")
@@ -306,13 +299,18 @@ object BasicListener {
             if (username.length < BloraPlugin.configuration.authorization.minUsernameLength) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s name length is too short")
                 event.result = PreLoginEvent.PreLoginComponentResult.denied(
-                    BloraConstants.Objects.miniMessage.deserialize(
-                        BloraPlugin.configuration.messages.loginKickUsernameTooShort,
-                        Placeholder.parsed(
-                            "length",
-                            BloraPlugin.configuration.authorization.minUsernameLength.toString()
-                        )
-                    )
+                    component {
+                        localization(
+                            tags = {
+                                parsedPlaceholder(
+                                    "length",
+                                    BloraPlugin.configuration.authorization.minUsernameLength.toString()
+                                )
+                            }
+                        ) {
+                            this.kickLoginUsername_too_short
+                        }
+                    }
                 )
                 return
             }
@@ -320,13 +318,18 @@ object BasicListener {
             if (username.length > BloraPlugin.configuration.authorization.maxUsernameLength) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s name length is too long")
                 event.result = PreLoginEvent.PreLoginComponentResult.denied(
-                    BloraConstants.Objects.miniMessage.deserialize(
-                        BloraPlugin.configuration.messages.loginKickUsernameTooLong,
-                        Placeholder.parsed(
-                            "length",
-                            BloraPlugin.configuration.authorization.maxUsernameLength.toString()
-                        )
-                    )
+                    component {
+                        localization(
+                            tags = {
+                                parsedPlaceholder(
+                                    "length",
+                                    BloraPlugin.configuration.authorization.maxUsernameLength.toString()
+                                )
+                            }
+                        ) {
+                            this.kickLoginUsername_too_long
+                        }
+                    }
                 )
                 return
             }
@@ -334,10 +337,15 @@ object BasicListener {
             if (!username.matches(BloraPlugin.configuration.authorization.usernameRegex.toRegex())) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s name doesn't allowed by server provided regex")
                 event.result = PreLoginEvent.PreLoginComponentResult.denied(
-                    BloraConstants.Objects.miniMessage.deserialize(
-                        BloraPlugin.configuration.messages.loginKickUsernameContainsInvalidCharacters,
-                        Placeholder.parsed("regex", BloraPlugin.configuration.authorization.usernameRegex)
-                    )
+                    component {
+                        localization(
+                            tags = {
+                                parsedPlaceholder("regex", BloraPlugin.configuration.authorization.usernameRegex)
+                            }
+                        ) {
+                            this.kickLoginUsername_contains_invalid_characters
+                        }
+                    }
                 )
                 return
             }
@@ -351,9 +359,11 @@ object BasicListener {
             ) { // use >= because if add one more player will be larger than the limit
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) is limited to join because amount of players logged in on his ip reached limit")
                 event.result = PreLoginEvent.PreLoginComponentResult.denied(
-                    BloraConstants.Objects.miniMessage.deserialize(
-                        BloraPlugin.configuration.messages.loginKickSameIpLoginOvercount
-                    )
+                    component {
+                        localization {
+                            this.kickLoginSame_ip_login_overcount
+                        }
+                    }
                 )
                 return
             }
@@ -386,9 +396,11 @@ object BasicListener {
                         // but A player changed his/her username to B's which isn't registered on Mojang server
                         // so the username now refers to a new premium player
                         event.result = PreLoginEvent.PreLoginComponentResult.denied(
-                            BloraConstants.Objects.miniMessage.deserialize(
-                                BloraPlugin.configuration.messages.loginKickSameNameOfflinePlayer
-                            )
+                            component {
+                                localization {
+                                    this.kickLoginSame_name_offline_player
+                                }
+                            }
                         )
                         return
                     }
@@ -422,9 +434,11 @@ object BasicListener {
                     if (databasePlayer.premiumUuid != null) { // a rarely happen event, but it will, it does exist!
                         BloraPlugin.log.info("[LOGIN SYSTEM] Data stored in database related to player ${event.username}($ip)'s username has premium uuid, kick the player")
                         event.result = PreLoginEvent.PreLoginComponentResult.denied(
-                            BloraConstants.Objects.miniMessage.deserialize(
-                                BloraPlugin.configuration.messages.loginKickSameOldNameOnlinePlayer
-                            )
+                            component {
+                                localization {
+                                    this.kickLoginSame_old_name_online_player
+                                }
+                            }
                         )
                         return
                     }
@@ -442,9 +456,11 @@ object BasicListener {
                         if (amount >= BloraPlugin.configuration.security.ipLimit) { // use >= because if add one more player will be larger than the limit
                             BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s ip is reaching the limit")
                             event.result = PreLoginEvent.PreLoginComponentResult.denied(
-                                BloraConstants.Objects.miniMessage.deserialize(
-                                    BloraPlugin.configuration.messages.loginKickSameIpRegisterOvercount
-                                )
+                                component {
+                                    localization {
+                                        this.kickLoginSame_ip_register_overcount
+                                    }
+                                }
                             )
                             return
                         }

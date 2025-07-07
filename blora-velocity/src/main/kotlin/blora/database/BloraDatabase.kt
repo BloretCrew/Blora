@@ -35,6 +35,18 @@ class BloraDatabase(
         }
     }
 
+    fun getPlayerByUuid(uuid: UUID): BloraPlayer? {
+        return trans {
+            val result = BloraPlayer.find {
+                PlayerTable.uuid eq uuid
+            }
+            if (result.count() == 0L) {
+                return@trans null
+            }
+            return@trans result.toList()[0]
+        }
+    }
+
     fun getPlayerByPremiumUuid(uuid: UUID): BloraPlayer? {
         return trans {
             val result = BloraPlayer.find {

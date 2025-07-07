@@ -4,9 +4,9 @@ import blora.BloraPlugin
 import blora.extension.containsNumber
 import blora.extension.containsSymbol
 import blora.extension.containsUppercase
+import blora.extension.localization
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.component
-import plutoproject.adventurekt.text.mini
 
 object CharIncludeStrategy : PasswordStrategy {
 
@@ -25,34 +25,35 @@ object CharIncludeStrategy : PasswordStrategy {
             return PasswordStrategyResult.Success
         }
 
-        val message = if (uppercase) {
-            if (number) {
-                if (symbol) {
-                    BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureUppercaseAndNumberAndSymbolIncluded
-                } else {
-                    BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureNumberAndUppercaseIncluded
-                }
-            } else {
-                if (symbol) {
-                    BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureUppercaseAndSymbolIncluded
-                } else {
-                    BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureUppercaseIncluded
-                }
-            }
-        } else {
-            if (number) {
-                if (symbol) {
-                    BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureNumberAndSymbolIncluded
-                } else {
-                    BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureNumberIncluded
-                }
-            } else {
-                BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureSymbolIncluded
-            }
-        }
 
         val failure = PasswordStrategyResult.Failure(component {
-            mini(message)
+            localization(player) {
+                if (uppercase) {
+                    if (number) {
+                        if (symbol) {
+                            this.warningRegisterPassword_strategy_failure_uppercase_and_number_and_symbol_included
+                        } else {
+                            this.warningRegisterPassword_strategy_failure_number_and_uppercase_included
+                        }
+                    } else {
+                        if (symbol) {
+                            this.warningRegisterPassword_strategy_failure_uppercase_and_symbol_included
+                        } else {
+                            this.warningRegisterPassword_strategy_failure_uppercase_included
+                        }
+                    }
+                } else {
+                    if (number) {
+                        if (symbol) {
+                            this.warningRegisterPassword_strategy_failure_number_and_symbol_included
+                        } else {
+                            this.warningRegisterPassword_strategy_failure_number_included
+                        }
+                    } else {
+                        this.warningRegisterPassword_strategy_failure_symbol_included
+                    }
+                }
+            }
         })
 
         if (uppercase) {

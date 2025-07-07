@@ -7,6 +7,7 @@ import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
 import blora.database.BloraDatabase
 import blora.listener.BasicListener
+import blora.localization.BloraLocalization
 import blora.messaging.BloraServer
 import blora.protocol.packet.CustomClickAction
 import blora.security.PasswordManager
@@ -27,7 +28,9 @@ import com.velocitypowered.api.proxy.server.RegisteredServer
 import com.velocitypowered.proxy.protocol.ProtocolUtils
 import com.velocitypowered.proxy.protocol.StateRegistry
 import io.github._4drian3d.vpacketevents.api.register.PacketRegistration
+import kotlinx.coroutines.*
 import org.slf4j.Logger
+import java.io.File
 import java.nio.file.Path
 
 @Plugin(
@@ -51,6 +54,8 @@ class BloraPlugin @Inject constructor(
     private val limboServer: RegisteredServer
     private val lobbyServer: RegisteredServer
     private val bloraServer: BloraServer
+
+    private val playerAuthorizationRefreshmentJob: Job
 
     init {
         instance = this
@@ -77,6 +82,11 @@ class BloraPlugin @Inject constructor(
 
         this.database = BloraDatabase(this.configuration.contents!!.database.buildDataSource())
         this.database.initTables()
+
+        this.playerAuthorizationRefreshmentJob = coroutineScope.launch {
+            delay(1000)
+            BloraAuthorization.refreshUnauthorizedPlayers()
+        }
     }
 
     private fun init(): Boolean {
@@ -85,23 +95,17 @@ class BloraPlugin @Inject constructor(
             this.logger.error("Database verification failed! Plugin will not be activated!")
             return false
         }
-        if (this.configuration.contents!!.authorization.minUsernameLength > this.configuration.contents!!.authorization.maxUsernameLength) {
-            this.logger.error("Max username length is lower than min username length in configuration! Plugin will not be activated!")
-            return false
-        }
-        if (this.configuration.contents!!.security.minPasswordLength > this.configuration.contents!!.security.maxPasswordLength) {
-            this.logger.error("Max password length is lower than min password length in configuration! Plugin will not be activated!")
-            return false
-        }
         return true
     }
 
     @Subscribe
     fun onInitialize(event: ProxyInitializeEvent) {
+        this.initFolders()
+        this.initLocalizations()
+        this.initPasswordStrategies()
+
         this.registerPackets()
         this.registerCommands()
-
-        this.initPasswordStrategies()
 
         this.startServer()
 
@@ -112,6 +116,18 @@ class BloraPlugin @Inject constructor(
     @Subscribe
     fun onShutdown(event: ProxyShutdownEvent) {
         BloraAuthorization.clearAll()
+        this.playerAuthorizationRefreshmentJob.cancel()
+    }
+
+    private fun initFolders() {
+        if (!localeDirectory.exists()) {
+            localeDirectory.mkdirs()
+        }
+    }
+
+    private fun initLocalizations() {
+        BloraLocalization.saveDefaultLocalization()
+        BloraLocalization.loadLocalizations()
     }
 
     private fun startServer() {
@@ -155,6 +171,9 @@ class BloraPlugin @Inject constructor(
         val dataDirectory: Path
             get() = instance.dataDirectory
 
+        val localeDirectory: File
+            get() = File(dataDirectory.toFile(), "locales")
+
         val configuration: ConfigurationContents
             get() = instance.configuration.contents!!
 
@@ -169,6 +188,12 @@ class BloraPlugin @Inject constructor(
 
         val server: BloraServer
             get() = instance.bloraServer
+
+        val coroutineScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+
+        fun reloadConfiguration() {
+            this.instance.configuration.load()
+        }
 
     }
 

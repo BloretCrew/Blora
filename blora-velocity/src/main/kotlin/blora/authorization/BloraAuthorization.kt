@@ -1,15 +1,18 @@
 package blora.authorization
 
 import blora.BloraPlugin
+import blora.extension.localization
 import blora.messaging.packet.clientbound.PlayerAuthorizationUpdatePacket
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.velocitypowered.api.proxy.Player
+import plutoproject.adventurekt.component
 import java.util.*
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 
 object BloraAuthorization {
 
+    private val joinAt = mutableMapOf<Player, Long>()
     private val status = mutableMapOf<Player, Boolean>()
     private val playerIps = mutableMapOf<Player, String>()
     private val ips = mutableMapOf<String, MutableList<Player>>()
@@ -18,6 +21,22 @@ object BloraAuthorization {
         .expireAfterWrite(BloraPlugin.configuration.security.autoLoginExpireTime.seconds.toJavaDuration())
         .build<UUID, LoginSession>()
     val passwordRetries = mutableMapOf<Player, Int>()
+
+    fun refreshUnauthorizedPlayers() {
+        val removal = mutableListOf<Player>()
+        val current = System.currentTimeMillis()
+        for ((player, joinAt) in this.joinAt) {
+            if (current - joinAt > BloraPlugin.configuration.security.maxNotLogin) {
+                removal.add(player)
+                player.disconnect(component {
+                    localization(player) {
+                        this.kickLoginOvertime
+                    }
+                })
+            }
+        }
+        removal.forEach(this.joinAt::remove)
+    }
 
     fun isAuthorized(player: Player): Boolean {
         return this.status[player] == true
@@ -50,8 +69,12 @@ object BloraAuthorization {
                 this.cachePool.invalidate(player.uniqueId)
                 if (player.remoteAddress.address.hostAddress != session.ip)
                     return
+                if (System.currentTimeMillis() - session.quitTime >= BloraPlugin.configuration.security.autoLoginExpireTime)
+                    return
+                this.status[player] = true
             }
         }
+        this.joinAt[player] = System.currentTimeMillis()
     }
 
     fun clear(player: Player) {

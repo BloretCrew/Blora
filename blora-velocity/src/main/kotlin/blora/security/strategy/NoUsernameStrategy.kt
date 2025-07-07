@@ -1,9 +1,8 @@
 package blora.security.strategy
 
-import blora.BloraPlugin
+import blora.extension.localization
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.component
-import plutoproject.adventurekt.text.mini
 
 object NoUsernameStrategy : PasswordStrategy {
 
@@ -15,7 +14,9 @@ object NoUsernameStrategy : PasswordStrategy {
         return if (password.lowercase().contains(player.username.lowercase())) {
             PasswordStrategyResult.Failure(
                 component {
-                    mini(BloraPlugin.configuration.messages.loginWarningRegisterPasswordStrategyFailureNoUsername)
+                    localization(player) {
+                        this.warningRegisterPassword_strategy_failure_no_username
+                    }
                 }
             )
         } else {

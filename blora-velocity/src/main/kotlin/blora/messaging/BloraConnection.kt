@@ -1,5 +1,6 @@
 package blora.messaging
 
+import blora.BloraPlugin
 import blora.messaging.packet.Packet
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
@@ -12,6 +13,8 @@ class BloraConnection(
 
     val address: SocketAddress
         get() = this.channel.remoteAddress()
+    val isAuthorized: Boolean
+        get() = BloraPlugin.server.isAuthorized(this.channel)
 
     fun send(packet: Packet) {
         val byteBuf = Unpooled.buffer()
