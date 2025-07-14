@@ -19,7 +19,7 @@ open class CommandInvokerWrapper(
     override val asBukkit: CommandSender
         get() = commandSender
 
-    override fun asPlayer(): blora.api.player.QuickPlayer {
+    override fun player(): blora.api.player.BloraPlayer {
         return QuickPlayerWrapper(this.commandSender as Player)
     }
 

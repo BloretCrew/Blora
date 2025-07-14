@@ -25,7 +25,7 @@ object BloraProxyCommand {
                 .build(),
             BrigadierCommand(
                 BrigadierCommand.literalArgumentBuilder("bloraproxy")
-                    // .requires { it.hasPermission("blora.command.bloraproxy") }
+                    .requires { it.hasPermission("blora.command.bloraproxy") }
                     .then(
                         BrigadierCommand.literalArgumentBuilder("list")
                             .executes {

@@ -3,6 +3,7 @@
 package blora.localization
 
 import blora.BloraPlugin
+import blora.extension.toStringTag
 import blora.serialization.json.PointSplit
 import com.velocitypowered.api.proxy.Player
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -60,7 +61,7 @@ object BloraLocalization {
     }
 
     fun getLocalization(player: Player): LocalizationContents {
-        return this.localizations[player.playerSettings.locale.toLanguageTag().lowercase()] ?: this.fallbackLocalization
+        return this.localizations[player.playerSettings.locale.toStringTag().lowercase()] ?: this.fallbackLocalization
     }
 
 }

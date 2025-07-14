@@ -5,6 +5,11 @@ plugins {
 dependencies {
     paperweight.paperDevBundle("1.21.6-R0.1-SNAPSHOT")
     compileOnly(libs.paper.api)
+    compileOnly(libs.papi)
+    compileOnly(libs.playerpoints)
+    compileOnly(libs.craftengine.core)
+    compileOnly(libs.craftengine.bukkit)
+    compileOnly(files("libs/Vault-1.7.3.jar"))
 
     compileOnly(libs.kotlinx.coroutines)
 
@@ -19,6 +24,7 @@ dependencies {
     compileOnly(libs.exposed.javatime)
     compileOnly(libs.hikaricp)
 
+    compileOnly(libs.adventure.nbt)
     compileOnly(libs.advkt)
 }
 

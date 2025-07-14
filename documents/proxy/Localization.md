@@ -2,6 +2,21 @@
 
 本地化文件中支持使用 MiniMessage 格式。
 
+## custom.placeholders
+
+你可以在这里面定义自定义的替换符，使用 \<blora:placeholder:{placeholder}> 来使用。    
+例如：可以定义一个 "commandPrefix": "\[命令]"，你可以在任意消息中通过 \<blora:placeholder:commandPrefix> 来使用。
+
+## custom.colors
+
+你可以在这里定义自定义的颜色，使用 \<blora:color:{color}> 来使用。  
+例如：可以定义一个 "success": "122,44,55"，你可以在任意消息中通过 \<blora:color:success> 来使用。  
+支持的颜色格式如下：
+
+- RGB 格式。例："12,44,59", "123, 104, 98"（允许加空格，用于美观）。
+- 7 位的十六进制格式，必须保留开头的 # 符号。例："#66ccff"。
+- 原版的颜色。例："gold", "blue"。
+
 ## kick.login.username_too_short
 
 当用户名不符合要求时的踢出信息。  

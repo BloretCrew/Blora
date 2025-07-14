@@ -1,12 +1,12 @@
 package blora.api
 
-import blora.api.command.QuickCommandLib
+import blora.api.command.BloraCommandLib
 import blora.api.scheduler.QuickSchedulerLib
 import blora.plugin.BloraPlugin
 
 interface QuickLib {
 
-    fun getCommandLib(): QuickCommandLib
+    fun getCommandLib(): BloraCommandLib
 
     fun getSchedulerLib(): QuickSchedulerLib
 

@@ -147,6 +147,7 @@ class BloraPlugin @Inject constructor(
             }
             .stateRegistry(StateRegistry.PLAY)
             .mapping(0x41, ProtocolVersion.MINECRAFT_1_21_6, false)
+            .mapping(0x41, ProtocolVersion.MINECRAFT_1_21_7, false)
             .register()
     }
 

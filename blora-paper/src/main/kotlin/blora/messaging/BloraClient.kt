@@ -51,6 +51,16 @@ class BloraClient(
         )
     }
 
+    fun reconnect() {
+        if (this.isConnected())
+            return
+        this.connection.channel.connect(InetSocketAddress(address, port))
+    }
+
+    fun isConnected(): Boolean {
+        return this.connection.channel.isActive
+    }
+
     fun send(packet: Packet) {
         this.connection.send(packet)
     }

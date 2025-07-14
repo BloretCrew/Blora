@@ -2,13 +2,17 @@
 
 package blora.dialog
 
+import blora.converter.toKnbt
 import blora.dialog.action.ClickAction
 import blora.dialog.body.DialogBody
 import blora.dialog.input.InputControl
+import blora.serialization.nbt.compound
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import net.benwoodworth.knbt.NbtCompound
+import net.benwoodworth.knbt.NbtList
 import net.kyori.adventure.text.Component
 
 @Serializable
@@ -34,8 +38,30 @@ data class DialogListDialog(
     val buttonWidth: Int = 150
 ) : Dialog() {
 
-    override fun toNms(): net.minecraft.server.dialog.Dialog {
-        TODO("Not yet implemented")
+    override fun toNBT(): NbtCompound {
+        return compound {
+            "type" eq "minecraft:dialog_list"
+            "title" eq title.toKnbt()
+            "dialogs" eq NbtList(dialogs.map { it.toNBT() })
+            if (externalTitle != null) {
+                "external_title" eq externalTitle.toKnbt()
+            }
+            if (body != null && body.isNotEmpty()) {
+                "body" eq NbtList(body.map { it.toNBT() })
+            }
+            if (inputs != null && inputs.isNotEmpty()) {
+                "inputs" eq NbtList(inputs.map { it.toNBT() })
+            }
+            "can_close_with_escape" eq canCloseWithEscape
+            "pause" eq pause
+            "after_action" eq afterAction.toNBT()
+            if (exitAction != null) {
+                "exit_action" eq exitAction.toNBT()
+            }
+            "columns" eq columns
+            "button_width" eq buttonWidth
+
+        }
     }
 
 }

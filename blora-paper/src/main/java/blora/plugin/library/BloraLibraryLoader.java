@@ -17,12 +17,15 @@ public class BloraLibraryLoader implements PluginLoader {
             "org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1",
             "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1",
             "net.peanuuutz.tomlkt:tomlkt-jvm:0.4.0",
-            "net.benwoodworth.knbt:knbt:0.11.8",
-            "plutoproject.adventurekt:core:2.1.1",
+            "net.benwoodworth.knbt:knbt-jvm:0.11.8",
+            "plutoproject.adventurekt:core:2.1.2",
             "org.jetbrains.exposed:exposed-core:0.61.0",
             "org.jetbrains.exposed:exposed-jdbc:0.61.0",
             "org.jetbrains.exposed:exposed-dao:0.61.0",
-            "org.jetbrains.exposed:exposed-java-time:0.61.0"
+            "org.jetbrains.exposed:exposed-java-time:0.61.0",
+            "com.zaxxer:HikariCP:6.3.0",
+            "org.mariadb.jdbc:mariadb-java-client:3.5.3",
+            "net.kyori:adventure-nbt:4.23.0"
     );
 
     @Override

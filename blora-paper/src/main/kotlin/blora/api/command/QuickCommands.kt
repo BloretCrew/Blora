@@ -2,7 +2,7 @@ package blora.api.command
 
 import blora.api.command.argument.ArgumentType
 import blora.api.command.argument.QuickArgumentLib
-import blora.api.player.QuickPlayer
+import blora.api.player.BloraPlayer
 import net.kyori.adventure.text.Component
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Entity
@@ -52,7 +52,11 @@ interface CommandInvoker {
 
     val asBukkit: CommandSender
 
-    fun asPlayer(): QuickPlayer
+    fun player(): BloraPlayer
+
+    fun hasPermission(permission: String): Boolean {
+        return asBukkit.hasPermission(permission)
+    }
 
     fun sendMessage(message: String) {
         this.asBukkit.sendMessage(message)
@@ -71,6 +75,8 @@ interface CommandInvoker {
 interface CommandContext {
 
     val invoker: CommandInvoker
+    val player: BloraPlayer
+        get() = this.invoker.player()
     val alias: String
     val input: String
 
@@ -105,12 +111,12 @@ interface SuggestionContext : CommandContext {
     val remainingLowercase: String
         get() = this.remaining.lowercase()
 
-    fun suggest(text: String, tooltip: Component?)
+    fun suggest(text: String, tooltip: Component? = null)
     fun suggest(text: String, tooltipBuilder: ComponentKt.() -> Unit) {
         this.suggest(text, component(tooltipBuilder))
     }
 
-    fun suggest(text: Int, tooltip: Component?)
+    fun suggest(text: Int, tooltip: Component? = null)
     fun suggest(text: Int, tooltipBuilder: ComponentKt.() -> Unit) {
         this.suggest(text, component(tooltipBuilder))
     }
@@ -150,7 +156,7 @@ abstract class QuickLibCommandBuilder(
 class QuickLibRootCommandBuilder(
     name: String
 ) : LiteralCommandBuilder(name) {
-    internal var meta: CommandMeta = QuickCommandLib.createMeta().build()
+    internal var meta: CommandMeta = BloraCommandLib.createMeta().build()
 }
 
 open class LiteralCommandBuilder(
@@ -169,7 +175,7 @@ open class ArgumentCommandBuilder<T>(
 internal fun buildChildren(children: List<QuickLibCommandBuilder>): List<CommandNode> {
     return children.map {
         if (it is LiteralCommandBuilder) {
-            return@map QuickCommandLib.createLiteralCommandNode(
+            return@map BloraCommandLib.createLiteralCommandNode(
                 it.name,
                 it.requirement,
                 it.executor,
@@ -178,7 +184,7 @@ internal fun buildChildren(children: List<QuickLibCommandBuilder>): List<Command
                 buildChildren(it.children.values.toList())
             )
         } else if (it is ArgumentCommandBuilder<*>) {
-            return@map QuickCommandLib.Companion.createArgumentCommandNode(
+            return@map BloraCommandLib.Companion.createArgumentCommandNode(
                 it.argumentType,
                 it.suggestions,
                 it.name,
@@ -196,7 +202,7 @@ internal fun buildChildren(children: List<QuickLibCommandBuilder>): List<Command
 
 fun command(name: String, content: QuickLibRootCommandBuilder.() -> Unit): Command {
     val builder = QuickLibRootCommandBuilder(name).apply(content)
-    return QuickCommandLib.createCommand(
+    return BloraCommandLib.createCommand(
         builder.meta,
         builder.name,
         builder.requirement,
@@ -208,7 +214,7 @@ fun command(name: String, content: QuickLibRootCommandBuilder.() -> Unit): Comma
 }
 
 fun QuickLibRootCommandBuilder.meta(content: CommandMetaBuilder.() -> Unit) {
-    this.meta = QuickCommandLib.createMeta().apply(content).build()
+    this.meta = BloraCommandLib.createMeta().apply(content).build()
 }
 
 fun QuickLibCommandBuilder.literal(name: String, content: QuickLibCommandBuilder.() -> Unit) {
@@ -252,9 +258,9 @@ fun QuickLibCommandBuilder.permission(permission: String) {
 }
 
 fun ArgumentCommandBuilder<*>.suggests(content: SuggestionContext.() -> Unit) {
-    this.suggestions = QuickCommandLib.buildSuggestions(false, content)
+    this.suggestions = BloraCommandLib.buildSuggestions(false, content)
 }
 
 fun ArgumentCommandBuilder<*>.suggestsAsync(content: SuggestionContext.() -> Unit) {
-    this.suggestions = QuickCommandLib.buildSuggestions(true, content)
+    this.suggestions = BloraCommandLib.buildSuggestions(true, content)
 }

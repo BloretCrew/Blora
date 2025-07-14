@@ -5,7 +5,7 @@ import org.bukkit.entity.Player
 
 class QuickPlayerWrapper(
     private val player: Player
-) : CommandInvokerWrapper(player), blora.api.player.QuickPlayer {
+) : CommandInvokerWrapper(player), blora.api.player.BloraPlayer {
 
     override val isPlayer: Boolean
         get() = true

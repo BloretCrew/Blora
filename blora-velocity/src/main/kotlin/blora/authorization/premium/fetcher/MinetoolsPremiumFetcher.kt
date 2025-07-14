@@ -18,13 +18,15 @@ class MinetoolsPremiumFetcher : AbstractPremiumFetcher() {
                 val body = response.body ?: return FetchResult.ServerError
                 val data = JsonParser.parseReader(InputStreamReader(body.byteStream())).asJsonObject
 
-                var rawId = data["id"]
+                response.close()
+
+                val rawId = data["id"]
                 if (rawId == null || rawId.isJsonNull) {
-                    var error = data.get("error")
+                    val error = data.get("error")
                     if (error == null) {
                         return FetchResult.NotExists
                     }
-                    var errorMessage = error.asString
+                    val errorMessage = error.asString
                     return if (errorMessage.equals("Invalid UUID or nickname.")) {
                         FetchResult.InvalidInput
                     } else {
@@ -44,8 +46,15 @@ class MinetoolsPremiumFetcher : AbstractPremiumFetcher() {
                 }
             }
 
-            400 -> FetchResult.NotExists
-            else -> FetchResult.ServerError
+            400 -> {
+                response.close()
+                FetchResult.NotExists
+            }
+
+            else -> {
+                response.close()
+                FetchResult.ServerError
+            }
         }
     }
 

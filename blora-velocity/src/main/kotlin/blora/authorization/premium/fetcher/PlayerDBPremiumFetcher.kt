@@ -17,9 +17,10 @@ class PlayerDBPremiumFetcher : AbstractPremiumFetcher() {
                 val body = response.body ?: return FetchResult.ServerError
                 val data = JsonParser.parseReader(InputStreamReader(body.byteStream())).asJsonObject
 
+                response.close()
 
-                var id = data["data"].asJsonObject["player"].asJsonObject["id"].asString
-                var username = data["data"].asJsonObject["player"].asJsonObject["username"].asString
+                val id = data["data"].asJsonObject["player"].asJsonObject["id"].asString
+                val username = data["data"].asJsonObject["player"].asJsonObject["username"].asString
 
                 FetchResult.Exists(
                     PremiumPlayer(
@@ -29,8 +30,15 @@ class PlayerDBPremiumFetcher : AbstractPremiumFetcher() {
                 )
             }
 
-            400 -> FetchResult.NotExists
-            else -> FetchResult.ServerError
+            400 -> {
+                response.close()
+                FetchResult.NotExists
+            }
+
+            else -> {
+                response.close()
+                FetchResult.ServerError
+            }
         }
     }
 

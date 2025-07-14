@@ -1,7 +1,7 @@
 package blora.api.command.argument
 
+import blora.api.command.BloraCommandLib
 import blora.api.command.CommandContext
-import blora.api.command.QuickCommandLib
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Entity
 
@@ -18,6 +18,6 @@ interface QuickArgumentLib {
         name: String
     ): T
 
-    companion object : QuickArgumentLib by QuickCommandLib.Companion.getArgumentLib()
+    companion object : QuickArgumentLib by BloraCommandLib.Companion.getArgumentLib()
 
 }

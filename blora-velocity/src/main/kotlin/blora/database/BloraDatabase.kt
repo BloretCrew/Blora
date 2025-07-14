@@ -1,10 +1,15 @@
 package blora.database
 
+import blora.database.player.PlayerDao
+import blora.database.player.PlayerLoginDao
+import blora.database.player.PlayerLoginTable
+import blora.database.player.PlayerTable
 import com.zaxxer.hikari.HikariDataSource
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.LocalDate
 import java.util.*
 
 class BloraDatabase(
@@ -20,12 +25,29 @@ class BloraDatabase(
     fun initTables() {
         trans {
             SchemaUtils.create(PlayerTable)
+            SchemaUtils.create(PlayerLoginTable)
         }
     }
 
-    fun getPlayerByName(name: String): BloraPlayer? {
+    fun playerLoginDateSave(uuid: UUID) {
+        trans {
+            val result = PlayerLoginDao.find {
+                PlayerLoginTable.uuid eq uuid
+                PlayerLoginTable.date eq LocalDate.now()
+            }
+            if (result.count() > 0) {
+                return@trans
+            }
+            PlayerLoginDao.new {
+                this.playerUuid = uuid
+                this.loginDate = LocalDate.now()
+            }
+        }
+    }
+
+    fun getPlayerByName(name: String): PlayerDao? {
         return trans {
-            val result = BloraPlayer.find {
+            val result = PlayerDao.find {
                 PlayerTable.username eq name.lowercase()
             }
             if (result.count() == 0L) {
@@ -35,9 +57,9 @@ class BloraDatabase(
         }
     }
 
-    fun getPlayerByUuid(uuid: UUID): BloraPlayer? {
+    fun getPlayerByUuid(uuid: UUID): PlayerDao? {
         return trans {
-            val result = BloraPlayer.find {
+            val result = PlayerDao.find {
                 PlayerTable.uuid eq uuid
             }
             if (result.count() == 0L) {
@@ -47,9 +69,9 @@ class BloraDatabase(
         }
     }
 
-    fun getPlayerByPremiumUuid(uuid: UUID): BloraPlayer? {
+    fun getPlayerByPremiumUuid(uuid: UUID): PlayerDao? {
         return trans {
-            val result = BloraPlayer.find {
+            val result = PlayerDao.find {
                 PlayerTable.premiumUuid eq uuid
             }
             if (result.count() == 0L) {
@@ -61,7 +83,7 @@ class BloraDatabase(
 
     fun getFirstIpAmount(ip: String): Int {
         return trans {
-            BloraPlayer.find {
+            PlayerDao.find {
                 PlayerTable.firstIp eq ip
             }.count()
                 .toInt()
@@ -70,7 +92,7 @@ class BloraDatabase(
 
     fun getLastIpAmount(ip: String): Int {
         return trans {
-            BloraPlayer.find {
+            PlayerDao.find {
                 PlayerTable.lastIp eq ip
             }.count()
                 .toInt()

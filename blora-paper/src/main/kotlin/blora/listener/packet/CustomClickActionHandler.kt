@@ -1,0 +1,55 @@
+package blora.listener.packet
+
+import blora.api.scheduler.BukkitMain
+import blora.nms.toKnbt
+import blora.serialization.nbt.compound
+import io.papermc.paper.adventure.PaperAdventure
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import net.benwoodworth.knbt.NbtCompound
+import net.benwoodworth.knbt.NbtString
+import net.benwoodworth.knbt.NbtTag
+import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
+import kotlin.jvm.optionals.getOrNull
+
+object CustomClickActionHandler {
+
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.BukkitMain)
+    val resolving = mutableMapOf<String, (NbtTag?) -> Unit>()
+
+    fun handle(packet: ServerboundCustomClickActionPacket) {
+        scope.launch {
+            val id = PaperAdventure.asAdventure(packet.id)
+
+            val tag = packet.payload.getOrNull().toKnbt() as NbtCompound
+
+            val realTag = tag["realTag"]
+
+            val finalTag = compound { // this step is to deliver input values
+                for ((key, value) in tag) {
+                    if (key == "identifier")
+                        continue
+                    if (key == "realTag")
+                        continue
+                    key eq value
+                }
+                if (realTag != null && realTag is NbtCompound) {
+                    for ((key, value) in realTag) {
+                        key eq value
+                    }
+                }
+            }
+
+            if (id.asString() == "blora:custom_click") {
+                val identifier = (tag["identifier"] as NbtString).value
+                val callback = resolving[identifier]
+                if (callback != null) {
+                    resolving.remove(identifier)
+                    callback(finalTag)
+                }
+            }
+        }
+    }
+
+}

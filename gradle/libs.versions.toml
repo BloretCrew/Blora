@@ -3,18 +3,21 @@ kotlin = '2.1.20'
 kotlinx = '1.10.2'
 serialization = '1.8.1'
 tomlkt = '0.4.0'
-advkt = '2.1.1'
+advkt = '2.1.2'
 paper = '1.21.5-R0.1-SNAPSHOT'
 paperweight = '2.0.0-beta.17'
 exposed = "0.61.0"
 velocity = "3.4.0-SNAPSHOT"
 hikaricp = "6.3.0"
-packetevents = "2.8.0"
 okhttp3 = "4.12.0"
 netty = "4.2.2.Final"
 knbt = "0.11.8"
 mariadb = "3.5.3"
 minedown = "1.7.4-SNAPSHOT"
+papi = "2.11.6"
+craft-engine = "0.0.59"
+adventure = "4.23.0"
+playerpoints = "3.3.3-SNAPSHOT"
 
 [libraries]
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = 'velocity' }
@@ -35,6 +38,11 @@ okhttp3 = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
 netty = { module = "io.netty:netty-all", version.ref = "netty" }
 mariadb = { module = "org.mariadb.jdbc:mariadb-java-client", version.ref = "mariadb" }
 minedown = { module = "de.themoep:minedown-adventure", version.ref = "minedown" }
+papi = { module = "me.clip:placeholderapi", version.ref = "papi" }
+craftengine-core = { module = "net.momirealms:craft-engine-core", version.ref = "craft-engine" }
+craftengine-bukkit = { module = "net.momirealms:craft-engine-bukkit", version.ref = "craft-engine" }
+adventure-nbt = { module = "net.kyori:adventure-nbt", version.ref = "adventure" }
+playerpoints = { module = "org.black_ixx:playerpoints", version.ref = "playerpoints" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "9.0.0-beta16" }

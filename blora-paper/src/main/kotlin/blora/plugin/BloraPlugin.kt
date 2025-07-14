@@ -1,19 +1,27 @@
 package blora.plugin
 
 import blora.api.QuickEntityLib
-import blora.command.QuickCommandLibWrapper
+import blora.command.BloraCommandLibWrapper
 import blora.command.defaults.BloraCommand
+import blora.command.defaults.MailCommand
+import blora.command.defaults.RedeemCommand
 import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
 import blora.database.BloraDatabase
 import blora.entity.QuickEntityLibWrapper
+import blora.injector.BloraInjector
+import blora.listener.SystemMailListener
 import blora.listener.UnauthorizedListener
+import blora.localization.BloraLocalization
+import blora.menu.MenuApi
 import blora.messaging.BloraClient
 import blora.modules.ModuleManager
 import blora.modules.mail.MailModule
+import blora.permission.Permissions
 import blora.scheduler.QuickSchedulerLibWrapper
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 import java.net.InetAddress
 
 object BloraPlugin : JavaPlugin(), blora.api.QuickLib {
@@ -25,9 +33,13 @@ object BloraPlugin : JavaPlugin(), blora.api.QuickLib {
         get() = configurationLoader.contents!!
     val database: BloraDatabase
         get() = this.databaseLoader
+    val localeDirectory: File
+        get() = File(this.dataFolder, "locales")
 
 
     override fun onEnable() {
+        ThirdPartys.init()
+
         initFolders()
         loadConfiguration()
         if (!this.configuration.database.verify()) {
@@ -36,7 +48,16 @@ object BloraPlugin : JavaPlugin(), blora.api.QuickLib {
             return
         }
 
+        BloraInjector.init()
+
+        connectDatabase()
+
+        initLocalizations()
+
         startClient()
+
+        Permissions.registerPermissions()
+        MenuApi.init()
 
         registerModules()
         registerCommands()
@@ -46,12 +67,13 @@ object BloraPlugin : JavaPlugin(), blora.api.QuickLib {
     }
 
     override fun onDisable() {
+        BloraInjector.close()
         this.client.close()
         ModuleManager.disable()
     }
 
-    override fun getCommandLib(): blora.api.command.QuickCommandLib {
-        return QuickCommandLibWrapper
+    override fun getCommandLib(): blora.api.command.BloraCommandLib {
+        return BloraCommandLibWrapper
     }
 
     override fun getSchedulerLib(): blora.api.scheduler.QuickSchedulerLib {
@@ -77,6 +99,14 @@ internal fun initFolders() {
     if (!BloraPlugin.dataFolder.exists()) {
         BloraPlugin.dataFolder.mkdirs()
     }
+    if (!BloraPlugin.localeDirectory.exists()) {
+        BloraPlugin.localeDirectory.mkdirs()
+    }
+}
+
+private fun initLocalizations() {
+    BloraLocalization.saveDefaultLocalization()
+    BloraLocalization.loadLocalizations()
 }
 
 internal fun loadConfiguration() {
@@ -102,10 +132,13 @@ internal fun registerModules() {
 
 internal fun registerCommands() {
     BloraCommand.register()
+    MailCommand.register()
+    RedeemCommand.register()
 }
 
 internal fun registerListeners() {
     if (BloraPlugin.configuration.security.ensureAuthorized) {
         UnauthorizedListener.register()
     }
+    SystemMailListener.register()
 }

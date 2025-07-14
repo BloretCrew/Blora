@@ -8,7 +8,7 @@ import blora.authorization.premium.PremiumPlayer
 import blora.authorization.premium.fetcher.PremiumFetcher
 import blora.configuration.Order
 import blora.configuration.UUIDGenerator
-import blora.database.BloraPlayer
+import blora.database.player.PlayerDao
 import blora.extension.disconnect
 import blora.extension.localization
 import blora.options.OptionStatus
@@ -74,6 +74,7 @@ object BasicListener {
     @Subscribe
     fun onFinishedConfiguration(event: PlayerFinishedConfigurationEvent) {
         BloraPlugin.proxyServer.scheduler.buildTask(BloraPlugin.instance) { task ->
+            BloraPlugin.database.playerLoginDateSave(event.player.uniqueId)
             BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} is connecting to server ${event.server.serverInfo.name}")
             // notice: when testing, comment the check below to avoid cannot do test
             val databasePlayer = BloraPlugin.database.getPlayerByName(event.player.username)
@@ -175,7 +176,7 @@ object BasicListener {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip) is a newly joined premium player")
                 // newly joined premium player
                 BloraPlugin.database.trans {
-                    databasePlayerByName = BloraPlayer.new {
+                    databasePlayerByName = PlayerDao.new {
                         this.uuid = uuid
                         this.premiumUuid = premiumPlayer.uuid
                         this.username = username.lowercase()
@@ -210,7 +211,7 @@ object BasicListener {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s database data queried by name not exists")
                 // newly joined crack player
                 BloraPlugin.database.trans {
-                    databasePlayerByName = BloraPlayer.new {
+                    databasePlayerByName = PlayerDao.new {
                         this.uuid = uuid
                         this.premiumUuid = null
                         this.username = username.lowercase()

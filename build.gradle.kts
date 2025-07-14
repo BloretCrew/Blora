@@ -24,9 +24,15 @@ allprojects {
         maven {
             url = uri("https://repo.codemc.io/repository/maven-snapshots/")
         }
+        maven {
+            url = uri("https://repo.extendedclip.com/releases/")
+        }
+        maven("https://repo.momirealms.net/releases/")
         maven("https://maven.nostal.ink/repository/maven-public")
         maven("https://maven.elytrium.net/repo/")
         maven("https://repo.minebench.de/")
+        maven("https://repo.rosewooddev.io/repository/public/")
+        maven("https://jitpack.io")
     }
 
     dependencies {

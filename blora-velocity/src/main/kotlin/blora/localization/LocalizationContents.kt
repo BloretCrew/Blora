@@ -1,6 +1,7 @@
 package blora.localization
 
 import kotlinx.serialization.Serializable
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 @Serializable
 data class LocalizationContents(
@@ -51,4 +52,17 @@ data class LocalizationContents(
     val inputDialogLoginPassword: String = "密码",
     val inputDialogRegisterPassword: String = "密码",
     val inputDialogRegisterConfirmPassword: String = "确认密码",
-)
+    val customPlaceholders: Map<String, String> = mapOf(
+        "bloret" to "百络谷"
+    ),
+    val customColors: Map<String, String> = mapOf(),
+) {
+
+    fun resolver(): TagResolver {
+        return LocalizationsTagResolver(
+            this.customPlaceholders.toMap(),
+            this.customColors.toMap()
+        )
+    }
+
+}

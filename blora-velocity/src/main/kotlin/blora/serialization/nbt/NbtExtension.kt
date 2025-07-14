@@ -1,5 +1,6 @@
 package blora.serialization.nbt
 
+import blora.bytes.Byter
 import io.netty.buffer.ByteBuf
 import net.benwoodworth.knbt.*
 
@@ -213,6 +214,14 @@ fun NbtTag.getId(): Byte {
     }
 }
 
+fun NbtTag.writeToByteBuf(name: String, byteBuf: Byter) {
+    if (this is NbtList<*> && this.isEmpty())
+        return
+    byteBuf.writeByte(this.getId())
+    NbtString(name).writeValue(byteBuf)
+    this.writeValue(byteBuf)
+}
+
 fun NbtTag.writeToByteBuf(name: String, byteBuf: ByteBuf) {
     if (this is NbtList<*> && this.isEmpty())
         return
@@ -224,6 +233,78 @@ fun NbtTag.writeToByteBuf(name: String, byteBuf: ByteBuf) {
 fun NbtCompound.writeToByteBufRoot(byteBuf: ByteBuf) {
     byteBuf.writeByte(0x0a)
     this.writeValue(byteBuf)
+}
+
+fun NbtTag.toByteArray(): ByteArray {
+    val byteBuf = Byter()
+    when (this) {
+        is NbtCompound -> {
+            for ((name, tag) in this) {
+                tag.writeToByteBuf(name, byteBuf)
+            }
+            byteBuf.writeByte(0)
+        }
+
+        is NbtList<*> -> {
+            byteBuf.writeByte(this[0].getId())
+            byteBuf.writeInt(this.size)
+            for (index in 0 until this.size) {
+                this[index].writeValue(byteBuf)
+            }
+        }
+
+        is NbtString -> {
+            val bytes = this.value.encodeToByteArray()
+            byteBuf.writeShort(bytes.size.toShort())
+            byteBuf.writeBytes(bytes)
+        }
+
+        is NbtByte -> {
+            byteBuf.writeByte(this.value)
+        }
+
+        is NbtShort -> {
+            byteBuf.writeShort(this.value)
+        }
+
+        is NbtInt -> {
+            byteBuf.writeInt(this.value)
+        }
+
+        is NbtLong -> {
+            byteBuf.writeLong(this.value)
+        }
+
+        is NbtFloat -> {
+            byteBuf.writeFloat(this.value)
+        }
+
+        is NbtDouble -> {
+            byteBuf.writeDouble(this.value)
+        }
+
+        is NbtByteArray -> {
+            byteBuf.writeInt(this.size)
+            for (byte in this) {
+                byteBuf.writeByte(byte)
+            }
+        }
+
+        is NbtIntArray -> {
+            byteBuf.writeInt(this.size)
+            for (int in this) {
+                byteBuf.writeInt(int)
+            }
+        }
+
+        is NbtLongArray -> {
+            byteBuf.writeInt(this.size)
+            for (long in this) {
+                byteBuf.writeLong(long)
+            }
+        }
+    }
+    return byteBuf.byteArray
 }
 
 fun NbtTag.writeValue(byteBuf: ByteBuf) {
@@ -277,6 +358,76 @@ fun NbtTag.writeValue(byteBuf: ByteBuf) {
             byteBuf.writeInt(this.size)
             for (byte in this) {
                 byteBuf.writeByte(byte.toInt())
+            }
+        }
+
+        is NbtIntArray -> {
+            byteBuf.writeInt(this.size)
+            for (int in this) {
+                byteBuf.writeInt(int)
+            }
+        }
+
+        is NbtLongArray -> {
+            byteBuf.writeInt(this.size)
+            for (long in this) {
+                byteBuf.writeLong(long)
+            }
+        }
+    }
+}
+
+fun NbtTag.writeValue(byteBuf: Byter) {
+    when (this) {
+        is NbtCompound -> {
+            for ((name, tag) in this) {
+                tag.writeToByteBuf(name, byteBuf)
+            }
+            byteBuf.writeByte(0)
+        }
+
+        is NbtList<*> -> {
+            byteBuf.writeByte(this[0].getId())
+            byteBuf.writeInt(this.size)
+            for (index in 0 until this.size) {
+                this[index].writeValue(byteBuf)
+            }
+        }
+
+        is NbtString -> {
+            val bytes = this.value.encodeToByteArray()
+            byteBuf.writeShort(bytes.size.toShort())
+            byteBuf.writeBytes(bytes)
+        }
+
+        is NbtByte -> {
+            byteBuf.writeByte(this.value)
+        }
+
+        is NbtShort -> {
+            byteBuf.writeShort(this.value)
+        }
+
+        is NbtInt -> {
+            byteBuf.writeInt(this.value)
+        }
+
+        is NbtLong -> {
+            byteBuf.writeLong(this.value)
+        }
+
+        is NbtFloat -> {
+            byteBuf.writeFloat(this.value)
+        }
+
+        is NbtDouble -> {
+            byteBuf.writeDouble(this.value)
+        }
+
+        is NbtByteArray -> {
+            byteBuf.writeInt(this.size)
+            for (byte in this) {
+                byteBuf.writeByte(byte)
             }
         }
 

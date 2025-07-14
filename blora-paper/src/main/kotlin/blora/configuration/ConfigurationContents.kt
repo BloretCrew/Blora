@@ -6,10 +6,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ConfigurationContents(
+    val mail: Mail = Mail(),
     val messageing: Messaging = Messaging(),
     val security: Security = Security(),
     val modules: Modules = Modules(),
     val database: Database = Database(),
+)
+
+@Serializable
+data class Mail(
+    val unreadTips: Boolean = true
 )
 
 @Serializable

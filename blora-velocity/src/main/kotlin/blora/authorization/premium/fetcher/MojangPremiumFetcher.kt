@@ -17,6 +17,9 @@ class MojangPremiumFetcher : AbstractPremiumFetcher() {
             200 -> {
                 val body = response.body ?: return FetchResult.RateLimit
                 val data = JsonParser.parseReader(InputStreamReader(body.byteStream())).asJsonObject
+
+                response.close()
+
                 return if (data["demo"] != null) {
                     FetchResult.NotExists
                 } else {
@@ -29,8 +32,15 @@ class MojangPremiumFetcher : AbstractPremiumFetcher() {
                 }
             }
 
-            204, 404 -> FetchResult.NotExists
-            else -> FetchResult.RateLimit
+            204, 404 -> {
+                response.close()
+                FetchResult.NotExists
+            }
+
+            else -> {
+                response.close()
+                FetchResult.RateLimit
+            }
         }
     }
 

@@ -4,3 +4,22 @@ version: "1.0.0"
 api-version: "1.19"
 bootstrapper: blora.plugin.BloraBootstrap
 loader: blora.plugin.library.BloraLibraryLoader
+
+dependencies:
+  server:
+    PlaceholderAPI:
+      load: BEFORE
+      join-classpath: true
+      required: false
+    CraftEngine:
+      load: BEFORE
+      join-classpath: true
+      required: false
+    PlayerPoints:
+      load: BEFORE
+      join-classpath: true
+      required: false
+    Vault:
+      load: BEFORE
+      join-classpath: true
+      required: false
