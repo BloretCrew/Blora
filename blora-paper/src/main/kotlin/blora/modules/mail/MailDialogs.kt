@@ -28,6 +28,7 @@ import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
+import plutoproject.adventurekt.text.raw
 import plutoproject.adventurekt.text.text
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -800,54 +801,68 @@ fun systemMailPreview(player: Player, mail: SystemMailDao): Dialog {
                 mail.title
             }
         },
-        body = listOf(
-            PlainMessageDialogBody(
-                contents = component {
-                    localization(
-                        player = player,
-                        tags = {
-                            componentPlaceholder("sender") {
-                                localization(player) {
-                                    if (mail.sender != null) {
-                                        mail.sender!!
-                                    } else {
-                                        this.mailSenderSystemDefault
+        body = buildList {
+            this.add(
+                PlainMessageDialogBody(
+                    contents = component {
+                        localization(
+                            player = player,
+                            tags = {
+                                componentPlaceholder("sender") {
+                                    localization(player) {
+                                        if (mail.sender != null) {
+                                            mail.sender!!
+                                        } else {
+                                            this.mailSenderSystemDefault
+                                        }
                                     }
                                 }
                             }
+                        ) {
+                            this.mailViewSender
                         }
-                    ) {
-                        this.mailViewSender
                     }
-                }
-            ),
-            PlainMessageDialogBody(
-                contents = component {
-                    localization(
-                        player = player,
-                        tags = {
-                            parsedPlaceholder("date", mail.sendingDate?.castString() ?: "")
-                        }
-                    ) {
-                        this.mailViewTime
-                    }
-                }
-            ),
-            PlainMessageDialogBody(
-                contents = component {
-                    localization(player) {
-                        this.mailViewContents
-                    }
-                    newline()
-                    localization(player) {
-                        mail.contents
-                    }
-                }
-            ),
-            PlainMessageDialogBody(
-                contents = mail.parsedAttachment.buildMailComponent()
+                )
             )
-        )
+            this.add(
+                PlainMessageDialogBody(
+                    contents = component {
+                        localization(
+                            player = player,
+                            tags = {
+                                parsedPlaceholder("date", mail.createdAt.castString())
+                            }
+                        ) {
+                            this.mailViewTime
+                        }
+                    }
+                )
+            )
+            this.add(
+                PlainMessageDialogBody(
+                    contents = component {
+                        localization(player) {
+                            this.mailViewContents
+                        }
+                        newline()
+                        localization(player) {
+                            mail.contents
+                        }
+                    }
+                )
+            )
+            if (!mail.parsedAttachment.hasNoContent()) {
+                PlainMessageDialogBody(
+                    contents = component {
+                        localization(player) {
+                            this.mailViewAttachment
+                        }
+                        newline()
+                        raw { mail.parsedAttachment.buildMailComponent() }
+                    }
+                )
+            }
+        }
     )
 }
 
@@ -858,69 +873,83 @@ fun playerViewMail(player: Player, mail: MailDao): Dialog {
                 mail.title
             }
         },
-        body = listOf(
-            PlainMessageDialogBody(
-                contents = component {
-                    localization(
-                        player = player,
-                        tags = {
-                            componentPlaceholder("sender") {
-                                val sender = mail.parsedSender
-                                when (sender) {
-                                    is Sender.Player -> {
-                                        text {
-                                            BloraPlugin.database.getPlayerDisplayName(sender.uuid)
-                                        }
-                                    }
-
-                                    is Sender.System -> {
-                                        localization(player) {
-                                            sender.name.ifEmpty {
-                                                this.mailSenderSystemDefault
+        body = buildList {
+            this.add(
+                PlainMessageDialogBody(
+                    contents = component {
+                        localization(
+                            player = player,
+                            tags = {
+                                componentPlaceholder("sender") {
+                                    val sender = mail.parsedSender
+                                    when (sender) {
+                                        is Sender.Player -> {
+                                            text {
+                                                BloraPlugin.database.getPlayerDisplayName(sender.uuid)
                                             }
                                         }
-                                    }
 
-                                    else -> {
-                                        localization(player) {
-                                            this.mailSenderUnknown
+                                        is Sender.System -> {
+                                            localization(player) {
+                                                sender.name.ifEmpty {
+                                                    this.mailSenderSystemDefault
+                                                }
+                                            }
+                                        }
+
+                                        else -> {
+                                            localization(player) {
+                                                this.mailSenderUnknown
+                                            }
                                         }
                                     }
                                 }
                             }
+                        ) {
+                            this.mailViewSender
                         }
-                    ) {
-                        this.mailViewSender
                     }
-                }
-            ),
-            PlainMessageDialogBody(
-                contents = component {
-                    localization(
-                        player = player,
-                        tags = {
-                            parsedPlaceholder("date", mail.createdAt.castString())
-                        }
-                    ) {
-                        this.mailViewTime
-                    }
-                }
-            ),
-            PlainMessageDialogBody(
-                contents = component {
-                    localization(player) {
-                        this.mailViewContents
-                    }
-                    newline()
-                    localization(player) {
-                        mail.contents
-                    }
-                }
-            ),
-            PlainMessageDialogBody(
-                contents = mail.parsedAttachment.buildMailComponent()
+                )
             )
-        ),
+            this.add(
+                PlainMessageDialogBody(
+                    contents = component {
+                        localization(
+                            player = player,
+                            tags = {
+                                parsedPlaceholder("date", mail.createdAt.castString())
+                            }
+                        ) {
+                            this.mailViewTime
+                        }
+                    }
+                )
+            )
+            this.add(
+                PlainMessageDialogBody(
+                    contents = component {
+                        localization(player) {
+                            this.mailViewContents
+                        }
+                        newline()
+                        localization(player) {
+                            mail.contents
+                        }
+                    }
+                )
+            )
+            if (!mail.parsedAttachment.hasNoContent()) {
+                PlainMessageDialogBody(
+                    contents = component {
+                        localization(player) {
+                            this.mailViewAttachment
+                        }
+                        newline()
+                        raw { mail.parsedAttachment.buildMailComponent() }
+                    }
+                )
+            }
+        },
         actions = buildList {
             if (!mail.parsedAttachment.hasNoContent() && !mail.isClaim) {
                 this.add(

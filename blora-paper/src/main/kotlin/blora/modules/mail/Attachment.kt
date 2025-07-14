@@ -98,27 +98,18 @@ data class Attachment(
                 }
             }
             newline()
-            var itemsAdded = 0
-            for ((item, amount) in items) {
-                if (itemsAdded == 4) {
-                    itemsAdded += 1
-                    newline()
-                }
-                if (!(item.type.isBlock || item.type.isItem))
-                    continue
+            if (items.isNotEmpty()) {
+                newline()
+                newline()
+                var itemsAdded = 0
+                for ((item, amount) in items) {
+                    if (itemsAdded == 4) {
+                        itemsAdded += 1
+                        newline()
+                    }
+                    if (!(item.type.isBlock || item.type.isItem))
+                        continue
 
-                mini(
-                    PlaceholderAPI.setPlaceholders(
-                        null, "%image_mm_items:${
-                            item.type.key().value()
-                        }%"
-                    )
-                )
-                /*
-                if (item.type.isBlock) {
-                    // TODO: block types support
-                    mini(PlaceholderAPI.setPlaceholders(null, "%image_mm_items:craft_table%"))
-                } else {
                     mini(
                         PlaceholderAPI.setPlaceholders(
                             null, "%image_mm_items:${
@@ -126,14 +117,27 @@ data class Attachment(
                             }%"
                         )
                     )
-                }*/
-                space()
-                text {
-                    "x${amount}"
+                    /*
+                    if (item.type.isBlock) {
+                        // TODO: block types support
+                        mini(PlaceholderAPI.setPlaceholders(null, "%image_mm_items:craft_table%"))
+                    } else {
+                        mini(
+                            PlaceholderAPI.setPlaceholders(
+                                null, "%image_mm_items:${
+                                    item.type.key().value()
+                                }%"
+                            )
+                        )
+                    }*/
+                    space()
+                    text {
+                        "x${amount}"
+                    }
+                    space()
+                    space()
+                    itemsAdded++
                 }
-                space()
-                space()
-                itemsAdded++
             }
         }
     }
