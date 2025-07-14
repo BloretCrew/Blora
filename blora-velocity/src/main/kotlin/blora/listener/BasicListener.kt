@@ -83,8 +83,6 @@ object BasicListener {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username} is authorized, stay in their server")
                 if (!databasePlayer!!.eulaAccepted) {
                     AuthorizationFunctions.showEulaDialog(event.player)
-                } else {
-                    AuthorizationFunctions.transferPlayerToSuitableServer(event.player)
                 }
                 return@buildTask
             }

@@ -18,25 +18,39 @@ import plutoproject.adventurekt.component
 object AuthorizationFunctions {
 
     fun transferPlayerToSuitableServer(player: Player) {
+        BloraPlugin.log.info("[LOGIN SYSTEM] Transferring player to suitable server")
         val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
 
         fun enable() {
-            val currentServer = player.currentServer
-            if (currentServer != null) {
-                // to prevent showing "You have already connected to the server"
-                if (currentServer.get().serverInfo.name != BloraPlugin.lobbyServer.serverInfo.name) {
+            BloraPlugin.log.info("[LOGIN SYSTEM] Doing always lobby logic")
+            if (BloraAuthorization.isAuthorized(player)) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player authorized, transferring to gaming server")
+                val currentServer = player.currentServer
+                if (currentServer != null) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player current server is not null, checking if player is in the lobby server")
+                    // to prevent showing "You have already connected to the server"
+                    if (currentServer.get().serverInfo.name != BloraPlugin.lobbyServer.serverInfo.name) {
+                        player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+                    }
+                } else {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player current server is null, transferring player to lobby")
                     player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
                 }
             } else {
-                player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player unauthorized, transferring to limbo")
+                player.createConnectionRequest(BloraPlugin.limboServer).fireAndForget()
             }
         }
 
         fun disable() {
+            BloraPlugin.log.info("[LOGIN SYSTEM] Doing last lobby logic")
             if (BloraAuthorization.isAuthorized(player)) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player authorized, transferring to gaming server")
                 val currentServer = player.currentServer
                 if (currentServer.isPresent) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player current server is not null, checking if player is in the correct server")
                     if (currentServer.get().server.serverInfo.name != databasePlayer.lastServer) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player isn't in the correct server, transferring")
                         player.createConnectionRequest(
                             BloraPlugin.proxyServer
                                 .getServer(databasePlayer.lastServer)
@@ -44,6 +58,7 @@ object AuthorizationFunctions {
                         ).fireAndForget()
                     }
                 } else {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player current server is null, transferring player to last server or fallback lobby")
                     player.createConnectionRequest(
                         BloraPlugin.proxyServer
                             .getServer(databasePlayer.lastServer)
@@ -51,23 +66,29 @@ object AuthorizationFunctions {
                     ).fireAndForget()
                 }
             } else {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player unauthorized, transferring to limbo")
                 player.createConnectionRequest(BloraPlugin.limboServer).fireAndForget()
             }
         }
 
         when (databasePlayer.jsonOptions.alwaysLobby) {
             OptionStatus.ENABLE -> {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player turned on always lobby")
                 enable()
             }
 
             OptionStatus.DISABLE -> {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player turned off always lobby")
                 disable()
             }
 
             OptionStatus.NOT_SET -> {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player not set always lobby")
                 if (BloraPlugin.configuration.authorization.alwaysLobby) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Server turned on always lobby")
                     enable()
                 } else {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Server turned off always lobby")
                     disable()
                 }
             }
