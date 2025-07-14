@@ -22,6 +22,10 @@ object CustomClickActionHandler {
         scope.launch {
             val id = PaperAdventure.asAdventure(packet.id)
 
+            if (id.asString() != "blora:custom_click") {
+                return@launch
+            }
+
             val tag = packet.payload.getOrNull().toKnbt() as NbtCompound
 
             val realTag = tag["realTag"]
@@ -41,13 +45,11 @@ object CustomClickActionHandler {
                 }
             }
 
-            if (id.asString() == "blora:custom_click") {
-                val identifier = (tag["identifier"] as NbtString).value
-                val callback = resolving[identifier]
-                if (callback != null) {
-                    resolving.remove(identifier)
-                    callback(finalTag)
-                }
+            val identifier = (tag["identifier"] as NbtString).value
+            val callback = resolving[identifier]
+            if (callback != null) {
+                resolving.remove(identifier)
+                callback(finalTag)
             }
         }
     }

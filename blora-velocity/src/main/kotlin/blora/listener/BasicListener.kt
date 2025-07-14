@@ -201,7 +201,7 @@ object BasicListener {
             }
         } else {
             BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s is under offline mode")
-            if (premiumPlayer != null) {
+            if (BloraPlugin.configuration.authorization.onlineFeatures && premiumPlayer != null) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s database data queried by premium uuid exists, but he's cracked player, kick")
                 event.player.disconnect {
                     localization(event.player) { this.kickLoginOnline_profile_but_offline_join }
