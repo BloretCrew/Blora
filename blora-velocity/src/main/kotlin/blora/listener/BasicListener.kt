@@ -87,9 +87,12 @@ object BasicListener {
                 return@buildTask
             }
 
-            BloraPlugin.log.info("[LOGIN SYSTEM] Transfer player ${event.player.username} to limbo server")
-            // how does a play is not authorized when they joined a server? send them to limbo!
-            event.player.createConnectionRequest(BloraPlugin.limboServer).fireAndForget()
+            if (event.server.serverInfo.name != BloraPlugin.limboServer.serverInfo.name) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Transfer player ${event.player.username} to limbo server")
+                // how does a play is not authorized when they joined a server? send them to limbo!
+                event.player.createConnectionRequest(BloraPlugin.limboServer).fireAndForget()
+                return@buildTask
+            }
 
             // now database fetched player is always nonnull
             val databasePlayerByName = BloraPlugin.database.getPlayerByName(event.player.username)
