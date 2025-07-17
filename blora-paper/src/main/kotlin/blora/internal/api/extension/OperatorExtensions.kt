@@ -1,4 +1,4 @@
-package blora.api.extension
+package blora.internal.api.extension
 
 import org.bukkit.util.Vector
 

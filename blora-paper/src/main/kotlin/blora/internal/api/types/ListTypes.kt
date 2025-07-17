@@ -1,4 +1,4 @@
-package blora.api.types
+package blora.internal.api.types
 
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player

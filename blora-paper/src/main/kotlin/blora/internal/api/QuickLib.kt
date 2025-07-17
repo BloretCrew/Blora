@@ -1,4 +1,4 @@
-package blora.api
+package blora.internal.api
 
 import blora.api.command.BloraCommandLib
 import blora.api.scheduler.QuickSchedulerLib

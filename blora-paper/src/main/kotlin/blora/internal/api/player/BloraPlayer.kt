@@ -1,4 +1,4 @@
-package blora.api.player
+package blora.internal.api.player
 
 import blora.api.command.CommandInvoker
 import blora.dialog.Dialog

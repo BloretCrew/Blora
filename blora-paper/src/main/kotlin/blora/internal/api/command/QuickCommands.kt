@@ -1,4 +1,4 @@
-package blora.api.command
+package blora.internal.api.command
 
 import blora.api.command.argument.ArgumentType
 import blora.api.command.argument.QuickArgumentLib

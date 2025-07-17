@@ -1,4 +1,4 @@
-package blora.api.command.argument
+package blora.internal.api.command.argument
 
 import blora.api.position.EntityAnchor
 import blora.api.types.EntityList

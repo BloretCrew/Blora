@@ -1,4 +1,4 @@
-package blora.api.position
+package blora.internal.api.position
 
 import blora.api.extension.eyeHeight
 import org.bukkit.entity.Entity

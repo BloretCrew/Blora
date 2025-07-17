@@ -1,4 +1,4 @@
-package blora.api.extension
+package blora.internal.api.extension
 
 import blora.api.QuickEntityLib
 import org.bukkit.entity.Entity
