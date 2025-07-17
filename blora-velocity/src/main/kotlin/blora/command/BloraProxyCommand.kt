@@ -20,7 +20,7 @@ object BloraProxyCommand {
     fun register() {
         val commandManager = BloraPlugin.proxyServer.commandManager
         commandManager.register(
-            commandManager.metaBuilder("bloraproxy")
+            commandManager.metaBuilder("bloxy")
                 .plugin(BloraPlugin.instance)
                 .build(),
             BrigadierCommand(

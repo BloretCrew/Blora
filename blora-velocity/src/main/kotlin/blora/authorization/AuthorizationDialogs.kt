@@ -18,7 +18,7 @@ fun loginDialog(player: Player, warningMessages: Component? = null): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(player) {
-                this.titleDialogRegister
+                this.titleDialogLogin
             }
         },
         body = if (warningMessages != null) {

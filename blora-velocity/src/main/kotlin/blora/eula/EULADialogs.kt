@@ -10,6 +10,8 @@ import blora.extension.localization
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.mini
+import kotlin.math.max
+import kotlin.math.min
 
 fun eulaDialog(player: Player): Dialog {
     return ConfirmationDialog(
@@ -24,7 +26,8 @@ fun eulaDialog(player: Player): Dialog {
             PlainMessageDialogBody(
                 contents = component {
                     mini(EULA.loadEULA())
-                }
+                },
+                width = max(150, min(400, BloraPlugin.configuration.dialogs.eulaWidth))
             )
         ),
         yes = ClickAction(

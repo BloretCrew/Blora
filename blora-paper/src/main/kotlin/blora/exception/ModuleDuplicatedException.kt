@@ -1,4 +1,3 @@
 package blora.exception
 
-class ModuleDuplicatedException(message: String? = null) : RuntimeException(message) {
-}
+class ModuleDuplicatedException(message: String? = null) : RuntimeException(message)

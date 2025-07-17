@@ -27,6 +27,8 @@ class Menu(
     val basePage: MenuPage
 ) : Listener, InventoryHolder {
 
+    private val extraClosingHooks: MutableList<(Menu) -> Unit> = mutableListOf()
+
     constructor(
         contextObject: Any?,
         viewer: Player,
@@ -51,6 +53,10 @@ class Menu(
         this.inventory = Bukkit.createInventory(this, this.lines * 9, this.title)
         this.update(this.basePage)
         Bukkit.getPluginManager().registerEvents(this, BloraPlugin)
+    }
+
+    fun hookClosing(handler: (Menu) -> Unit) {
+        this.extraClosingHooks.add(handler)
     }
 
     fun open() {
@@ -133,6 +139,7 @@ class Menu(
     fun closeHandler(event: InventoryCloseEvent) {
         if (event.inventory == this.inventory) {
             this.closer.invoke(this)
+            this.extraClosingHooks.forEach { it(this) }
         }
     }
 

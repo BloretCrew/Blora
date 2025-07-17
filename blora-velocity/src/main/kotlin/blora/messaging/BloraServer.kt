@@ -149,6 +149,7 @@ class BloraServer(
     override fun channelInactive(ctx: ChannelHandlerContext) {
         val channel = ctx.channel()
         this.channels.remove(channel)
+        this.pongs.remove(channel)
         this.waitingAuthorization.remove(channel)?.cancel()
         var name: String? = null
         for ((serverName, connection) in authorized) {
@@ -183,8 +184,8 @@ class BloraServer(
                     println("server not exists")
                     return
                 }
-                val server = serverOptional.get()
                 /* FIXME: a better check
+                val server = serverOptional.get()
                 if (connection.address != server.serverInfo.address) {
                     println(connection.address)
                     println(server.serverInfo.address)
@@ -192,7 +193,7 @@ class BloraServer(
                     println("host not match")
                     return
                 }*/
-                if (packet.password != BloraPlugin.configuration.messageing.password) {
+                if (packet.password != BloraPlugin.configuration.messaging.password) {
                     println("wrong password")
                     connection.send(AuthorizationFailedPacket)
                     return

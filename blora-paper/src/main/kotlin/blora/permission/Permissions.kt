@@ -18,22 +18,37 @@ object Permissions {
 
     }
 
+    object Chat {
+
+        val MiniMessage = "bloret.chat.mini_message"
+        val MentionAll = "bloret.chat.mention_all"
+
+        fun registerPermissions() {
+            registerPermission(MentionAll, 0)
+            registerPermission(MiniMessage, 2)
+        }
+
+    }
+
     object Commands {
 
         val Blora = "bloret.command.blora"
         val Mail = "bloret.command.mail"
         val Redeem = "bloret.command.redeem"
+        val Tell = "bloret.command.tell"
 
         fun registerPermissions() {
             registerPermission(Blora, 0)
             registerPermission(Mail, 1)
             registerPermission(Redeem, 1)
+            registerPermission(Tell, 1)
         }
 
     }
 
     fun registerPermissions() {
         Mail.registerPermissions()
+        Chat.registerPermissions()
         Commands.registerPermissions()
 
         registerPermission(Admin, 0)

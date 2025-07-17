@@ -7,7 +7,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.component
 import java.util.*
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
 object BloraAuthorization {
@@ -18,7 +18,7 @@ object BloraAuthorization {
     private val ips = mutableMapOf<String, MutableList<Player>>()
     private val cachePool = Caffeine.newBuilder()
         .initialCapacity(48)
-        .expireAfterWrite(BloraPlugin.configuration.security.autoLoginExpireTime.seconds.toJavaDuration())
+        .expireAfterWrite(20.minutes.toJavaDuration())
         .build<UUID, LoginSession>()
     val passwordRetries = mutableMapOf<Player, Int>()
 
@@ -26,7 +26,11 @@ object BloraAuthorization {
         val removal = mutableListOf<Player>()
         val current = System.currentTimeMillis()
         for ((player, joinAt) in this.joinAt) {
-            if (current - joinAt > BloraPlugin.configuration.security.maxNotLogin) {
+            if (isAuthorized(player)) {
+                removal.add(player)
+                continue
+            }
+            if (current - joinAt > (BloraPlugin.configuration.security.maxNotLogin * 1000)) {
                 removal.add(player)
                 player.disconnect(component {
                     localization(player) {
@@ -62,33 +66,32 @@ object BloraAuthorization {
             }
             this.ips[player.remoteAddress.address.hostAddress]!!.add(player)
             this.playerIps[player] = player.remoteAddress.address.hostAddress
-        }
-        if (BloraPlugin.configuration.security.sameIpAutoLogin) {
-            val session = this.cachePool.getIfPresent(player.uniqueId)
-            if (session != null) {
-                this.cachePool.invalidate(player.uniqueId)
-                if (player.remoteAddress.address.hostAddress != session.ip)
-                    return
-                if (System.currentTimeMillis() - session.quitTime >= BloraPlugin.configuration.security.autoLoginExpireTime)
-                    return
-                this.status[player] = true
+
+            if (BloraPlugin.configuration.security.sameIpAutoLogin) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Same IP auto login feature enabled")
+                val session = this.cachePool.getIfPresent(player.uniqueId)
+                if (session != null) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM/Auto Login] Auto session not null")
+                    this.cachePool.invalidate(player.uniqueId)
+                    if (player.remoteAddress.address.hostAddress != session.ip) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM/Auto Login] IP not same, failed to auto login")
+                        return
+                    }
+                    if (System.currentTimeMillis() - session.quitTime >= (BloraPlugin.configuration.security.autoLoginExpireTime * 1000L)) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM/Auto Login] Auto login expired")
+                        return
+                    }
+                    BloraPlugin.log.info("[LOGIN SYSTEM/Auto Login] Successfully auto logged in")
+                    this.status[player] = true
+                }
             }
+
+            this.joinAt[player] = System.currentTimeMillis()
         }
-        this.joinAt[player] = System.currentTimeMillis()
     }
 
     fun clear(player: Player) {
-        passwordRetries.remove(player)
-        if (this.status.containsKey(player) && this.status[player] == true) {
-            // only add player to cache pool when they logged in
-            this.cachePool.put(
-                player.uniqueId, LoginSession(
-                    player.uniqueId,
-                    this.playerIps[player]!!,
-                    System.currentTimeMillis()
-                )
-            )
-        }
+        this.passwordRetries.remove(player)
         val status = this.status[player]
         this.status.remove(player)
         val ip = this.playerIps.remove(player)
@@ -101,6 +104,13 @@ object BloraAuthorization {
             }
         }
         if (status == true) {
+            this.cachePool.put(
+                player.uniqueId, LoginSession(
+                    player.uniqueId,
+                    player.remoteAddress.address.hostAddress,
+                    System.currentTimeMillis()
+                )
+            )
             player.currentServer.ifPresent {
                 val databasePlayer = BloraPlugin.database.getPlayerByName(player.username.lowercase())!!
                 BloraPlugin.database.trans {

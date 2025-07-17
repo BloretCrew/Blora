@@ -36,6 +36,37 @@ data class Attachment(
         )
     }
 
+    fun doPlayerHaveEnoughSpaceToClaim(player: Player): Boolean {
+        if (this.items.isEmpty())
+            return true
+        var stacks = 0
+        for ((item, amount) in this.items) {
+            val realAmount = amount.toInt()
+            if (realAmount > item.maxStackSize || realAmount < 0) {
+                val times = (amount / item.maxStackSize.toUInt() + if (amount % item.maxStackSize.toUInt() != 0u) {
+                    1u
+                } else {
+                    0u
+                }).toInt()
+                if (times < 0) // these items won't be given to player, so skip these stacks
+                    continue
+                stacks += times
+            } else {
+                stacks += 1
+            }
+        }
+        var emptySlots = 0
+        player.inventory.contents.forEach { stack ->
+            if (stack == null) {
+                emptySlots++
+                return@forEach
+            }
+            if (stack.isEmpty)
+                emptySlots++
+        }
+        return emptySlots >= stacks
+    }
+
     fun claimToPlayer(player: Player) {
         if (coins > 0u) {
             ThirdPartys.vaultApi.depositPlayer(player, this.coins.toDouble())
@@ -103,12 +134,7 @@ data class Attachment(
                 newline()
                 var itemsAdded = 0
                 for ((item, amount) in items) {
-                    if (itemsAdded == 4) {
-                        itemsAdded += 1
-                        newline()
-                    }
-                    if (!(item.type.isBlock || item.type.isItem))
-                        continue
+                    itemsAdded += 1
 
                     mini(
                         PlaceholderAPI.setPlaceholders(
@@ -136,7 +162,11 @@ data class Attachment(
                     }
                     space()
                     space()
-                    itemsAdded++
+
+                    if (itemsAdded == 5) {
+                        itemsAdded = 0
+                        newline()
+                    }
                 }
             }
         }

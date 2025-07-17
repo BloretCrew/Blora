@@ -7,12 +7,25 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class ConfigurationContents(
     val administration: Administration = Administration(),
+    val dialogs: Dialogs = Dialogs(),
+    val chat: Chat = Chat(),
     val mail: Mail = Mail(),
     val server: Server = Server(),
-    val messageing: Messaging = Messaging(),
+    val messaging: Messaging = Messaging(),
     val authorization: Authorization = Authorization(),
     val security: Security = Security(),
     val database: Database = Database()
+)
+
+@Serializable
+data class Dialogs(
+    val eulaWidth: Int = 200
+)
+
+@Serializable
+data class Chat(
+    val privateMessageReceiveFormat: String = "<click:suggest_command:'/tell <sender> '><hover:show_text:'<yellow>点击复制'><sender> -> 您</hover></click>：<message>",
+    val privateMessageSendFormat: String = "您 -> <receiver>：<message>",
 )
 
 @Serializable

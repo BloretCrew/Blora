@@ -1,9 +1,11 @@
 package blora.authorization.premium.fetcher
 
+import blora.BloraPlugin
 import blora.authorization.premium.PremiumPlayer
 import blora.authorization.premium.fetcher.PremiumFetcher.FetchResult
 import blora.extension.fromUndashedString
 import com.google.gson.JsonParser
+import okhttp3.internal.closeQuietly
 import java.io.InputStreamReader
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -13,22 +15,30 @@ class MojangPremiumFetcher : AbstractPremiumFetcher() {
     @OptIn(ExperimentalUuidApi::class)
     override fun fetchPlayer(name: String): FetchResult {
         val response = this.request("https://api.mojang.com/users/profiles/minecraft/${name}")
+        if (response == null)
+            return FetchResult.ServerError
         return when (response.code) {
             200 -> {
-                val body = response.body ?: return FetchResult.RateLimit
-                val data = JsonParser.parseReader(InputStreamReader(body.byteStream())).asJsonObject
+                try {
+                    val body = response.body ?: return FetchResult.RateLimit
+                    val data = JsonParser.parseReader(InputStreamReader(body.byteStream())).asJsonObject
 
-                response.close()
+                    response.close()
 
-                return if (data["demo"] != null) {
-                    FetchResult.NotExists
-                } else {
-                    FetchResult.Exists(
-                        PremiumPlayer(
-                            Uuid.fromUndashedString(data["id"].asString),
-                            data["name"].asString.lowercase()
+                    return if (data["demo"] != null) {
+                        FetchResult.NotExists
+                    } else {
+                        FetchResult.Exists(
+                            PremiumPlayer(
+                                Uuid.fromUndashedString(data["id"].asString),
+                                data["name"].asString.lowercase()
+                            )
                         )
-                    )
+                    }
+                } catch (e: Exception) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM/Premium Data Fetcher/Mojang] Failed to fetch json")
+                    response.closeQuietly()
+                    return FetchResult.ServerError
                 }
             }
 

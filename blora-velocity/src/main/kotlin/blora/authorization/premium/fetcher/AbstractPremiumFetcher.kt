@@ -1,5 +1,6 @@
 package blora.authorization.premium.fetcher
 
+import blora.BloraPlugin
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -16,12 +17,20 @@ abstract class AbstractPremiumFetcher : PremiumFetcher {
 
     val gson: Gson = Gson()
 
-    protected fun request(url: String): Response {
-        return httpClient.newCall(
-            Request.Builder()
-                .url(url)
-                .build()
-        ).execute()
+    protected fun request(url: String): Response? {
+        for (i in 0 until 3) { // retry 3 times
+            BloraPlugin.log.info("[LOGIN SYSTEM/Premium Data Fetcher/${this.javaClass.name}] Internal retry times: ${i + 1}")
+            try {
+                return httpClient.newCall(
+                    Request.Builder()
+                        .url(url)
+                        .build()
+                ).execute()
+            } catch (e: Exception) {
+                continue
+            }
+        }
+        return null
     }
 
 

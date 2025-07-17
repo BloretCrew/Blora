@@ -1,7 +1,12 @@
 package blora.bytes
 
 import blora.extension.*
+import io.netty.buffer.ByteBuf
 import java.nio.charset.Charset
+import java.util.*
+
+private const val SEGMENT_BITS = 0x7F
+private const val CONTINUE_BIT = 0x80
 
 class Byter() {
 
@@ -16,6 +21,10 @@ class Byter() {
 
     var readerIndex: Int = 0
         private set
+
+    fun writeBoolean(boolean: Boolean) {
+        this.bytes.add(if (boolean) 1 else 0)
+    }
 
     fun writeByte(byte: Byte) {
         this.bytes.add(byte)
@@ -93,6 +102,10 @@ class Byter() {
         this.bytes.addAll(bytes.toList())
     }
 
+    fun writeBytes(byteBuf: ByteBuf) {
+        (0 until byteBuf.readableBytes()).map { byteBuf.readByte() }.forEach { this.bytes.add(it) }
+    }
+
     fun writeLengthenedString(string: String, charset: Charset = Charsets.UTF_8) {
         val bytes = string.toByteArray(charset)
         this.writeInt(bytes.size)
@@ -101,6 +114,31 @@ class Byter() {
 
     fun writeString(string: String, charset: Charset = Charsets.UTF_8) {
         this.writeBytes(string.toByteArray(charset))
+    }
+
+    fun writeVarInt(value: Int): Int {
+        var input = value
+        var length = 1
+        while (true) {
+            if ((input and SEGMENT_BITS.inv()) == 0) {
+                this.writeByte(input.toByte())
+                length++
+                return length
+            }
+
+            this.writeByte(((input and SEGMENT_BITS) or CONTINUE_BIT).toByte())
+            input = input ushr 7
+            length++
+        }
+    }
+
+    fun writeUUID(uuid: UUID) {
+        this.writeLong(uuid.mostSignificantBits)
+        this.writeLong(uuid.leastSignificantBits)
+    }
+
+    fun readBoolean(): Boolean {
+        return this.readByte() != 0.toByte()
     }
 
     fun readByte(): Byte {
@@ -301,6 +339,30 @@ class Byter() {
 
     fun readString(length: Int, charset: Charset): String {
         return this.readBytes(length).toString(charset)
+    }
+
+    fun readVarInt(): Int {
+        var value = 0
+        var position = 0
+        var currentByte: Byte
+
+        while (true) {
+            currentByte = readByte()
+            value = value or ((currentByte.toInt() and SEGMENT_BITS) shl position)
+
+            if ((currentByte.toInt() and CONTINUE_BIT) == 0) break
+
+            position += 7
+
+            if (position >= 32)
+                throw RuntimeException("VarInt is too big")
+        }
+
+        return value
+    }
+
+    fun readUUID(): UUID {
+        return UUID(this.readLong(), this.readLong())
     }
 
     fun readableBytes(): Int {

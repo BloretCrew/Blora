@@ -5,6 +5,12 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 
 @Serializable
 data class LocalizationContents(
+    val chatMentionTitle: String = "有人在聊天中 @ 了您",
+    val chatViewInventory: String = "<viewee> 的背包",
+    val chatViewEnderChest: String = "<viewee> 的末影箱",
+    val chatViewInventoryTooltip: String = "点击查看",
+    val chatViewEnderChestTooltip: String = "点击查看",
+    val chatErrorMuted: String = "您已经被禁言",
     val redeemNotExists: String = "兑换码不存在",
     val redeemCreate: String = "成功创建兑换码 <redeem>",
     val redeemSuccess: String = "成功创建兑换码 <redeem>，请前往邮箱查看",
@@ -12,6 +18,7 @@ data class LocalizationContents(
     val redeemMailSender: String = "百络谷",
     val redeemMailContents: String = "兑换码 <redeem> 的奖励，请注意查收。",
     val mailClaim_attachment: String = "已领取邮件的附件",
+    val mailErrorClaimInventory_not_enought: String = "<red>背包空间不足，无法领取",
     val mailNotify: String = "您收到了一份新的邮件！<yellow>[点击查看]",
     val mailNotifyHover: String = "<title><newline><newline><bold>发件人：</bold><sender>",
     val mailJoinUnreadTips: String = "您有 <amount> 份未读邮件！<yellow>[点击查看]",
@@ -37,6 +44,7 @@ data class LocalizationContents(
     val mailViewTime: String = "<bold>发送时间：<bold:false><italic><date>",
     val mailViewContents: String = "<bold>内容：",
     val mailViewAttachment: String = "<bold>附件：",
+    val mailViewAttachment_claimed: String = "<bold>附件（已领取）：",
     val mailErrorNo_permission_to_create_system_mail: String = "你没有创建系统邮件的权限",
     val mailWarningTitle_cannot_be_empty: String = "标题不能为空",
     val mailSuccessCreate_system_mail: String = "成功创建系统邮件 <mail_id>",

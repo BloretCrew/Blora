@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package blora.menu
 
 import io.papermc.paper.datacomponent.DataComponentTypes
@@ -38,9 +40,9 @@ class MenuPage(
                     return
                 }
 
-                val hoverTextSupplier = menuItem.hoverText
+                if (!menuItem.useItemInfoAsHover) {
+                    val hoverTextSupplier = menuItem.hoverText
 
-                if (hoverTextSupplier != null) {
                     val hoverText = hoverTextSupplier(context)
                     val title = hoverText.title
                     if (title != null) {

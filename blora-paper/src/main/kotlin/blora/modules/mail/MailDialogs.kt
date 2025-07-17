@@ -25,11 +25,7 @@ import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
-import plutoproject.adventurekt.text.componentPlaceholder
-import plutoproject.adventurekt.text.newline
-import plutoproject.adventurekt.text.parsedPlaceholder
-import plutoproject.adventurekt.text.raw
-import plutoproject.adventurekt.text.text
+import plutoproject.adventurekt.text.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -852,21 +848,23 @@ fun systemMailPreview(player: Player, mail: SystemMailDao): Dialog {
                 )
             )
             if (!mail.parsedAttachment.hasNoContent()) {
-                PlainMessageDialogBody(
-                    contents = component {
-                        localization(player) {
-                            this.mailViewAttachment
+                this.add(
+                    PlainMessageDialogBody(
+                        contents = component {
+                            localization(player) {
+                                this.mailViewAttachment
+                            }
+                            newline()
+                            raw { mail.parsedAttachment.buildMailComponent() }
                         }
-                        newline()
-                        raw { mail.parsedAttachment.buildMailComponent() }
-                    }
+                    )
                 )
             }
         }
     )
 }
 
-fun playerViewMail(player: Player, mail: MailDao): Dialog {
+fun playerViewMail(player: Player, mail: MailDao, warningMessage: Component? = null): Dialog {
     return MultiActionDialog(
         title = component {
             localization(player) {
@@ -874,6 +872,18 @@ fun playerViewMail(player: Player, mail: MailDao): Dialog {
             }
         },
         body = buildList {
+            if (warningMessage != null) {
+                this.add(
+                    PlainMessageDialogBody(
+                        contents = component {
+                            raw {
+                                warningMessage
+                            }
+                            newline()
+                        }
+                    )
+                )
+            }
             this.add(
                 PlainMessageDialogBody(
                     contents = component {
@@ -939,14 +949,20 @@ fun playerViewMail(player: Player, mail: MailDao): Dialog {
                 )
             )
             if (!mail.parsedAttachment.hasNoContent()) {
-                PlainMessageDialogBody(
-                    contents = component {
-                        localization(player) {
-                            this.mailViewAttachment
+                this.add(
+                    PlainMessageDialogBody(
+                        contents = component {
+                            localization(player) {
+                                if (mail.isClaim) {
+                                    this.mailViewAttachment_claimed
+                                } else {
+                                    this.mailViewAttachment
+                                }
+                            }
+                            newline()
+                            raw { mail.parsedAttachment.buildMailComponent() }
                         }
-                        newline()
-                        raw { mail.parsedAttachment.buildMailComponent() }
-                    }
+                    )
                 )
             }
         },
@@ -961,6 +977,20 @@ fun playerViewMail(player: Player, mail: MailDao): Dialog {
                         },
                         action = DynamicCustomClickTypeInjected(
                             callback = {
+                                if (!mail.parsedAttachment.doPlayerHaveEnoughSpaceToClaim(player)) {
+                                    player.openDialog(
+                                        playerViewMail(
+                                            player,
+                                            mail,
+                                            component {
+                                                localization(player) {
+                                                    this.mailErrorClaimInventory_not_enought
+                                                }
+                                            }
+                                        )
+                                    )
+                                    return@DynamicCustomClickTypeInjected
+                                }
                                 BloraPlugin.database.trans {
                                     mail.isClaim = true
                                     mail.flush()

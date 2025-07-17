@@ -6,6 +6,7 @@ import blora.authorization.BloraAuthorization
 import blora.authorization.premium.PremiumAuthorizer
 import blora.authorization.premium.PremiumPlayer
 import blora.authorization.premium.fetcher.PremiumFetcher
+import blora.command.argument.SinglePlayerArgumentType
 import blora.configuration.Order
 import blora.configuration.UUIDGenerator
 import blora.database.player.PlayerDao
@@ -21,7 +22,9 @@ import com.velocitypowered.api.event.connection.LoginEvent
 import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.connection.PreLoginEvent
 import com.velocitypowered.api.event.player.GameProfileRequestEvent
+import com.velocitypowered.api.event.player.ServerPreConnectEvent
 import com.velocitypowered.api.event.player.configuration.PlayerFinishedConfigurationEvent
+import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.util.GameProfile
 import io.github._4drian3d.vpacketevents.api.event.PacketReceiveEvent
 import net.benwoodworth.knbt.NbtCompound
@@ -36,6 +39,7 @@ import kotlin.time.toJavaDuration
 object BasicListener {
 
     private val premiumData: MutableMap<String, PremiumPlayer?> = mutableMapOf()
+    private val passedLoginStatus: MutableList<Player> = mutableListOf()
 
     @Subscribe
     fun onPacketReceive(event: PacketReceiveEvent) {
@@ -72,6 +76,29 @@ object BasicListener {
     }
 
     @Subscribe
+    fun onServerPreConnect(event: ServerPreConnectEvent) {
+        if (this.passedLoginStatus.contains(event.player))
+            return
+        this.passedLoginStatus.add(event.player)
+        if (BloraAuthorization.isAuthorized(event.player)) {
+            val databasePlayer = BloraPlugin.database.getPlayerByName(event.player.username)!!
+            if (databasePlayer.jsonOptions.alwaysLobby == OptionStatus.ENABLE || (databasePlayer.jsonOptions.alwaysLobby == OptionStatus.NOT_SET && BloraPlugin.configuration.authorization.alwaysLobby)) {
+                event.result = ServerPreConnectEvent.ServerResult.allowed(BloraPlugin.lobbyServer)
+            } else {
+                event.result = ServerPreConnectEvent.ServerResult.allowed(
+                    BloraPlugin.proxyServer
+                        .getServer(databasePlayer.lastServer)
+                        .orElse(BloraPlugin.lobbyServer)
+                )
+            }
+            return
+        }
+        if (event.originalServer.serverInfo.name == BloraPlugin.limboServer.serverInfo.name)
+            return
+        event.result = ServerPreConnectEvent.ServerResult.allowed(BloraPlugin.limboServer)
+    }
+
+    @Subscribe
     fun onFinishedConfiguration(event: PlayerFinishedConfigurationEvent) {
         BloraPlugin.proxyServer.scheduler.buildTask(BloraPlugin.instance) { task ->
             BloraPlugin.database.playerLoginDateSave(event.player.uniqueId)
@@ -96,6 +123,9 @@ object BasicListener {
 
             // now database fetched player is always nonnull
             val databasePlayerByName = BloraPlugin.database.getPlayerByName(event.player.username)
+
+            SinglePlayerArgumentType.sendOtherServerPlayers(event.player, event.server.server)
+            SinglePlayerArgumentType.notifyOtherPlayers(event.player, event.server.server)
 
             // show eula to the player if they haven't accepted the eula yet
             if (!databasePlayerByName!!.eulaAccepted) {
@@ -290,15 +320,40 @@ object BasicListener {
 
         val ip = event.connection.remoteAddress.address.hostAddress
         val username = event.username.lowercase()
-
         BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) trying to join proxy server")
 
+        val databasePlayer = BloraPlugin.database.getPlayerByName(username)
+        if (databasePlayer != null) {
+            if (!event.connection.isActive) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                return
+            }
+            BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data exists, use database data to select player login mode")
+            if (databasePlayer.premiumUuid != null) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data saying they are online mode")
+                this.premiumData[username] = PremiumPlayer(databasePlayer.premiumUuid!!, username.lowercase())
+                event.result = PreLoginEvent.PreLoginComponentResult.forceOnlineMode()
+            } else {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data saying they are offline mode")
+                event.result = PreLoginEvent.PreLoginComponentResult.forceOfflineMode()
+            }
+            return
+        }
+
         if (BloraPlugin.configuration.authorization.checkUsername) {
+            if (!event.connection.isActive) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                return
+            }
             BloraPlugin.log.info("[LOGIN SYSTEM] Username validation check is enabled")
             // check username valid or not
 
             // check min length
             if (username.length < BloraPlugin.configuration.authorization.minUsernameLength) {
+                if (!event.connection.isActive) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                    return
+                }
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s name length is too short")
                 event.result = PreLoginEvent.PreLoginComponentResult.denied(
                     component {
@@ -318,6 +373,10 @@ object BasicListener {
             }
             // check max length
             if (username.length > BloraPlugin.configuration.authorization.maxUsernameLength) {
+                if (!event.connection.isActive) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                    return
+                }
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s name length is too long")
                 event.result = PreLoginEvent.PreLoginComponentResult.denied(
                     component {
@@ -337,6 +396,10 @@ object BasicListener {
             }
             // check character valid or not
             if (!username.matches(BloraPlugin.configuration.authorization.usernameRegex.toRegex())) {
+                if (!event.connection.isActive) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                    return
+                }
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s name doesn't allowed by server provided regex")
                 event.result = PreLoginEvent.PreLoginComponentResult.denied(
                     component {
@@ -355,6 +418,10 @@ object BasicListener {
 
         // ip limit
         if (BloraPlugin.configuration.security.ipLimit > 0 && !BloraPlugin.configuration.security.ipLimitDisableLogin) {
+            if (!event.connection.isActive) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                return
+            }
             BloraPlugin.log.info("[LOGIN SYSTEM] IP limit is enabled")
             if (BloraAuthorization.getPlayersUnderIp(ip).size
                 >= BloraPlugin.configuration.security.ipLimit
@@ -373,10 +440,18 @@ object BasicListener {
 
         // if online features enabled, to do online features, otherwise consider players as offline players
         if (BloraPlugin.configuration.authorization.onlineFeatures) {
+            if (!event.connection.isActive) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                return
+            }
             BloraPlugin.log.info("[LOGIN SYSTEM] Online features are enabled")
             val fetchResult = PremiumAuthorizer.fetchUserByName(username)
 
             if (fetchResult is PremiumFetcher.FetchResult.Exists) { // consider player as online players
+                if (!event.connection.isActive) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                    return
+                }
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s username is premium player username")
                 this.premiumData[username] = fetchResult.player
 
@@ -385,12 +460,20 @@ object BasicListener {
                 val databasePlayerByPremiumUuid = BloraPlugin.database.getPlayerByPremiumUuid(fetchResult.player.uuid)
 
                 if (databasePlayerByName != null && databasePlayerByPremiumUuid != null) {
+                    if (!event.connection.isActive) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                        return
+                    }
                     // same name and premium uuid all exists
                     if (!databasePlayerByPremiumUuid.username.contentEquals(
                             databasePlayerByName.username,
                             ignoreCase = true
                         )
                     ) {
+                        if (!event.connection.isActive) {
+                            BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                            return
+                        }
                         BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s username is used by a cracked player, due to the crack player joined before this player changes his account username")
                         // if premium uuid refered player and username refered player is not same
                         // the one situation is, A and B all joined the server before, A is online player and B is offline player
@@ -409,6 +492,10 @@ object BasicListener {
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s is forced to use online mode")
                     event.result = PreLoginEvent.PreLoginComponentResult.forceOnlineMode() // online player
                 } else if (databasePlayerByPremiumUuid != null) { // means this premium player changed their ign and no offline player is using this name, which is great, it's easy to migrate!
+                    if (!event.connection.isActive) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                        return
+                    }
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s checked their username, updating")
                     BloraPlugin.database.trans {
                         databasePlayerByPremiumUuid.username = username
@@ -416,24 +503,44 @@ object BasicListener {
                     }
                     event.result = PreLoginEvent.PreLoginComponentResult.forceOnlineMode()
                 } else if (databasePlayerByName != null) {
+                    if (!event.connection.isActive) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                        return
+                    }
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s username was logged in under offline mode before, for security, force he uses offline mode to login")
                     // this player has registered their username under offline mode, just join the game as offline player
                     // one situation is the player isn't premium player before, but now he is
                     // to prevent account is stole by buying premium account for a cracked username, force them join under offline mode
                     event.result = PreLoginEvent.PreLoginComponentResult.forceOfflineMode()
                 } else {
+                    if (!event.connection.isActive) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                        return
+                    }
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) can normally login under online mode")
                     // other situations should check if this player is in online mode
                     event.result = PreLoginEvent.PreLoginComponentResult.forceOnlineMode()
                 }
-            } else { // data not fetched, consider player as offline player
+            } else if (fetchResult == PremiumFetcher.FetchResult.NotExists) { // data not fetched, consider player as offline player
+                if (!event.connection.isActive) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                    return
+                }
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) is a cracked player")
                 this.premiumData[username] = null
                 val databasePlayer = BloraPlugin.database.getPlayerByName(username)
 
                 if (databasePlayer != null) {
+                    if (!event.connection.isActive) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                        return
+                    }
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s username is stored in database")
                     if (databasePlayer.premiumUuid != null) { // a rarely happen event, but it will, it does exist!
+                        if (!event.connection.isActive) {
+                            BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                            return
+                        }
                         BloraPlugin.log.info("[LOGIN SYSTEM] Data stored in database related to player ${event.username}($ip)'s username has premium uuid, kick the player")
                         event.result = PreLoginEvent.PreLoginComponentResult.denied(
                             component {
@@ -445,9 +552,17 @@ object BasicListener {
                         return
                     }
                 } else {
+                    if (!event.connection.isActive) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                        return
+                    }
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip)'s username isn't stored in database")
                     // when database player not exists, do ip limit test
                     if (BloraPlugin.configuration.security.ipLimit > 0 && !BloraPlugin.configuration.security.ipLimitDisableRegister) {
+                        if (!event.connection.isActive) {
+                            BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                            return
+                        }
                         BloraPlugin.log.info("[LOGIN SYSTEM] IP limit is enabled")
                         val amount =
                             if (BloraPlugin.configuration.security.ipLimitStrategyForRegister == Order.FIRST) {
@@ -471,8 +586,24 @@ object BasicListener {
 
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) can normally login under offline mode")
                 event.result = PreLoginEvent.PreLoginComponentResult.forceOfflineMode() // offline player
+            } else {
+                if (!event.connection.isActive) {
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                    return
+                }
+                event.result = PreLoginEvent.PreLoginComponentResult.denied(
+                    component {
+                        localization {
+                            this.kickLoginError_profiling
+                        }
+                    }
+                )
             }
         } else {
+            if (!event.connection.isActive) {
+                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                return
+            }
             BloraPlugin.log.info("[LOGIN SYSTEM] Online features are disabled")
             event.result = PreLoginEvent.PreLoginComponentResult.forceOfflineMode()
         }
@@ -481,7 +612,9 @@ object BasicListener {
     @Subscribe
     fun onDisconnect(event: DisconnectEvent) {
         BloraAuthorization.clear(event.player)
+        this.passedLoginStatus.remove(event.player)
         this.premiumData.remove(event.player.username.lowercase())
+        SinglePlayerArgumentType.removePlayer(event.player)
     }
 
 }

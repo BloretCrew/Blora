@@ -1,5 +1,6 @@
 package blora.authorization.premium
 
+import blora.BloraPlugin
 import blora.authorization.premium.fetcher.MinetoolsPremiumFetcher
 import blora.authorization.premium.fetcher.MojangPremiumFetcher
 import blora.authorization.premium.fetcher.PlayerDBPremiumFetcher
@@ -28,18 +29,19 @@ object PremiumAuthorizer {
     fun fetchUserByName(username: String): PremiumFetcher.FetchResult {
         for (fetcher in fetchers.toMutableList()
             .apply { this.add(this@PremiumAuthorizer.fallback) /* add fallback fetcher at the last fetcher*/ }) {
-            val result = fetcher.fetchPlayer(username)
-            return when (result) {
-                is PremiumFetcher.FetchResult.Exists ->
-                    result
-
-                is PremiumFetcher.FetchResult.RateLimit -> PremiumFetcher.FetchResult.ServerError
-                is PremiumFetcher.FetchResult.ServerError -> continue
-                is PremiumFetcher.FetchResult.NotExists -> PremiumFetcher.FetchResult.NotExists
-                is PremiumFetcher.FetchResult.InvalidInput -> PremiumFetcher.FetchResult.NotExists
+            for (i in 0 until 3) { // retry 3 times
+                val result = fetcher.fetchPlayer(username)
+                BloraPlugin.log.info("[LOGIN SYSTEM/Premium Data Fetcher/${fetcher.javaClass.name}] Retry times: ${i + 1}")
+                return when (result) {
+                    is PremiumFetcher.FetchResult.Exists -> result
+                    is PremiumFetcher.FetchResult.RateLimit -> continue
+                    is PremiumFetcher.FetchResult.NotExists -> PremiumFetcher.FetchResult.NotExists
+                    is PremiumFetcher.FetchResult.InvalidInput -> PremiumFetcher.FetchResult.NotExists
+                    is PremiumFetcher.FetchResult.ServerError -> continue
+                }
             }
         }
-        return PremiumFetcher.FetchResult.NotExists
+        return PremiumFetcher.FetchResult.ServerError
     }
 
 }

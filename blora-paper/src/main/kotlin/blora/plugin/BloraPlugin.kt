@@ -1,17 +1,21 @@
 package blora.plugin
 
 import blora.api.QuickEntityLib
+import blora.chat.PlayerInventoryView
 import blora.command.BloraCommandLibWrapper
 import blora.command.defaults.BloraCommand
 import blora.command.defaults.MailCommand
 import blora.command.defaults.RedeemCommand
+import blora.command.hook.VanillaCommandHooker
 import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
 import blora.database.BloraDatabase
 import blora.entity.QuickEntityLibWrapper
 import blora.injector.BloraInjector
+import blora.listener.ChatListener
 import blora.listener.SystemMailListener
 import blora.listener.UnauthorizedListener
+import blora.listener.VanillaCommandsRemoverListener
 import blora.localization.BloraLocalization
 import blora.menu.MenuApi
 import blora.messaging.BloraClient
@@ -48,6 +52,8 @@ object BloraPlugin : JavaPlugin(), blora.api.QuickLib {
             return
         }
 
+        VanillaCommandHooker.hookEnableStage()
+        PlayerInventoryView.startJob()
         BloraInjector.init()
 
         connectDatabase()
@@ -67,6 +73,7 @@ object BloraPlugin : JavaPlugin(), blora.api.QuickLib {
     }
 
     override fun onDisable() {
+        PlayerInventoryView.stopJob()
         BloraInjector.close()
         this.client.close()
         ModuleManager.disable()
@@ -121,8 +128,8 @@ internal fun connectDatabase() {
 
 internal fun startClient() {
     BloraPlugin.client = BloraClient(
-        InetAddress.getByName(BloraPlugin.configuration.messageing.host),
-        BloraPlugin.configuration.messageing.port
+        InetAddress.getByName(BloraPlugin.configuration.messaging.host),
+        BloraPlugin.configuration.messaging.port
     )
 }
 
@@ -141,4 +148,6 @@ internal fun registerListeners() {
         UnauthorizedListener.register()
     }
     SystemMailListener.register()
+    Bukkit.getPluginManager().registerEvents(VanillaCommandsRemoverListener, BloraPlugin)
+    Bukkit.getPluginManager().registerEvents(ChatListener, BloraPlugin)
 }

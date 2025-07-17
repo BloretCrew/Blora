@@ -22,6 +22,7 @@ class MenuContext(
 
 class MenuItem(
     val icon: ItemStack? = null,
+    val useItemInfoAsHover: Boolean = false,
     val clickEvent: ((menu: MenuContext) -> Unit)? = null,
     val hoverText: ((menu: Menu) -> HoverText) = { HoverText() },
 )
@@ -34,12 +35,14 @@ class HoverText(
 class MenuItemBuilder {
 
     internal var icon: ItemStack? = null
+    internal var useItemInfoAsHover = false
     internal var clickEvent: ((menu: MenuContext) -> Unit)? = null
     internal var hoverText: ((menu: Menu) -> HoverText) = { HoverText() }
 
     fun build(): MenuItem {
         return MenuItem(
             icon = icon,
+            useItemInfoAsHover = useItemInfoAsHover,
             clickEvent = clickEvent,
             hoverText = hoverText,
         )
@@ -48,7 +51,11 @@ class MenuItemBuilder {
 }
 
 fun MenuItemBuilder.icon(item: ItemStack) {
-    this.icon = item
+    this.icon = item.clone() // secure in api to ensure the original item won't be modified
+}
+
+fun MenuItemBuilder.useItemInfoAsHover() {
+    this.useItemInfoAsHover = true
 }
 
 fun MenuItemBuilder.clickEvent(block: (menu: MenuContext) -> Unit) {

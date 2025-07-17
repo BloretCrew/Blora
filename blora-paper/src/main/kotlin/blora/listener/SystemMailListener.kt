@@ -62,19 +62,21 @@ object SystemMailListener : Listener {
             MailModule.receiveNewMail(player, systemMail, visible = true, notify = false)
         }
         if (BloraPlugin.configuration.mail.unreadTips) {
+            val amount = BloraPlugin.database
+                .getMailsByReceiverUuid(player.uniqueId)
+                .filter { it.visible }
+                .filter { !it.isRead }
+                .toList()
+                .size
+            if (amount < 1)
+                return
             player.send {
                 localization(
                     player = player,
                     tags = {
                         parsedPlaceholder(
                             "amount",
-                            BloraPlugin.database
-                                .getMailsByReceiverUuid(player.uniqueId)
-                                .filter { it.visible }
-                                .filter { !it.isRead }
-                                .toList()
-                                .size
-                                .toString()
+                            amount.toString()
                         )
                     }
                 ) {

@@ -12,6 +12,7 @@ import plutoproject.adventurekt.text.parsedPlaceholder
 fun ComponentKt.localization(
     player: Player? = null,
     tags: MiniMessageContext.() -> Unit = {},
+    papi: Boolean = true,
     content: LocalizationContents.() -> String
 ): ComponentKt {
     return if (player != null) {
@@ -19,7 +20,9 @@ fun ComponentKt.localization(
         this.mini(content(localization)) {
             tags()
             parsedPlaceholder(localization.resolver())
-            parsedPlaceholder(PlaceholderAPITagResolver(player))
+            if (papi) {
+                parsedPlaceholder(PlaceholderAPITagResolver(player))
+            }
         }
     } else {
         val localization = BloraLocalization.fallbackLocalization

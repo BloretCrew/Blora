@@ -1,6 +1,7 @@
 package blora.modules.redeem
 
 import blora.database.redeem.RedeemDao
+import blora.extension.asDisplayName
 import blora.extension.localization
 import blora.extension.openDialog
 import blora.menu.*
@@ -454,7 +455,7 @@ fun redeemModifyAttachmentMenuPage(
                     localization(player = player) {
                         this.menuCreate_system_mailPageModify_attachmentItemTooltip1
                     }
-                    raw { item.first.getData(DataComponentTypes.ITEM_NAME) ?: item.first.displayName() }
+                    raw { item.first.getData(DataComponentTypes.ITEM_NAME) ?: item.first.asDisplayName() }
 
                     val lore = item.first.getData(DataComponentTypes.LORE)
                     if (lore != null && lore.lines().isNotEmpty()) {

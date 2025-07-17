@@ -452,7 +452,7 @@ fun mailListPage(mails: MutableList<MailDao>, player: Player, currentPage: Int =
                             }
                         }
                     ) {
-                        "<italic:false><white>" + this.mailTooltipSendingDate
+                        "<italic:false><white>" + this.mailTooltipCreatedAt
                     }
                     newline()
                     newline()

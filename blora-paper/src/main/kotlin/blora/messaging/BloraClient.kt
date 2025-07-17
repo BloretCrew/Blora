@@ -20,7 +20,7 @@ import io.netty.channel.socket.nio.NioSocketChannel
 import java.net.InetAddress
 import java.net.InetSocketAddress
 
-
+@ChannelHandler.Sharable
 class BloraClient(
     val address: InetAddress,
     val port: Int
@@ -28,12 +28,14 @@ class BloraClient(
 
 
     private val group: EventLoopGroup = NioEventLoopGroup()
-    private val connection: BloraConnection
+    private val bootstrap = Bootstrap()
+    private var connection: BloraConnection
+
+    private var connected = true
 
     init {
         this.registerHandlers()
 
-        val bootstrap = Bootstrap()
         bootstrap.group(this.group)
             .channel(NioSocketChannel::class.java)
             .option(ChannelOption.SO_KEEPALIVE, true)
@@ -52,13 +54,15 @@ class BloraClient(
     }
 
     fun reconnect() {
-        if (this.isConnected())
+        if (this.connected)
             return
-        this.connection.channel.connect(InetSocketAddress(address, port))
+        this.connection = BloraConnection(
+            bootstrap.connect(InetSocketAddress(address, port)).sync().channel()
+        )
     }
 
     fun isConnected(): Boolean {
-        return this.connection.channel.isActive
+        return this.connection.channel.isWritable
     }
 
     fun send(packet: Packet) {
@@ -72,8 +76,8 @@ class BloraClient(
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         BloraConnection(ctx.channel()).send(AuthorizePacket().apply {
-            this.serverName = BloraPlugin.configuration.messageing.serverName
-            this.password = BloraPlugin.configuration.messageing.password
+            this.serverName = BloraPlugin.configuration.messaging.serverName
+            this.password = BloraPlugin.configuration.messaging.password
         })
     }
 
@@ -96,8 +100,10 @@ class BloraClient(
         BloraPlugin.slF4JLogger.error("Blora 通讯发生错误：${cause.message}")
     }
 
-    override fun channelInactive(ctx: ChannelHandlerContext?) {
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        connected = false
         BloraPlugin.slF4JLogger.error("Blora 服务器通讯断连")
+        ctx.channel().close()
     }
 
     private fun registerHandlers() {

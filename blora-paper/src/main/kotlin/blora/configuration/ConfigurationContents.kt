@@ -6,11 +6,33 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ConfigurationContents(
+    val chat: Chat = Chat(),
     val mail: Mail = Mail(),
-    val messageing: Messaging = Messaging(),
+    val messaging: Messaging = Messaging(),
     val security: Security = Security(),
     val modules: Modules = Modules(),
     val database: Database = Database(),
+)
+
+@Serializable
+data class Chat(
+    val muteTag: String = "muted",
+    val format: String = "<papi:player_name>: <message>",
+    val mentionAllKeyword: String = "all",
+    val mentionAllFormat: String = "<gold>@所有人</gold>",
+    val titleWhenMentioned: Boolean = true,
+    val soundWhenMentioned: Boolean = true,
+    val mentionSelfFormat: String = "<gold>@<mentioned></gold>",
+    val mentionOtherFormat: String = "<aqua>@<mentioned></aqua>",
+    val itemPlaceholderFormat: String = "<dark_gray>[<green><item><dark_gray>]</dark_gray>",
+    val inventoryPlaceholderFormat: String = "<dark_gray>[<green><player> 的背包<dark_gray>]</dark_gray>",
+    val enderChestPlaceholderFormat: String = "<dark_gray>[<pink><player> 的末影箱<dark_gray>]</dark_gray>",
+    val commandPlaceholderFormat: String = "<dark_gray>[<yellow><command><dark_gray>]</dark_gray>",
+    val copyPlaceholderFormat: String = "<dark_gray>[<dark_green><text><dark_gray>]</dark_gray>",
+    val linkPlaceholderFormat: String = "<dark_gray>[<blue><u><link><dark_gray>]</dark_gray>",
+    val placeholders: Map<String, String> = mutableMapOf(
+        "blorius" to "<dark_gray>[<blue><papi:playerpoints_points> 络琅<dark_gray>]"
+    ),
 )
 
 @Serializable

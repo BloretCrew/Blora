@@ -4,7 +4,7 @@ import blora.messaging.packet.Packet
 import blora.messaging.packet.PacketType
 import io.netty.buffer.ByteBuf
 
-class PongPacket constructor() : Packet {
+class PongPacket() : Packet {
 
     constructor(pingTime: Long) : this() {
         this.pingTime = pingTime

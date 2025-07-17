@@ -1,28 +1,26 @@
 package blora.command
 
 import blora.BloraPlugin
-import blora.dialog.asPacket
 import blora.extension.localization
-import blora.extension.sendPacket
-import blora.options.optionsDialog
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.audience.send
 
-object OptionsCommand {
+object LobbyCommand {
 
     fun register() {
         val commandManager = BloraPlugin.proxyServer.commandManager
         commandManager.register(
-            commandManager.metaBuilder("options")
+            commandManager.metaBuilder("lobby")
+                .aliases("hub")
                 .plugin(BloraPlugin.instance)
                 .build(),
             BrigadierCommand(
-                BrigadierCommand.literalArgumentBuilder("options")
-                    .requires { it.hasPermission("blora.command.options") }
+                BrigadierCommand.literalArgumentBuilder("lobby")
+                    .requires { it.hasPermission("blora.command.lobby") }
                     .executes {
                         if (it.source is Player) {
-                            (it.source as Player).sendPacket(optionsDialog(it.source as Player).asPacket())
+                            (it.source as Player).createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
                         } else {
                             it.source.send {
                                 localization {

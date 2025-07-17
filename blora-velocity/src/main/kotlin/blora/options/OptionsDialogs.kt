@@ -1,5 +1,6 @@
 package blora.options
 
+import blora.BloraPlugin
 import blora.dialog.ConfirmationDialog
 import blora.dialog.Dialog
 import blora.dialog.action.ClickAction
@@ -11,6 +12,7 @@ import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.component
 
 fun optionsDialog(player: Player): Dialog {
+    val options = BloraPlugin.database.getPlayerByName(player.username)!!.jsonOptions
     return ConfirmationDialog(
         title = component {
             localization(player) {
@@ -38,7 +40,7 @@ fun optionsDialog(player: Player): Dialog {
                                 this.optionDefault
                             }
                         },
-                        initial = true
+                        initial = options.alwaysLobby == OptionStatus.NOT_SET
                     ),
                     InputControlOption(
                         id = "enable",
@@ -46,7 +48,8 @@ fun optionsDialog(player: Player): Dialog {
                             localization(player) {
                                 this.optionEnable
                             }
-                        }
+                        },
+                        initial = options.alwaysLobby == OptionStatus.ENABLE
                     ),
                     InputControlOption(
                         id = "disable",
@@ -54,7 +57,8 @@ fun optionsDialog(player: Player): Dialog {
                             localization(player) {
                                 this.optionDisable
                             }
-                        }
+                        },
+                        initial = options.alwaysLobby == OptionStatus.DISABLE
                     )
                 )
             )

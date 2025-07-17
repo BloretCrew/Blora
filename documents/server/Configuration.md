@@ -2,7 +2,7 @@
 
 ---
 
-## messageing
+## messaging
 
 服务器间通信，插件部分重要功能都依赖此功能。
 

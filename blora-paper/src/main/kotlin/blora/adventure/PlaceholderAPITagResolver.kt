@@ -18,10 +18,17 @@ class PlaceholderAPITagResolver(val player: Player) : TagResolver {
         if (name != "papi")
             return null
 
-        val placeholder = arguments.popOr("papi tag requires an argument").value();
-        val parsedPlaceholder = PlaceholderAPI.setPlaceholders(player, "%$placeholder%");
+        val placeholder = arguments.popOr("papi tag requires an argument")
+            .value()
+            .let {
+                val builder = StringBuilder(it)
+                while (arguments.hasNext())
+                    builder.append(":").append(arguments.pop())
+                return@let builder.toString()
+            }
+        val parsedPlaceholder = PlaceholderAPI.setPlaceholders(player, "%$placeholder%")
 
-        return Tag.selfClosingInserting(LegacyComponentSerializer.legacySection().deserialize(parsedPlaceholder));
+        return Tag.selfClosingInserting(LegacyComponentSerializer.legacySection().deserialize(parsedPlaceholder))
     }
 
     override fun has(name: String): Boolean {
