@@ -6,7 +6,6 @@ import blora.authorization.BloraAuthorization
 import blora.authorization.premium.PremiumAuthorizer
 import blora.authorization.premium.PremiumPlayer
 import blora.authorization.premium.fetcher.PremiumFetcher
-import blora.command.argument.SinglePlayerArgumentType
 import blora.configuration.Order
 import blora.configuration.UUIDGenerator
 import blora.database.player.PlayerDao
@@ -123,9 +122,6 @@ object BasicListener {
 
             // now database fetched player is always nonnull
             val databasePlayerByName = BloraPlugin.database.getPlayerByName(event.player.username)
-
-            SinglePlayerArgumentType.sendOtherServerPlayers(event.player, event.server.server)
-            SinglePlayerArgumentType.notifyOtherPlayers(event.player, event.server.server)
 
             // show eula to the player if they haven't accepted the eula yet
             if (!databasePlayerByName!!.eulaAccepted) {
@@ -614,7 +610,6 @@ object BasicListener {
         BloraAuthorization.clear(event.player)
         this.passedLoginStatus.remove(event.player)
         this.premiumData.remove(event.player.username.lowercase())
-        SinglePlayerArgumentType.removePlayer(event.player)
     }
 
 }

@@ -5,8 +5,6 @@ import blora.command.BloraProxyCommand
 import blora.command.LobbyCommand
 import blora.command.OptionsCommand
 import blora.command.TellCommand
-import blora.command.argument.SinglePlayerArgumentPropertySerializer
-import blora.command.argument.SinglePlayerArgumentType
 import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
 import blora.database.BloraDatabase
@@ -31,9 +29,6 @@ import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.server.RegisteredServer
 import com.velocitypowered.proxy.protocol.ProtocolUtils
 import com.velocitypowered.proxy.protocol.StateRegistry
-import com.velocitypowered.proxy.protocol.packet.brigadier.ArgumentIdentifier
-import com.velocitypowered.proxy.protocol.packet.brigadier.ArgumentPropertyRegistry
-import com.velocitypowered.proxy.protocol.packet.brigadier.ArgumentPropertySerializer
 import io.github._4drian3d.vpacketevents.api.register.PacketRegistration
 import kotlinx.coroutines.*
 import org.slf4j.Logger
@@ -110,15 +105,12 @@ class BloraPlugin @Inject constructor(
         this.initFolders()
         this.initLocalizations()
         this.initPasswordStrategies()
-
-        // this.registerArgumentTypes()
         this.registerPackets()
         this.registerCommands()
 
         this.startServer()
 
         this.server.eventManager.register(this, BasicListener)
-        // this.server.eventManager.register(this, ChatListener)
     }
 
     @Subscribe
@@ -140,25 +132,6 @@ class BloraPlugin @Inject constructor(
 
     private fun startServer() {
         this.bloraServer.start()
-    }
-
-    private fun registerArgumentTypes() {
-        val method = ArgumentPropertyRegistry::class.java.getDeclaredMethod(
-            "register",
-            ArgumentIdentifier::class.java,
-            Class::class.java,
-            ArgumentPropertySerializer::class.java
-        )
-        method.isAccessible = true
-        method.invoke(
-            null,
-            ArgumentIdentifier.id(
-                "minecraft:entity",
-                ArgumentIdentifier.mapSet(ProtocolVersion.MINECRAFT_1_21_7, 6)
-            ),
-            SinglePlayerArgumentType::class.java,
-            SinglePlayerArgumentPropertySerializer
-        )
     }
 
     private fun registerCommands() {
