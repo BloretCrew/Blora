@@ -1,6 +1,6 @@
 package blora.internal.api.player
 
-import blora.api.command.CommandInvoker
+import blora.internal.api.command.CommandInvoker
 import blora.dialog.Dialog
 import blora.extension.sendPacket
 import net.minecraft.core.Holder

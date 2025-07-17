@@ -1,7 +1,7 @@
 package blora.command.argument
 
-import blora.api.command.CommandContext
-import blora.api.command.argument.ArgumentType
+import blora.internal.api.command.CommandContext
+import blora.internal.api.command.argument.ArgumentType
 import blora.command.CommandContextWrapper
 import blora.nms.internalGetArgumentValue
 import blora.nms.nms
@@ -15,9 +15,9 @@ internal fun CommandContext.nms(): NMSCommandContext<net.minecraft.commands.Comm
     return (this as CommandContextWrapper).nmsInstance
 }
 
-object QuickArgumentLibWrapper : blora.api.command.argument.QuickArgumentLib {
+object QuickArgumentLibWrapper : blora.internal.api.command.argument.QuickArgumentLib {
 
-    override fun getArguments(): blora.api.command.argument.Arguments {
+    override fun getArguments(): blora.internal.api.command.argument.Arguments {
         return ArgumentsWrapper
     }
 

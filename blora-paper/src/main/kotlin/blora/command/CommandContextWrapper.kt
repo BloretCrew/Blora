@@ -8,12 +8,12 @@ import com.mojang.brigadier.context.CommandContext as NMSCommandContext
 
 open class CommandContextWrapper(
     private val context: NMSCommandContext<net.minecraft.commands.CommandSourceStack>
-) : blora.api.command.CommandContext {
+) : blora.internal.api.command.CommandContext {
 
     val nmsInstance: NMSCommandContext<net.minecraft.commands.CommandSourceStack>
         get() = this.context
 
-    override val invoker: blora.api.command.CommandInvoker
+    override val invoker: blora.internal.api.command.CommandInvoker
         get() = if (this.context.source.isPlayer) {
             QuickPlayerWrapper(context.source.bukkitSender as Player)
         } else {
@@ -36,7 +36,7 @@ open class CommandContextWrapper(
 class SuggestionContextWrapper(
     context: NMSCommandContext<net.minecraft.commands.CommandSourceStack>,
     private val suggestionsBuilder: SuggestionsBuilder
-) : CommandContextWrapper(context), blora.api.command.SuggestionContext {
+) : CommandContextWrapper(context), blora.internal.api.command.SuggestionContext {
 
     override val start: Int
         get() = this.suggestionsBuilder.start

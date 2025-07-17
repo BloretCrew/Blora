@@ -1,8 +1,8 @@
 package blora.internal.api.command
 
-import blora.api.command.argument.ArgumentType
-import blora.api.command.argument.QuickArgumentLib
-import blora.api.player.BloraPlayer
+import blora.internal.api.command.argument.ArgumentType
+import blora.internal.api.command.argument.QuickArgumentLib
+import blora.internal.api.player.BloraPlayer
 import net.kyori.adventure.text.Component
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Entity

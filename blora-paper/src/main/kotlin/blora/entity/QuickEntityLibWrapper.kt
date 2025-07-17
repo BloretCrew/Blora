@@ -1,6 +1,6 @@
 package blora.entity
 
-import blora.api.QuickEntityLib
+import blora.internal.api.QuickEntityLib
 import blora.nms.nms
 import org.bukkit.entity.Entity
 

@@ -1,7 +1,7 @@
 package blora.internal.api
 
-import blora.api.command.BloraCommandLib
-import blora.api.scheduler.QuickSchedulerLib
+import blora.internal.api.command.BloraCommandLib
+import blora.internal.api.scheduler.QuickSchedulerLib
 import blora.plugin.BloraPlugin
 
 interface QuickLib {

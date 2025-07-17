@@ -1,6 +1,6 @@
 package blora.listener.packet
 
-import blora.api.scheduler.BukkitMain
+import blora.internal.api.scheduler.BukkitMain
 import blora.nms.toKnbt
 import blora.serialization.nbt.compound
 import io.papermc.paper.adventure.PaperAdventure

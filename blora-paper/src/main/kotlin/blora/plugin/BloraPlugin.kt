@@ -1,6 +1,6 @@
 package blora.plugin
 
-import blora.api.QuickEntityLib
+import blora.internal.api.QuickEntityLib
 import blora.chat.PlayerInventoryView
 import blora.command.BloraCommandLibWrapper
 import blora.command.defaults.BloraCommand
@@ -28,7 +28,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 import java.net.InetAddress
 
-object BloraPlugin : JavaPlugin(), blora.api.QuickLib {
+object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
 
     lateinit var client: BloraClient
     internal lateinit var configurationLoader: BloraConfiguration
@@ -79,11 +79,11 @@ object BloraPlugin : JavaPlugin(), blora.api.QuickLib {
         ModuleManager.disable()
     }
 
-    override fun getCommandLib(): blora.api.command.BloraCommandLib {
+    override fun getCommandLib(): blora.internal.api.command.BloraCommandLib {
         return BloraCommandLibWrapper
     }
 
-    override fun getSchedulerLib(): blora.api.scheduler.QuickSchedulerLib {
+    override fun getSchedulerLib(): blora.internal.api.scheduler.QuickSchedulerLib {
         return QuickSchedulerLibWrapper
     }
 

@@ -1,6 +1,6 @@
 package blora.scheduler
 
-import blora.api.scheduler.QuickSchedulerLib
+import blora.internal.api.scheduler.QuickSchedulerLib
 import blora.plugin.BloraPlugin
 import kotlinx.coroutines.*
 import org.bukkit.Bukkit

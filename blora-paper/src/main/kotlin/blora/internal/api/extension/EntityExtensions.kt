@@ -1,6 +1,6 @@
 package blora.internal.api.extension
 
-import blora.api.QuickEntityLib
+import blora.internal.api.QuickEntityLib
 import org.bukkit.entity.Entity
 
 val Entity.eyeHeight: Float

@@ -1,8 +1,8 @@
 package blora.internal.api.command.argument
 
-import blora.api.position.EntityAnchor
-import blora.api.types.EntityList
-import blora.api.types.PlayerList
+import blora.internal.api.position.EntityAnchor
+import blora.internal.api.types.EntityList
+import blora.internal.api.types.PlayerList
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.TextFormat
 import org.bukkit.World

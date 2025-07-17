@@ -8,7 +8,7 @@ import org.bukkit.entity.Player
 
 open class CommandInvokerWrapper(
     private val commandSender: CommandSender
-) : blora.api.command.CommandInvoker {
+) : blora.internal.api.command.CommandInvoker {
 
     override val isPlayer: Boolean
         get() = this.commandSender is Player
@@ -19,12 +19,12 @@ open class CommandInvokerWrapper(
     override val asBukkit: CommandSender
         get() = commandSender
 
-    override fun player(): blora.api.player.BloraPlayer {
+    override fun player(): blora.internal.api.player.BloraPlayer {
         return QuickPlayerWrapper(this.commandSender as Player)
     }
 
     override fun equals(other: Any?): Boolean {
-        if (other == null || other !is blora.api.command.CommandInvoker) {
+        if (other == null || other !is blora.internal.api.command.CommandInvoker) {
             return false
         }
         if (this === other) {

@@ -1,8 +1,8 @@
 package blora.command
 
-import blora.api.command.CommandExecutor
-import blora.api.command.CommandMeta
-import blora.api.scheduler.BukkitAsync
+import blora.internal.api.command.CommandExecutor
+import blora.internal.api.command.CommandMeta
+import blora.internal.api.scheduler.BukkitAsync
 import blora.command.argument.QuickArgumentLibWrapper
 import blora.extension.localization
 import blora.nms.nms
@@ -22,16 +22,16 @@ import java.util.function.Predicate
 import com.mojang.brigadier.tree.ArgumentCommandNode as NMSArgumentCommandNode
 import com.mojang.brigadier.tree.LiteralCommandNode as NMSLiteralCommandNode
 
-object BloraCommandLibWrapper : blora.api.command.BloraCommandLib {
+object BloraCommandLibWrapper : blora.internal.api.command.BloraCommandLib {
     override fun createCommand(
         meta: CommandMeta,
         name: String,
-        requirement: Predicate<blora.api.command.CommandInvoker>,
+        requirement: Predicate<blora.internal.api.command.CommandInvoker>,
         executor: CommandExecutor?,
         playerExecutor: CommandExecutor?,
         blockExecutor: CommandExecutor?,
-        children: List<blora.api.command.CommandNode>
-    ): blora.api.command.Command {
+        children: List<blora.internal.api.command.CommandNode>
+    ): blora.internal.api.command.Command {
         return CommandWrapper(
             meta,
             name,
@@ -45,12 +45,12 @@ object BloraCommandLibWrapper : blora.api.command.BloraCommandLib {
 
     override fun createLiteralCommandNode(
         name: String,
-        requirement: Predicate<blora.api.command.CommandInvoker>,
-        executor: (blora.api.command.CommandContext.() -> Unit)?,
-        playerExecutor: (blora.api.command.CommandContext.() -> Unit)?,
-        blockExecutor: (blora.api.command.CommandContext.() -> Unit)?,
-        children: List<blora.api.command.CommandNode>
-    ): blora.api.command.LiteralCommandNode {
+        requirement: Predicate<blora.internal.api.command.CommandInvoker>,
+        executor: (blora.internal.api.command.CommandContext.() -> Unit)?,
+        playerExecutor: (blora.internal.api.command.CommandContext.() -> Unit)?,
+        blockExecutor: (blora.internal.api.command.CommandContext.() -> Unit)?,
+        children: List<blora.internal.api.command.CommandNode>
+    ): blora.internal.api.command.LiteralCommandNode {
         return LiteralCommandNodeWrapper(
             name,
             requirement,
@@ -62,15 +62,15 @@ object BloraCommandLibWrapper : blora.api.command.BloraCommandLib {
     }
 
     override fun <T> createArgumentCommandNode(
-        argumentType: blora.api.command.argument.ArgumentType<T>,
-        suggestions: blora.api.command.Suggestions?,
+        argumentType: blora.internal.api.command.argument.ArgumentType<T>,
+        suggestions: blora.internal.api.command.Suggestions?,
         name: String,
-        requirement: Predicate<blora.api.command.CommandInvoker>,
-        executor: (blora.api.command.CommandContext.() -> Unit)?,
-        playerExecutor: (blora.api.command.CommandContext.() -> Unit)?,
-        blockExecutor: (blora.api.command.CommandContext.() -> Unit)?,
-        children: List<blora.api.command.CommandNode>
-    ): blora.api.command.ArgumentCommandNode<T> {
+        requirement: Predicate<blora.internal.api.command.CommandInvoker>,
+        executor: (blora.internal.api.command.CommandContext.() -> Unit)?,
+        playerExecutor: (blora.internal.api.command.CommandContext.() -> Unit)?,
+        blockExecutor: (blora.internal.api.command.CommandContext.() -> Unit)?,
+        children: List<blora.internal.api.command.CommandNode>
+    ): blora.internal.api.command.ArgumentCommandNode<T> {
         return ArgumentCommandNodeWrapper(
             argumentType,
             suggestions,
@@ -83,25 +83,25 @@ object BloraCommandLibWrapper : blora.api.command.BloraCommandLib {
         )
     }
 
-    override fun getArgumentLib(): blora.api.command.argument.QuickArgumentLib {
+    override fun getArgumentLib(): blora.internal.api.command.argument.QuickArgumentLib {
         return QuickArgumentLibWrapper
     }
 
     override fun buildSuggestions(
         async: Boolean,
-        builder: blora.api.command.SuggestionContext.() -> Unit
-    ): blora.api.command.Suggestions {
+        builder: blora.internal.api.command.SuggestionContext.() -> Unit
+    ): blora.internal.api.command.Suggestions {
         return SuggestionsWrapper(
             async,
             builder
         )
     }
 
-    override fun createMeta(): blora.api.command.CommandMetaBuilder {
+    override fun createMeta(): blora.internal.api.command.CommandMetaBuilder {
         return CommandMetaBuilderWrapper()
     }
 
-    override fun registerCommand(command: blora.api.command.Command) {
+    override fun registerCommand(command: blora.internal.api.command.Command) {
         // (commands as PaperCommands).registerWithFlagsInternal()
         val builtCommandNode = buildCommand(command)
         builtCommandNode.apiCommandMeta = buildPaperMeta(command.meta)
@@ -141,8 +141,8 @@ private fun buildPaperMeta(commandMeta: CommandMeta): APICommandMeta {
 
 private fun tryExecutePlayer(
     source: net.minecraft.commands.CommandSourceStack,
-    context: blora.api.command.CommandContext,
-    command: blora.api.command.CommandNode
+    context: blora.internal.api.command.CommandContext,
+    command: blora.internal.api.command.CommandNode
 ) {
     if (source.isPlayer && command.playerExecutor != null) {
         context.apply(command.playerExecutor!!)
@@ -153,8 +153,8 @@ private fun tryExecutePlayer(
 
 private fun tryExecuteBlock(
     source: net.minecraft.commands.CommandSourceStack,
-    context: blora.api.command.CommandContext,
-    command: blora.api.command.CommandNode
+    context: blora.internal.api.command.CommandContext,
+    command: blora.internal.api.command.CommandNode
 ) {
     if (source.bukkitSender is BlockCommandSender) {
         if (command.blockExecutor != null) {
@@ -205,11 +205,11 @@ private fun tryExecuteBlock(
     }
 }
 
-internal fun buildCommand(command: blora.api.command.Command): NMSLiteralCommandNode<net.minecraft.commands.CommandSourceStack> {
+internal fun buildCommand(command: blora.internal.api.command.Command): NMSLiteralCommandNode<net.minecraft.commands.CommandSourceStack> {
     return buildLiteral(command)
 }
 
-internal fun ArgumentBuilder<net.minecraft.commands.CommandSourceStack, *>.buildShared(command: blora.api.command.CommandNode) {
+internal fun ArgumentBuilder<net.minecraft.commands.CommandSourceStack, *>.buildShared(command: blora.internal.api.command.CommandNode) {
     this.requires {
         return@requires command.requirement.test(
             if (it.isPlayer) {
@@ -231,9 +231,9 @@ internal fun ArgumentBuilder<net.minecraft.commands.CommandSourceStack, *>.build
         }
         .apply {
             for (node in command.children) {
-                if (node is blora.api.command.LiteralCommandNode) {
+                if (node is blora.internal.api.command.LiteralCommandNode) {
                     this.then(buildLiteral(node))
-                } else if (node is blora.api.command.ArgumentCommandNode<*>) {
+                } else if (node is blora.internal.api.command.ArgumentCommandNode<*>) {
                     this.then(buildArgument(node))
                 } else {
                     BloraPlugin.slF4JLogger.warn("试图注册一个未知类型的命令节点")
@@ -242,7 +242,7 @@ internal fun ArgumentBuilder<net.minecraft.commands.CommandSourceStack, *>.build
         }
 }
 
-internal fun buildLiteral(command: blora.api.command.LiteralCommandNode): NMSLiteralCommandNode<net.minecraft.commands.CommandSourceStack> {
+internal fun buildLiteral(command: blora.internal.api.command.LiteralCommandNode): NMSLiteralCommandNode<net.minecraft.commands.CommandSourceStack> {
     return net.minecraft.commands.Commands.literal(command.name)
         .apply {
             buildShared(command)
@@ -250,7 +250,7 @@ internal fun buildLiteral(command: blora.api.command.LiteralCommandNode): NMSLit
         .build()
 }
 
-internal fun buildArgument(command: blora.api.command.ArgumentCommandNode<*>): NMSArgumentCommandNode<net.minecraft.commands.CommandSourceStack, *> {
+internal fun buildArgument(command: blora.internal.api.command.ArgumentCommandNode<*>): NMSArgumentCommandNode<net.minecraft.commands.CommandSourceStack, *> {
     val argumentType: ArgumentType<*> = command.argumentType.nms()
     return net.minecraft.commands.Commands.argument(command.name, argumentType)
         .apply {
@@ -263,7 +263,7 @@ internal fun buildArgument(command: blora.api.command.ArgumentCommandNode<*>): N
                         suggestionsBuilder
                     )
                     if (suggestions.async) {
-                        return@suggests blora.api.scheduler.bukkitTask(Dispatchers.BukkitAsync) {
+                        return@suggests blora.internal.api.scheduler.bukkitTask(Dispatchers.BukkitAsync) {
                             context.apply(suggestions.builder)
                             return@bukkitTask suggestionsBuilder.build()
                         }.asCompletableFuture()

@@ -1,7 +1,7 @@
 package blora.internal.api.command.argument
 
-import blora.api.command.BloraCommandLib
-import blora.api.command.CommandContext
+import blora.internal.api.command.BloraCommandLib
+import blora.internal.api.command.CommandContext
 import net.kyori.adventure.text.Component
 import org.bukkit.entity.Entity
 

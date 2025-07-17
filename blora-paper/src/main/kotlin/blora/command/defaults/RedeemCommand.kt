@@ -1,9 +1,9 @@
 package blora.command.defaults
 
-import blora.api.command.BloraCommandLib
-import blora.api.command.literal
-import blora.api.command.playerExecutor
-import blora.api.command.requires
+import blora.internal.api.command.BloraCommandLib
+import blora.internal.api.command.literal
+import blora.internal.api.command.playerExecutor
+import blora.internal.api.command.requires
 import blora.extension.openDialog
 import blora.modules.redeem.redeemDialog
 import blora.modules.redeem.redeemManagementMenu

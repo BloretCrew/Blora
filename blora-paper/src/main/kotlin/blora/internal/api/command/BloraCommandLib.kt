@@ -1,8 +1,8 @@
 package blora.internal.api.command
 
-import blora.api.QuickLib
-import blora.api.command.argument.ArgumentType
-import blora.api.command.argument.QuickArgumentLib
+import blora.internal.api.QuickLib
+import blora.internal.api.command.argument.ArgumentType
+import blora.internal.api.command.argument.QuickArgumentLib
 import java.util.function.Predicate
 
 interface BloraCommandLib {

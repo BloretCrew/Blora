@@ -1,6 +1,6 @@
 package blora.modules.mail
 
-import blora.api.player.BloraPlayer
+import blora.internal.api.player.BloraPlayer
 import blora.database.mail.MailDao
 import blora.database.mail.SystemMailDao
 import blora.extension.localization

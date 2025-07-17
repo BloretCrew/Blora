@@ -1,6 +1,6 @@
 package blora.internal.api.position
 
-import blora.api.extension.eyeHeight
+import blora.internal.api.extension.eyeHeight
 import org.bukkit.entity.Entity
 import org.bukkit.util.Vector
 
