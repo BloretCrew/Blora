@@ -3,7 +3,6 @@
 
 package blora.injector
 
-import blora.listener.packet.CommandSuggestionHandler
 import blora.listener.packet.CustomClickActionHandler
 import blora.plugin.BloraPlugin
 import io.netty.channel.Channel
@@ -12,7 +11,6 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import net.minecraft.network.Connection
 import net.minecraft.network.protocol.common.ServerboundCustomClickActionPacket
-import net.minecraft.network.protocol.game.ServerboundCommandSuggestionPacket
 import net.minecraft.network.protocol.login.ClientboundLoginFinishedPacket
 import net.minecraft.server.network.ServerConnectionListener
 import org.bukkit.Bukkit
@@ -72,8 +70,6 @@ object BloraInjector {
     fun onPacketReceiveAsync(sender: Player?, channel: Channel, packet: Any): Any? {
         if (packet is ServerboundCustomClickActionPacket) {
             CustomClickActionHandler.handle(packet)
-        } else if (packet is ServerboundCommandSuggestionPacket) {
-            return CommandSuggestionHandler.handle(packet)
         }
         return packet
     }
