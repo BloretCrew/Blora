@@ -2,21 +2,21 @@ package blora.menu
 
 import blora.collection.Stack
 
-class MenuStack(val menu: Menu, val lines: Int, var base: MenuPage) {
+class MenuStack(val menu: Menu, val lines: Int, var base: MenuPage<*>) {
 
-    private val pages = Stack<MenuPage>()
+    private val pages = Stack<MenuPage<*>>()
 
     init {
         require(lines == menu.lines)
     }
 
-    fun current(): MenuPage {
+    fun current(): MenuPage<*> {
         if (this.pages.isEmpty())
             return base
         return this.pages.get()
     }
 
-    fun push(page: MenuPage) {
+    fun push(page: MenuPage<*>) {
         this.pages.push(page)
         this.menu.update(page)
     }
@@ -37,7 +37,7 @@ class MenuStack(val menu: Menu, val lines: Int, var base: MenuPage) {
         )
     }
 
-    fun replace(page: MenuPage) {
+    fun replace(page: MenuPage<*>) {
         if (pages.isEmpty()) {
             this.base = page
         } else {

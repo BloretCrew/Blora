@@ -4,6 +4,7 @@ import blora.internal.api.QuickEntityLib
 import blora.chat.PlayerInventoryView
 import blora.command.BloraCommandLibWrapper
 import blora.command.defaults.BloraCommand
+import blora.command.defaults.GuildCommand
 import blora.command.defaults.MailCommand
 import blora.command.defaults.RedeemCommand
 import blora.command.hook.VanillaCommandHooker
@@ -19,8 +20,6 @@ import blora.listener.VanillaCommandsRemoverListener
 import blora.localization.BloraLocalization
 import blora.menu.MenuApi
 import blora.messaging.BloraClient
-import blora.modules.ModuleManager
-import blora.modules.mail.MailModule
 import blora.permission.Permissions
 import blora.scheduler.QuickSchedulerLibWrapper
 import org.bukkit.Bukkit
@@ -65,18 +64,15 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
         Permissions.registerPermissions()
         MenuApi.init()
 
-        registerModules()
         registerCommands()
         registerListeners()
-
-        ModuleManager.enable()
     }
 
     override fun onDisable() {
         PlayerInventoryView.stopJob()
         BloraInjector.close()
+        this.database.disconnect()
         this.client.close()
-        ModuleManager.disable()
     }
 
     override fun getCommandLib(): blora.internal.api.command.BloraCommandLib {
@@ -133,14 +129,11 @@ internal fun startClient() {
     )
 }
 
-internal fun registerModules() {
-    ModuleManager.registerModule(MailModule)
-}
-
 internal fun registerCommands() {
     BloraCommand.register()
     MailCommand.register()
     RedeemCommand.register()
+    GuildCommand.register()
 }
 
 internal fun registerListeners() {

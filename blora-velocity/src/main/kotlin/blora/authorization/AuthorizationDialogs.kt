@@ -42,6 +42,7 @@ fun loginDialog(player: Player, warningMessages: Component? = null): Dialog {
                         this.inputDialogLoginPassword
                     }
                 },
+                maxLength = BloraPlugin.configuration.security.maxPasswordLength,
                 multiline = Multiline(
                     maxLines = 1
                 )
@@ -98,6 +99,7 @@ fun registerDialog(player: Player, warningMessages: Component? = null): Dialog {
                         this.inputDialogRegisterPassword
                     }
                 },
+                maxLength = BloraPlugin.configuration.security.maxPasswordLength,
                 multiline = Multiline(
                     maxLines = 1
                 )
@@ -109,6 +111,7 @@ fun registerDialog(player: Player, warningMessages: Component? = null): Dialog {
                         this.inputDialogRegisterConfirmPassword
                     }
                 },
+                maxLength = BloraPlugin.configuration.security.maxPasswordLength,
                 multiline = Multiline(
                     maxLines = 1
                 )

@@ -1,7 +1,7 @@
 package blora.listener
 
 import blora.extension.localization
-import blora.modules.mail.MailModule
+import blora.mail.MailModule
 import blora.plugin.BloraPlugin
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
@@ -80,10 +80,10 @@ object SystemMailListener : Listener {
                         )
                     }
                 ) {
-                    this.mailJoinUnreadTips
+                    this.mail.mailJoinUnreadTips
                 } with runCommand("/mail") with showText {
                     localization(player) {
-                        this.mailJoinUnreadTipsHover
+                        this.mail.mailJoinUnreadTipsHover
                     }
                 }
             }

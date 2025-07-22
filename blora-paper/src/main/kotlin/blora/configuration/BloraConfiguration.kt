@@ -1,5 +1,6 @@
 package blora.configuration
 
+import blora.plugin.BloraPlugin
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.peanuuutz.tomlkt.Toml
@@ -52,3 +53,6 @@ class BloraConfiguration(
     }
 
 }
+
+val CONF: ConfigurationContents
+    get() = BloraPlugin.configuration

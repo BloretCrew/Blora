@@ -5,12 +5,15 @@ import blora.extension.asDisplayName
 import blora.extension.localization
 import blora.plugin.BloraPlugin
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.*
 import plutoproject.adventurekt.text.style.WithStyle
 import plutoproject.adventurekt.text.style.callback
+import plutoproject.adventurekt.text.style.openUrl
 import plutoproject.adventurekt.text.style.showText
+import plutoproject.adventurekt.text.style.suggestCommand
 
 object Chatting {
 
@@ -46,7 +49,11 @@ object Chatting {
                                 ): Component {
                                     return original.hoverEvent(itemInMainHand.asHoverEvent())
                                 }
-                            } with callback {
+                            } with callback(
+                                ClickCallback.Options.builder()
+                                    .uses(-1)
+                                    .build()
+                            ) {
                                 if (it != viewer)
                                     return@callback
                                 PlayerItemView.view(viewer, itemInMainHand)
@@ -65,7 +72,11 @@ object Chatting {
                             papi = false
                         ) {
                             BloraPlugin.configuration.chat.inventoryPlaceholderFormat
-                        } with callback {
+                        } with callback(
+                            ClickCallback.Options.builder()
+                                .uses(-1)
+                                .build()
+                        ) {
                             if (it != viewer)
                                 return@callback
                             PlayerInventoryView.view(viewer, sender)
@@ -87,7 +98,11 @@ object Chatting {
                             papi = false
                         ) {
                             BloraPlugin.configuration.chat.enderChestPlaceholderFormat
-                        } with callback {
+                        } with callback(
+                            ClickCallback.Options.builder()
+                                .uses(-1)
+                                .build()
+                        ) {
                             if (it != viewer)
                                 return@callback
                             PlayerInventoryView.viewEnderChest(viewer, sender)
@@ -120,13 +135,15 @@ object Chatting {
         replacements: ComponentReplacements.() -> Unit
     ): Component = component {
         replacements {
-            replacements
-            if (rawMessage.contains("<item>")) {
-                val itemInMainHand = sender.inventory.itemInMainHand
-                if (!itemInMainHand.type.isAir) {
-                    replacement {
-                        matchLiteral("<item>")
-                        replace {
+            replacements()
+            replacement {
+                match("<((?:[^'\"<>]|'[^']*'|\"[^\"]*\")*)>")
+                replacement { matchResult, builder ->
+                    val content = matchResult.group(1)
+                    val itemInMainHand = sender.inventory.itemInMainHand
+
+                    if (content == "item" && !itemInMainHand.isEmpty) {
+                        component {
                             localization(
                                 player = viewer,
                                 tags = {
@@ -145,108 +162,118 @@ object Chatting {
                                 ): Component {
                                     return original.hoverEvent(itemInMainHand.asHoverEvent())
                                 }
-                            } with callback {
+                            } with callback(
+                                ClickCallback.Options.builder()
+                                    .uses(-1)
+                                    .build()
+                            ) {
                                 if (it != viewer)
                                     return@callback
                                 PlayerItemView.view(viewer, itemInMainHand)
                             }
                         }
-                    }
-                }
-            }
-            if (rawMessage.contains("<inv>")) {
-                replacement {
-                    matchLiteral("<inv>")
-                    replace {
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("player", sender.name)
-                                parsedPlaceholder(PlaceholderAPITagResolver(sender))
-                            },
-                            papi = false
-                        ) {
-                            BloraPlugin.configuration.chat.inventoryPlaceholderFormat
-                        } with callback {
-                            if (it != viewer)
-                                return@callback
-                            PlayerInventoryView.view(viewer, sender)
-                        } with showText {
-                            localization(viewer) {
-                                this.chatViewInventoryTooltip
+                    } else if (content == "inv") {
+                        component {
+                            localization(
+                                player = viewer,
+                                tags = {
+                                    parsedPlaceholder("player", sender.name)
+                                    parsedPlaceholder(PlaceholderAPITagResolver(sender))
+                                },
+                                papi = false
+                            ) {
+                                BloraPlugin.configuration.chat.inventoryPlaceholderFormat
+                            } with callback(
+                                ClickCallback.Options.builder()
+                                    .uses(-1)
+                                    .build()
+                            ) {
+                                if (it != viewer)
+                                    return@callback
+                                PlayerInventoryView.view(viewer, sender)
+                            } with showText {
+                                localization(viewer) {
+                                    this.chatViewInventoryTooltip
+                                }
                             }
                         }
-                    }
-                }
-            }
-            if (rawMessage.contains("<enderchest>")) {
-                replacement {
-                    matchLiteral("<enderchest>")
-                    replace {
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("player", sender.name)
-                                parsedPlaceholder(PlaceholderAPITagResolver(sender))
-                            },
-                            papi = false
-                        ) {
-                            BloraPlugin.configuration.chat.enderChestPlaceholderFormat
-                        } with callback {
-                            if (it != viewer)
-                                return@callback
-                            PlayerInventoryView.viewEnderChest(viewer, sender)
-                        } with showText {
-                            localization(viewer) {
-                                this.chatViewEnderChestTooltip
+                    } else if (content == "enderchest") {
+                        component {
+                            localization(
+                                player = viewer,
+                                tags = {
+                                    parsedPlaceholder("player", sender.name)
+                                    parsedPlaceholder(PlaceholderAPITagResolver(sender))
+                                },
+                                papi = false
+                            ) {
+                                BloraPlugin.configuration.chat.enderChestPlaceholderFormat
+                            } with callback(
+                                ClickCallback.Options.builder()
+                                    .uses(-1)
+                                    .build()
+                            ) {
+                                if (it != viewer)
+                                    return@callback
+                                PlayerInventoryView.viewEnderChest(viewer, sender)
+                            } with showText {
+                                localization(viewer) {
+                                    this.chatViewEnderChestTooltip
+                                }
                             }
                         }
-                    }
-                }
-            }
-            replacement {
-                match("<cmd:(/.*)>")
-                replacement { matchResult, builder ->
-                    return@replacement component {
-                        mini(BloraPlugin.configuration.chat.commandPlaceholderFormat) {
-                            parsedPlaceholder("command", matchResult.group(1))
+                    } else if (content.startsWith("cmd:") ||
+                        (content.startsWith("cmd:\"/") && content.endsWith("\"")) ||
+                        (content.startsWith("cmd:'/") && content.endsWith("'"))) {
+                        val command = content.substring(4).let {
+                            if ((it.startsWith("\"") && it.endsWith("\"")) || (it.startsWith("'") && it.endsWith("'"))) {
+                                it.substring(1, it.length - 1)
+                            } else {
+                                it
+                            }
                         }
-                    }
-                }
-            }
-            replacement {
-                match("<link:((https?://)?([\\w-]+\\.)+[\\w-]+(:\\d+)?(/[\\w\\-.~!*'();:@&=+\$,?#/]*)?)>")
-                replacement { matchResult, builder ->
-                    return@replacement component {
-                        mini(BloraPlugin.configuration.chat.linkPlaceholderFormat) {
-                            parsedPlaceholder("link", matchResult.group(1))
+                        component {
+                            mini(BloraPlugin.configuration.chat.commandPlaceholderFormat) {
+                                parsedPlaceholder("command", command)
+                            } with suggestCommand(command)
                         }
-                    }
-                }
-            }
-            replacement {
-                match("<copy:(.*)>")
-                replacement { matchResult, builder ->
-                    return@replacement component {
-                        mini(BloraPlugin.configuration.chat.copyPlaceholderFormat) {
-                            parsedPlaceholder("text", matchResult.group(1))
+                    } else if (content.startsWith("link:") && content.substring(5).matches(LinkTagResolver.URL_REGEX)) {
+                        val link = content.substring(5)
+                        component {
+                            mini(BloraPlugin.configuration.chat.linkPlaceholderFormat) {
+                                parsedPlaceholder("link", link)
+                            } with openUrl(link)
                         }
-                    }
-                }
-            }
-            for ((key, value) in BloraPlugin.configuration.chat.placeholders) {
-                replacement {
-                    matchLiteral(key)
-                    replace {
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder(PlaceholderAPITagResolver(sender))
-                            },
-                            papi = false
-                        ) {
-                            value
+                    } else if (content.startsWith("copy:")) {
+                        val text = content.substring(5).let {
+                            if ((it.startsWith("\"") && it.endsWith("\"")) || (it.startsWith("'") && it.endsWith("'"))) {
+                                it.substring(1, it.length - 1)
+                            } else {
+                                it
+                            }
                         }
+                        component {
+                            mini(BloraPlugin.configuration.chat.copyPlaceholderFormat) {
+                                parsedPlaceholder("text", text)
+                            } with suggestCommand(text)
+                        }
+                    } else {
+                        for ((key, value) in BloraPlugin.configuration.chat.placeholders) {
+                            if (content == key) {
+                                return@replacement component {
+                                    localization(
+                                        player = viewer,
+                                        tags = {
+                                            parsedPlaceholder(PlaceholderAPITagResolver(sender))
+                                        },
+                                        papi = false
+                                    ) {
+                                        value
+                                    }
+                                }
+                            }
+                        }
+                        Component.text(matchResult.group(0))
                     }
                 }
             }

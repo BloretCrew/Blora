@@ -166,13 +166,13 @@ private fun tryExecuteBlock(
                 if (command.playerExecutor != null) {
                     source.bukkitSender.send {
                         localization {
-                            this.commandErrorPlayer_only
+                            this.command.commandErrorPlayer_only
                         }
                     }
                 } else {
                     source.bukkitSender.send {
                         localization {
-                            this.commandErrorNo_suitable_executor
+                            this.command.commandErrorNo_suitable_executor
                         }
                     }
                 }
@@ -185,19 +185,19 @@ private fun tryExecuteBlock(
             if (command.playerExecutor != null) {
                 source.bukkitSender.send {
                     localization {
-                        this.commandErrorPlayer_only
+                        this.command.commandErrorPlayer_only
                     }
                 }
             } else if (command.blockExecutor != null) {
                 source.bukkitSender.send {
                     localization {
-                        this.commandErrorBlock_only
+                        this.command.commandErrorBlock_only
                     }
                 }
             } else {
                 source.bukkitSender.send {
                     localization {
-                        this.commandErrorNo_suitable_executor
+                        this.command.commandErrorNo_suitable_executor
                     }
                 }
             }
@@ -231,12 +231,16 @@ internal fun ArgumentBuilder<net.minecraft.commands.CommandSourceStack, *>.build
         }
         .apply {
             for (node in command.children) {
-                if (node is blora.internal.api.command.LiteralCommandNode) {
-                    this.then(buildLiteral(node))
-                } else if (node is blora.internal.api.command.ArgumentCommandNode<*>) {
-                    this.then(buildArgument(node))
-                } else {
-                    BloraPlugin.slF4JLogger.warn("试图注册一个未知类型的命令节点")
+                when (node) {
+                    is blora.internal.api.command.LiteralCommandNode -> {
+                        this.then(buildLiteral(node))
+                    }
+                    is blora.internal.api.command.ArgumentCommandNode<*> -> {
+                        this.then(buildArgument(node))
+                    }
+                    else -> {
+                        BloraPlugin.slF4JLogger.warn("试图注册一个未知类型的命令节点")
+                    }
                 }
             }
         }

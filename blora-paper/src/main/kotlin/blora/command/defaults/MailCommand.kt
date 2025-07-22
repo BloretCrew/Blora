@@ -3,10 +3,10 @@ package blora.command.defaults
 import blora.internal.api.command.*
 import blora.internal.api.command.argument.Arguments
 import blora.extension.localization
-import blora.modules.mail.MailModule
-import blora.modules.mail.createSystemMailMenu
-import blora.modules.mail.mailListMenu
-import blora.modules.mail.systemMailManagementMenu
+import blora.mail.MailModule
+import blora.mail.createSystemMailMenu
+import blora.mail.mailListMenu
+import blora.mail.systemMailManagementMenu
 import blora.permission.Permissions
 import blora.plugin.BloraPlugin
 import plutoproject.adventurekt.text.parsedPlaceholder
@@ -16,7 +16,7 @@ object MailCommand {
     fun register() {
         BloraCommandLib.registerCommand("mail") {
             requires {
-                return@requires this.hasPermission(Permissions.Commands.Blora)
+                return@requires this.hasPermission(Permissions.Commands.Mail)
                         || this.hasPermission(Permissions.Admin)
             }
 
@@ -72,7 +72,7 @@ object MailCommand {
                                             parsedPlaceholder("id", systemMailId)
                                         }
                                     ) {
-                                        this.commandMailErrorSystem_mail_not_exists
+                                        this.command.commandMailErrorSystem_mail_not_exists
                                     }
                                 }
                                 return@executor
@@ -86,7 +86,7 @@ object MailCommand {
                                         parsedPlaceholder("id", systemMailId)
                                     }
                                 ) {
-                                    this.commandMailSuccessDelete_mail
+                                    this.command.commandMailSuccessDelete_mail
                                 }
                             }
                         }
@@ -120,7 +120,7 @@ object MailCommand {
                                                 parsedPlaceholder("id", systemMailId)
                                             }
                                         ) {
-                                            this.commandMailErrorSystem_mail_not_exists
+                                            this.command.commandMailErrorSystem_mail_not_exists
                                         }
                                     }
                                     return@executor
@@ -138,7 +138,7 @@ object MailCommand {
                                                 parsedPlaceholder("id", systemMailId)
                                             }
                                         ) {
-                                            this.commandMailErrorPlayer_received_mail
+                                            this.command.commandMailErrorPlayer_received_mail
                                         }
                                     }
                                     return@executor

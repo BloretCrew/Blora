@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.21.6-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")
     compileOnly(libs.paper.api)
     compileOnly(libs.papi)
     compileOnly(libs.playerpoints)
@@ -22,7 +22,9 @@ dependencies {
     compileOnly(libs.exposed.jdbc)
     compileOnly(libs.exposed.dao)
     compileOnly(libs.exposed.javatime)
+    compileOnly(libs.exposed.json)
     compileOnly(libs.hikaricp)
+    compileOnly(libs.postgresql)
 
     compileOnly(libs.adventure.nbt)
     compileOnly(libs.advkt)

@@ -23,7 +23,7 @@ class MenuContext(
 class MenuItem(
     val icon: ItemStack? = null,
     val useItemInfoAsHover: Boolean = false,
-    val clickEvent: ((menu: MenuContext) -> Unit)? = null,
+    val clickEvent: ((menu: MenuPageContext) -> Unit)? = null,
     val hoverText: ((menu: Menu) -> HoverText) = { HoverText() },
 )
 
@@ -36,7 +36,7 @@ class MenuItemBuilder {
 
     internal var icon: ItemStack? = null
     internal var useItemInfoAsHover = false
-    internal var clickEvent: ((menu: MenuContext) -> Unit)? = null
+    internal var clickEvent: ((menu: MenuPageContext) -> Unit)? = null
     internal var hoverText: ((menu: Menu) -> HoverText) = { HoverText() }
 
     fun build(): MenuItem {
@@ -58,7 +58,7 @@ fun MenuItemBuilder.useItemInfoAsHover() {
     this.useItemInfoAsHover = true
 }
 
-fun MenuItemBuilder.clickEvent(block: (menu: MenuContext) -> Unit) {
+fun MenuItemBuilder.clickEvent(block: (menu: MenuPageContext) -> Unit) {
     this.clickEvent = block
 }
 

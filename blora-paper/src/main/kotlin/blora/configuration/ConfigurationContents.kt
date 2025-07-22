@@ -6,12 +6,71 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ConfigurationContents(
+    val guild: Guild = Guild(),
     val chat: Chat = Chat(),
     val mail: Mail = Mail(),
     val messaging: Messaging = Messaging(),
     val security: Security = Security(),
     val modules: Modules = Modules(),
     val database: Database = Database(),
+)
+
+@Serializable
+data class Guild(
+    val level: GuildLevel = GuildLevel(),
+    val ownerTransferCooldownDays: Int = 30,
+    val playerMaxJoin: Int = 3,
+    val playerMaxOwn: Int = 1,
+    val minIdLength: Int = 2,
+    val maxIdLength: Int = 5,
+    val createCost: Int = 500
+)
+
+@Serializable
+data class GuildLevel(
+    val basic: GuildLevelBasic = GuildLevelBasic(),
+    val overrides: Map<Int, GuildLevelIncrementOverride> = mapOf(
+        3 to GuildLevelIncrementOverride(
+            member = 20
+        ),
+        5 to GuildLevelIncrementOverride(
+            member = 30,
+            claim = 50,
+            upgradeCost = 100
+        )
+    )
+)
+
+@Serializable
+data class GuildLevelBasic(
+    val member: GuildLevelMember = GuildLevelMember(),
+    val claim: GuildLevelClaim = GuildLevelClaim(),
+    val upgradeCost: GuildLevelUpgradeCost = GuildLevelUpgradeCost()
+)
+
+@Serializable
+data class GuildLevelIncrementOverride(
+    val member: Int? = null,
+    val claim: Int? = null,
+    val upgradeCost: Int? = null,
+)
+
+@Serializable
+data class GuildLevelMember(
+    val base: Int = 50,
+    val increment: Int = 10
+)
+
+@Serializable
+data class GuildLevelClaim(
+    val base: Int = 20,
+    val increment: Int = 10
+)
+
+@Serializable
+data class GuildLevelUpgradeCost(
+    val base: Int = 100,
+    val increment: Int = 10
 )
 
 @Serializable
@@ -37,7 +96,10 @@ data class Chat(
 
 @Serializable
 data class Mail(
-    val unreadTips: Boolean = true
+    val unreadTips: Boolean = true,
+    val coinsClaimable: Boolean = true,
+    val bloriusClaimable: Boolean = true,
+    val itemsClaimable: Boolean = true,
 )
 
 @Serializable
@@ -66,7 +128,7 @@ data class Database(
     val password: String = "",
     val database: String = "",
     val maxLifeTime: Long = 600000,
-    val jdbcUrl: String = "jdbc:mariadb://%host%:%port%/%database%?autoReconnect=true&zeroDateTimeBehavior=convertToNull",
+    val jdbcUrl: String = "jdbc:postgresql://%host%:%port%/%database%?autoReconnect=true&zeroDateTimeBehavior=convertToNull",
 ) {
 
     fun buildDataSource(): HikariDataSource {
@@ -75,9 +137,9 @@ data class Database(
                 this@apply.username = this@Database.username
                 this@apply.password = this@Database.password
 
-                this@apply.poolName = "Blora MariaDB Connection Pool"
+                this@apply.poolName = "Blora PostgreSQL Connection Pool"
 
-                this@apply.driverClassName = "org.mariadb.jdbc.Driver"
+                this@apply.driverClassName = "org.postgresql.Driver"
                 this@apply.jdbcUrl = this@Database.jdbcUrl.replace("%host%", host)
                     .replace("%port%", "${this@Database.port}")
                     .replace("%database%", this@Database.database)

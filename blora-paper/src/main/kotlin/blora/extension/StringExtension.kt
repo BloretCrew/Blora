@@ -34,6 +34,15 @@ fun String.containsLetterAndNumberOnly(): Boolean {
     return true
 }
 
+fun String.containsLowercaseLetterOnly(): Boolean {
+    for (char in this) {
+        if (!char.isLetter() || !char.isLowerCase()) {
+            return false
+        }
+    }
+    return true
+}
+
 private fun getCharType(c: Char): Pair<Int, Boolean> {
     return when {
         c in '0'..'9' -> Pair(1, true)   // 数字类型

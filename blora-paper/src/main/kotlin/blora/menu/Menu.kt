@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package blora.menu
 
 import blora.plugin.BloraPlugin
@@ -24,7 +26,7 @@ class Menu(
     val lines: Int,
     val title: Component,
     val closer: (Menu) -> Unit,
-    val basePage: MenuPage
+    val basePage: MenuPage<*>
 ) : Listener, InventoryHolder {
 
     private val extraClosingHooks: MutableList<(Menu) -> Unit> = mutableListOf()
@@ -69,7 +71,7 @@ class Menu(
         stack.current().render(this, this.inventory)
     }
 
-    fun update(page: MenuPage) {
+    fun update(page: MenuPage<*>) {
         this.inventory.clear()
         page.render(this, this.inventory)
     }
@@ -98,6 +100,8 @@ class Menu(
 
     @EventHandler
     fun clickHandler(event: InventoryClickEvent) {
+        if (event.inventory.holder != this)
+            return
         if (event.action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
             event.isCancelled = true
             return

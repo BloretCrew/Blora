@@ -15,6 +15,7 @@ import net.minecraft.network.protocol.game.ClientboundCustomChatCompletionsPacke
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
@@ -86,8 +87,11 @@ object ChatListener : Listener {
     }
 
     @Suppress("DEPRECATION")
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun onAsyncPlayerChat(event: AsyncPlayerChatEvent) {
+        if (event.isCancelled) { // if the event is already cancelled by other plugins
+            return
+        }
         event.isCancelled = true // take the event by blora plugin
         if (event.player.scoreboardTags.contains(BloraPlugin.configuration.chat.muteTag)) {
             event.player.send {
@@ -564,6 +568,12 @@ object ChatListener : Listener {
                     }
                 }
             }
+        }
+
+        Bukkit.getConsoleSender().send {
+            text { event.player.name }
+            text { ": " }
+            text { event.message }
         }
     }
 

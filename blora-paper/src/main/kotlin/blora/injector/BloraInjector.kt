@@ -1,4 +1,4 @@
-@file:Suppress("UNCHECKED_CAST")
+@file:Suppress("UNCHECKED_CAST", "DEPRECATION")
 @file:OptIn(ExperimentalAtomicApi::class)
 
 package blora.injector

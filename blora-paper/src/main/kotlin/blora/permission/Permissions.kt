@@ -1,5 +1,6 @@
 package blora.permission
 
+import blora.permission.Permissions.Mail.CreateSystemMail
 import org.bukkit.Bukkit
 import org.bukkit.permissions.Permission
 import org.bukkit.permissions.PermissionDefault
@@ -7,6 +8,16 @@ import org.bukkit.permissions.PermissionDefault
 object Permissions {
 
     val Admin = "bloret.admin"
+
+    object Guild {
+
+        val Create = "bloret.guild.create"
+
+        fun registerPermissions() {
+            registerPermission(Create, 2)
+        }
+
+    }
 
     object Mail {
 
@@ -36,17 +47,20 @@ object Permissions {
         val Mail = "bloret.command.mail"
         val Redeem = "bloret.command.redeem"
         val Tell = "bloret.command.tell"
+        val Guild = "bloret.command.guild"
 
         fun registerPermissions() {
             registerPermission(Blora, 0)
             registerPermission(Mail, 1)
             registerPermission(Redeem, 1)
             registerPermission(Tell, 1)
+            registerPermission(Guild, 1)
         }
 
     }
 
     fun registerPermissions() {
+        Guild.registerPermissions()
         Mail.registerPermissions()
         Chat.registerPermissions()
         Commands.registerPermissions()

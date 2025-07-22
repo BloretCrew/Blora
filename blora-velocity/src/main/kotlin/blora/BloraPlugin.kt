@@ -1,7 +1,7 @@
 package blora
 
 import blora.authorization.BloraAuthorization
-import blora.command.BloraProxyCommand
+import blora.command.BloxyCommand
 import blora.command.LobbyCommand
 import blora.command.OptionsCommand
 import blora.command.TellCommand
@@ -136,7 +136,7 @@ class BloraPlugin @Inject constructor(
 
     private fun registerCommands() {
         OptionsCommand.register()
-        BloraProxyCommand.register()
+        BloxyCommand.register()
         TellCommand.register()
         LobbyCommand.register()
     }

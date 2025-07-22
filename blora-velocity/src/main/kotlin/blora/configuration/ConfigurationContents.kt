@@ -92,7 +92,7 @@ data class Database(
     val password: String = "",
     val database: String = "",
     val maxLifeTime: Long = 600000,
-    val jdbcUrl: String = "jdbc:mariadb://%host%:%port%/%database%?autoReconnect=true&zeroDateTimeBehavior=convertToNull",
+    val jdbcUrl: String = "jdbc:postgresql://%host%:%port%/%database%?autoReconnect=true&zeroDateTimeBehavior=convertToNull",
 ) {
 
     fun buildDataSource(): HikariDataSource {
@@ -101,9 +101,9 @@ data class Database(
                 this@apply.username = this@Database.username
                 this@apply.password = this@Database.password
 
-                this@apply.poolName = "Blora MariaDB Connection Pool"
+                this@apply.poolName = "Blora PostgreSQL Connection Pool"
 
-                this@apply.driverClassName = "org.mariadb.jdbc.Driver"
+                this@apply.driverClassName = "org.postgresql.Driver"
                 this@apply.jdbcUrl = this@Database.jdbcUrl.replace("%host%", host)
                     .replace("%port%", "${this@Database.port}")
                     .replace("%database%", this@Database.database)

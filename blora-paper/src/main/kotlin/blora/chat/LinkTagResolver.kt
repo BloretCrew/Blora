@@ -14,7 +14,7 @@ import plutoproject.adventurekt.text.with
 
 object LinkTagResolver : TagResolver {
 
-    private val URL_REGEX = "^(https?://)?([\\w-]+\\.)+[\\w-]+(:\\d+)?(/[\\w\\-.~!*'();:@&=+$,?#/]*)?$".toRegex()
+    val URL_REGEX = "^(https?://)?([\\w-]+\\.)+[\\w-]+(:\\d+)?(/[\\w\\-.~!*'();:@&=+$,?#/]*)?$".toRegex()
 
     override fun resolve(
         name: String,

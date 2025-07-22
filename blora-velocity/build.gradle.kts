@@ -21,7 +21,7 @@ dependencies {
     implementation(libs.exposed.dao)
     implementation(libs.exposed.javatime)
     implementation(libs.hikaricp)
-    implementation(libs.mariadb)
+    implementation(libs.postgresql)
 
     implementation(libs.okhttp3)
 
