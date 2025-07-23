@@ -1,6 +1,6 @@
 package blora.guild
 
-import java.util.UUID
+import java.util.*
 
 sealed class GuildJoinSource {
 

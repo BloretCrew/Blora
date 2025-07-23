@@ -1,10 +1,10 @@
 package blora.menu.v2.page
 
 import blora.menu.v2.Menu
-import blora.menu.v2.page.snapshot.MenuPageSnapshot
 import blora.menu.v2.context.StaticMenuClickContext
 import blora.menu.v2.context.StaticMenuViewContext
 import blora.menu.v2.item.MenuItemSnapshot
+import blora.menu.v2.page.snapshot.MenuPageSnapshot
 import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory

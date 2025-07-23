@@ -1,8 +1,8 @@
 package blora.internal.api.player
 
-import blora.internal.api.command.CommandInvoker
 import blora.dialog.Dialog
 import blora.extension.sendPacket
+import blora.internal.api.command.CommandInvoker
 import net.minecraft.core.Holder
 import net.minecraft.network.protocol.common.ClientboundShowDialogPacket
 import org.bukkit.entity.Player

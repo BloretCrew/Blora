@@ -1,10 +1,10 @@
 package blora.mail
 
-import blora.internal.api.player.BloraPlayer
 import blora.database.mail.dao.MailDao
 import blora.database.mail.dao.SystemMailDao
 import blora.extension.localization
 import blora.extension.openDialog
+import blora.internal.api.player.BloraPlayer
 import blora.mail.trigger.OnlineBeforeTrigger
 import blora.mail.trigger.OnlineInRangeTrigger
 import blora.mail.trigger.OnlineInRecentDaysTrigger
@@ -66,7 +66,11 @@ fun mailListMenu(
     ) {}.apply { this.stack.replace(mailListPage(mails, player)) }
 }
 
-fun systemMailManagementPage(systemMails: MutableList<SystemMailDao>, player: Player, currentPage: Int = 1): MenuPage<*>  =
+fun systemMailManagementPage(
+    systemMails: MutableList<SystemMailDao>,
+    player: Player,
+    currentPage: Int = 1
+): MenuPage<*> =
     menuPage {
         title {
             localization(player) {
@@ -321,7 +325,7 @@ fun systemMailManagementPage(systemMails: MutableList<SystemMailDao>, player: Pl
     }
 
 
-fun mailListPage(mails: MutableList<MailDao>, player: Player, currentPage: Int = 1): MenuPage<*>  = menuPage {
+fun mailListPage(mails: MutableList<MailDao>, player: Player, currentPage: Int = 1): MenuPage<*> = menuPage {
     title {
         localization(player) {
             this.mail.menuMail_listTitle
@@ -1183,7 +1187,7 @@ fun modifyAttachmentMenuPage(
     creatingContext: CreatingMailContext,
     player: Player,
     currentPage: Int = 1
-): MenuPage<*>  = menuPage {
+): MenuPage<*> = menuPage {
     title {
         localization(player) {
             this.mail.menuCreate_system_mailPageModify_attachmentTitle

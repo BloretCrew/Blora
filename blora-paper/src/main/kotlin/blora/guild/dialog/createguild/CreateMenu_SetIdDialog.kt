@@ -11,8 +11,6 @@ import blora.extension.containsLetterAndNumberOnly
 import blora.extension.localization
 import blora.extension.openDialog
 import blora.guild.CreatingGuildContext
-import blora.guild.menu.createguild.createMenuPage
-import blora.menu.MenuContext
 import blora.plugin.BloraPlugin
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtString
@@ -21,7 +19,12 @@ import org.bukkit.entity.Player
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun createGuild_setIdDialog(viewer: Player, context: CreatingGuildContext, rerenderCallback: () -> Unit, warningMessage: Component? = null): Dialog {
+fun createGuild_setIdDialog(
+    viewer: Player,
+    context: CreatingGuildContext,
+    rerenderCallback: () -> Unit,
+    warningMessage: Component? = null
+): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {
@@ -45,7 +48,7 @@ fun createGuild_setIdDialog(viewer: Player, context: CreatingGuildContext, reren
                     }
                 },
 
-            )
+                )
         ),
         yes = ClickAction(
             label = component {

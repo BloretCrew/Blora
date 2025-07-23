@@ -4,5 +4,4 @@ import blora.menu.v2.Menu
 
 abstract class AbstractMenuViewContext(
     override val menu: Menu,
-) : MenuViewContext {
-}
+) : MenuViewContext

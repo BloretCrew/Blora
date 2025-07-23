@@ -20,7 +20,6 @@ import plutoproject.adventurekt.text.mini
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.space
 import plutoproject.adventurekt.text.text
-import kotlin.collections.iterator
 import net.minecraft.world.item.ItemStack as NMSItemStack
 
 data class Attachment(

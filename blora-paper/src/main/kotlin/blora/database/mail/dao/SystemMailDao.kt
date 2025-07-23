@@ -7,7 +7,6 @@ import blora.mail.trigger.OnlineBeforeTrigger
 import blora.mail.trigger.OnlineInRangeTrigger
 import blora.mail.trigger.OnlineInRecentDaysTrigger
 import blora.mail.trigger.Trigger
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.dao.IntEntity

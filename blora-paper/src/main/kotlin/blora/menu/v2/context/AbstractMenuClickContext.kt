@@ -8,5 +8,4 @@ abstract class AbstractMenuClickContext(
     override val menu: Menu,
     override val click: ClickType,
     override val action: InventoryAction
-) : MenuClickContext {
-}
+) : MenuClickContext

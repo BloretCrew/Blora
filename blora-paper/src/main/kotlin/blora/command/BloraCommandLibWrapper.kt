@@ -1,10 +1,10 @@
 package blora.command
 
+import blora.command.argument.QuickArgumentLibWrapper
+import blora.extension.localization
 import blora.internal.api.command.CommandExecutor
 import blora.internal.api.command.CommandMeta
 import blora.internal.api.scheduler.BukkitAsync
-import blora.command.argument.QuickArgumentLibWrapper
-import blora.extension.localization
 import blora.nms.nms
 import blora.nms.nmsServer
 import blora.player.QuickPlayerWrapper
@@ -235,9 +235,11 @@ internal fun ArgumentBuilder<net.minecraft.commands.CommandSourceStack, *>.build
                     is blora.internal.api.command.LiteralCommandNode -> {
                         this.then(buildLiteral(node))
                     }
+
                     is blora.internal.api.command.ArgumentCommandNode<*> -> {
                         this.then(buildArgument(node))
                     }
+
                     else -> {
                         BloraPlugin.slF4JLogger.warn("试图注册一个未知类型的命令节点")
                     }

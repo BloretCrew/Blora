@@ -1,8 +1,8 @@
 package blora.command.defaults
 
+import blora.extension.localization
 import blora.internal.api.command.*
 import blora.internal.api.command.argument.Arguments
-import blora.extension.localization
 import blora.mail.MailModule
 import blora.mail.createSystemMailMenu
 import blora.mail.mailListMenu

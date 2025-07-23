@@ -12,7 +12,7 @@ class LimitedDynamicMenuPageSnapshot(
     val title: Component?,
     val items: Map<Int, MenuItemSnapshot<LimitedDynamicMenuClickContext>>,
     val playerInventoryClickHandler: (ItemStack, LimitedDynamicMenuClickContext) -> Boolean
-) : MenuPageSnapshot<LimitedDynamicMenuClickContext, LimitedDynamicMenuViewContext>{
+) : MenuPageSnapshot<LimitedDynamicMenuClickContext, LimitedDynamicMenuViewContext> {
 
     override fun createContext(
         menu: Menu,

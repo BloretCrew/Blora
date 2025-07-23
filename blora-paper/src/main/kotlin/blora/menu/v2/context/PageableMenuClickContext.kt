@@ -12,5 +12,4 @@ class PageableMenuClickContext<D>(
     val menuPage: PageableMenuPage<D>,
     val currentPage: Int,
     val maxPage: Int
-) : AbstractMenuClickContext(menu, click, action) {
-}
+) : AbstractMenuClickContext(menu, click, action)

@@ -9,12 +9,7 @@ import blora.item.material
 import blora.menu.v2.Menu
 import blora.menu.v2.context.PageableMenuClickContext
 import blora.menu.v2.context.PageableMenuViewContext
-import blora.menu.v2.item.MenuItemBuilder
-import blora.menu.v2.item.MenuItemSnapshot
-import blora.menu.v2.item.clickEvent
-import blora.menu.v2.item.icon
-import blora.menu.v2.item.name
-import blora.menu.v2.item.useItemInfoAsHover
+import blora.menu.v2.item.*
 import blora.menu.v2.page.PageableDataProvider
 import blora.menu.v2.page.PageableMenuPage
 import blora.menu.v2.page.snapshot.PageableDynamicMenuPageSnapshot
@@ -31,7 +26,8 @@ class PageableMenuPageBuilder<D>(
 ) : MenuPageBuilder<PageableMenuClickContext<D>, PageableMenuViewContext<D>, PageableMenuPage<D>>() {
 
     internal var showBackButton = false
-    internal var dataItemBuilder: MenuItemBuilder<PageableMenuClickContext<D>>.(PageableMenuViewContext<D>, D) -> Unit = { _, _ -> }
+    internal var dataItemBuilder: MenuItemBuilder<PageableMenuClickContext<D>>.(PageableMenuViewContext<D>, D) -> Unit =
+        { _, _ -> }
     internal var builder: PageableMenuPageBuilder<D>.() -> Unit = {}
 
     internal fun reset() {
@@ -90,7 +86,8 @@ class PageableMenuPageBuilder<D>(
         }
         menuPage.currentPage = currentPage
         val viewContext = PageableMenuViewContext<D>(menu, currentPage, maxPage, this.dataProvider)
-        val finalItems = mutableMapOf<Int, MenuItemBuilder<PageableMenuClickContext<D>>.(PageableMenuViewContext<D>) -> Unit>()
+        val finalItems =
+            mutableMapOf<Int, MenuItemBuilder<PageableMenuClickContext<D>>.(PageableMenuViewContext<D>) -> Unit>()
         for (i in 0..8) {
             finalItems[i] = {
                 icon {
@@ -201,7 +198,10 @@ class PageableMenuPageBuilder<D>(
             finalItems[index] = item
         }
 
-        for (index in ((currentPage - 1) * ((menu.lines - 2) * 7)) until min((currentPage * ((menu.lines - 2) * 7)), this.dataProvider.size)) {
+        for (index in ((currentPage - 1) * ((menu.lines - 2) * 7)) until min(
+            (currentPage * ((menu.lines - 2) * 7)),
+            this.dataProvider.size
+        )) {
             val counterIndex = index - (currentPage - 1) * ((menu.lines - 2) * 7)
             val pair = ((counterIndex / 7) + 2) to (counterIndex - ((counterIndex / 7) * 7) + 2)
             val realIndex = (pair.second - 1) + ((pair.first - 1) * 9)
@@ -289,7 +289,11 @@ class PageableMenuPageBuilder<D>(
 
 }
 
-fun <D> pageableMenuPage(menu: Menu, dataProvider: PageableDataProvider<D>, builder: PageableMenuPageBuilder<D>.() -> Unit): PageableMenuPage<D> {
+fun <D> pageableMenuPage(
+    menu: Menu,
+    dataProvider: PageableDataProvider<D>,
+    builder: PageableMenuPageBuilder<D>.() -> Unit
+): PageableMenuPage<D> {
     return PageableMenuPageBuilder(dataProvider).apply {
         this.builder = builder
     }.build(menu)

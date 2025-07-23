@@ -7,8 +7,6 @@ import blora.dialog.action.DynamicCustomClickTypeInjected
 import blora.dialog.input.TextInputControl
 import blora.extension.localization
 import blora.guild.CreatingGuildContext
-import blora.guild.menu.createguild.createMenuPage
-import blora.menu.MenuContext
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtString
 import org.bukkit.entity.Player

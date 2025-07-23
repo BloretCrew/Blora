@@ -1,6 +1,5 @@
 package blora.database.guild.dao
 
-import blora.database.guild.table.GuildDisbandNotifyTable
 import blora.database.guild.table.GuildInviteCodeTable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass

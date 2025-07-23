@@ -1,8 +1,6 @@
 package blora.database.guild.table
 
 import org.jetbrains.exposed.dao.id.IntIdTable
-import org.jetbrains.exposed.sql.UUIDColumnType
-import org.jetbrains.exposed.sql.javatime.datetime
 
 object GuildJoinNotifyTable : IntIdTable("blora_guild_join_notify") {
 

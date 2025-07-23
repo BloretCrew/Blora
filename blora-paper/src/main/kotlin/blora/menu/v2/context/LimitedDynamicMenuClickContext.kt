@@ -8,5 +8,4 @@ class LimitedDynamicMenuClickContext(
     menu: Menu,
     click: ClickType,
     action: InventoryAction
-) : AbstractMenuClickContext(menu, click, action) {
-}
+) : AbstractMenuClickContext(menu, click, action)

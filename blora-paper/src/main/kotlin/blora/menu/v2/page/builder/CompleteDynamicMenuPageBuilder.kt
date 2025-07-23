@@ -38,7 +38,8 @@ class CompleteDynamicMenuPageBuilder
         this.reset()
         this.builder()
         val viewContext = CompleteDynamicMenuViewContext(menu)
-        val finalItems = mutableMapOf<Int, MenuItemBuilder<CompleteDynamicMenuClickContext>.(CompleteDynamicMenuViewContext) -> Unit>()
+        val finalItems =
+            mutableMapOf<Int, MenuItemBuilder<CompleteDynamicMenuClickContext>.(CompleteDynamicMenuViewContext) -> Unit>()
         for (rowIndex in (0 until min(menu.lines, this.map.size))) {
             val row = this.map[rowIndex]
             for (columnIndex in (0 until min(9, row.length))) {

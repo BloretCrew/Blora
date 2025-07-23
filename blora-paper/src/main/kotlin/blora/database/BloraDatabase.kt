@@ -1,27 +1,10 @@
 package blora.database
 
-import blora.database.guild.dao.GuildBlocklistDao
-import blora.database.guild.dao.GuildDao
-import blora.database.guild.dao.GuildDisbandNotifyDao
-import blora.database.guild.dao.GuildInvitationDao
-import blora.database.guild.dao.GuildInviteCodeDao
-import blora.database.guild.dao.GuildJoinRequestDao
-import blora.database.guild.dao.GuildMemberInfoDao
-import blora.database.guild.dao.GuildRoleDao
-import blora.database.guild.table.GuildBankLogTable
-import blora.database.guild.table.GuildBlocklistTable
-import blora.database.guild.table.GuildDisbandNotifyTable
-import blora.database.guild.table.GuildInvitationTable
-import blora.database.guild.table.GuildInviteCodeTable
-import blora.database.guild.table.GuildJoinNotifyTable
-import blora.database.guild.table.GuildJoinRequestTable
-import blora.database.guild.table.GuildMemberInfoTable
-import blora.database.guild.table.GuildPlayerBalanceTable
-import blora.database.guild.table.GuildRoleTable
-import blora.database.guild.table.GuildTable
+import blora.database.guild.dao.*
+import blora.database.guild.table.*
 import blora.database.mail.dao.MailDao
-import blora.database.mail.table.MailTable
 import blora.database.mail.dao.SystemMailDao
+import blora.database.mail.table.MailTable
 import blora.database.mail.table.SystemMailTable
 import blora.database.player.dao.PlayerDao
 import blora.database.player.dao.PlayerInfoDao
@@ -30,8 +13,8 @@ import blora.database.player.table.PlayerInfoTable
 import blora.database.player.table.PlayerLoginTable
 import blora.database.player.table.PlayerTable
 import blora.database.redeem.dao.PlayerRedeemDao
-import blora.database.redeem.table.PlayerRedeemTable
 import blora.database.redeem.dao.RedeemDao
+import blora.database.redeem.table.PlayerRedeemTable
 import blora.database.redeem.table.RedeemTable
 import blora.extension.localization
 import blora.guild.GuildJoinSource
@@ -45,18 +28,9 @@ import blora.plugin.BloraPlugin
 import com.zaxxer.hikari.HikariDataSource
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.QueryParameter
-import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Transaction
-import org.jetbrains.exposed.sql.UUIDColumnType
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.anyFrom
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.stringParam
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.parsedPlaceholder
 import java.time.LocalDateTime
@@ -278,7 +252,13 @@ class BloraDatabase(
         }
     }
 
-    fun guildJoinInRequest(guild: GuildDao, player: UUID, joinSource: GuildJoinSource, joinRequest: GuildJoinRequestDao, reviewResult: ReviewResult) {
+    fun guildJoinInRequest(
+        guild: GuildDao,
+        player: UUID,
+        joinSource: GuildJoinSource,
+        joinRequest: GuildJoinRequestDao,
+        reviewResult: ReviewResult
+    ) {
         trans {
             guild.members = guild.members.toMutableList().apply { this.add(player) }.toList()
             guild.flush()
@@ -554,7 +534,7 @@ class BloraDatabase(
         return trans {
             !PlayerRedeemDao.find {
                 PlayerRedeemTable.player eq player and
-                (PlayerRedeemTable.code eq code.lowercase())
+                        (PlayerRedeemTable.code eq code.lowercase())
             }.empty()
         }
     }
@@ -598,7 +578,7 @@ class BloraDatabase(
         return trans {
             MailDao.find {
                 MailTable.receiver eq player and
-                (MailTable.systemMailId eq systemMailId)
+                        (MailTable.systemMailId eq systemMailId)
             }.count() > 0
         }
     }
@@ -678,7 +658,7 @@ class BloraDatabase(
                 return@trans uuid.toString()
             }
             val playerDao = result.toList()[0]
-            val offlinePlayer  = Bukkit.getOfflinePlayer(uuid)
+            val offlinePlayer = Bukkit.getOfflinePlayer(uuid)
             if (offlinePlayer.name == null) {
                 return@trans playerDao.username // case not preserved
             }

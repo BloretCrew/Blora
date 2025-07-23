@@ -2,7 +2,6 @@ package blora.guild.dataprovider
 
 import blora.database.DB
 import blora.database.guild.dao.GuildBlocklistDao
-import blora.database.guild.dao.GuildDao
 import blora.menu.v2.page.PageableDataProvider
 
 class GuildBlocklistDaoDataProvider(

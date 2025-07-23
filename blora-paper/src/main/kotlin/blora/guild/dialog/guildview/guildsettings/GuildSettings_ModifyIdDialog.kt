@@ -12,8 +12,6 @@ import blora.extension.containsLetterAndNumberOnly
 import blora.extension.localization
 import blora.extension.openDialog
 import blora.guild.GuildPermissions
-import blora.guild.menu.guildview.guildsettings.guildSettingsMenu
-import blora.menu.MenuContext
 import blora.plugin.BloraPlugin
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtString
@@ -22,7 +20,12 @@ import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 
-fun guildSettings_modifyIdDialog(viewer: Player, guild: GuildDao, rerenderCallback: () -> Unit, warningMessage: Component? = null): Dialog {
+fun guildSettings_modifyIdDialog(
+    viewer: Player,
+    guild: GuildDao,
+    rerenderCallback: () -> Unit,
+    warningMessage: Component? = null
+): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {
@@ -46,7 +49,7 @@ fun guildSettings_modifyIdDialog(viewer: Player, guild: GuildDao, rerenderCallba
                     }
                 },
 
-            )
+                )
         ),
         yes = ClickAction(
             label = component {

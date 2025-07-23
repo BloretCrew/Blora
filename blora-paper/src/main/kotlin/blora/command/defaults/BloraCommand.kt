@@ -6,7 +6,7 @@ import blora.messaging.packet.common.DebugMessagePacket
 import blora.messaging.packet.common.ReloadConfigurationPacket
 import blora.permission.Permissions
 import blora.plugin.BloraPlugin
-import plutoproject.adventurekt.text.*
+import plutoproject.adventurekt.text.text
 
 object BloraCommand {
 

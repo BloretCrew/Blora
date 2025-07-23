@@ -1,4 +1,3 @@
 package blora.town
 
-object TownModule {
-}
+object TownModule

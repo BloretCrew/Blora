@@ -1,13 +1,13 @@
 package blora.command.defaults
 
+import blora.extension.openDialog
 import blora.internal.api.command.BloraCommandLib
 import blora.internal.api.command.literal
 import blora.internal.api.command.playerExecutor
 import blora.internal.api.command.requires
-import blora.extension.openDialog
+import blora.permission.Permissions
 import blora.redeem.redeemDialog
 import blora.redeem.redeemManagementMenu
-import blora.permission.Permissions
 
 object RedeemCommand {
 

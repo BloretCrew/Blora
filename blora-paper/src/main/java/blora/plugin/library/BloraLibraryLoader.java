@@ -6,9 +6,11 @@ import io.papermc.paper.plugin.loader.library.impl.MavenLibraryResolver;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.repository.RemoteRepository;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+@SuppressWarnings("UnstableApiUsage")
 public class BloraLibraryLoader implements PluginLoader {
 
     private final static List<String> LIBRARIES = List.of(
@@ -30,7 +32,7 @@ public class BloraLibraryLoader implements PluginLoader {
     );
 
     @Override
-    public void classloader(PluginClasspathBuilder classpathBuilder) {
+    public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
         MavenLibraryResolver resolver = new MavenLibraryResolver();
 
         resolver.addRepository(

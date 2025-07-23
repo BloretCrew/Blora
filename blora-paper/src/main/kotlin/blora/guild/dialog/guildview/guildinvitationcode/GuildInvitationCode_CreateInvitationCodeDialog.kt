@@ -3,7 +3,6 @@ package blora.guild.dialog.guildview.guildinvitationcode
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.database.guild.dao.GuildInviteCodeDao
-import blora.database.redeem.dao.RedeemDao
 import blora.dialog.ConfirmationDialog
 import blora.dialog.Dialog
 import blora.dialog.action.ClickAction
@@ -21,7 +20,11 @@ import plutoproject.adventurekt.component
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-fun guildInvitationCode_CreateInvitationCodeDialog(viewer: Player, guild: GuildDao, callback: (String) -> Unit): Dialog {
+fun guildInvitationCode_CreateInvitationCodeDialog(
+    viewer: Player,
+    guild: GuildDao,
+    callback: (String) -> Unit
+): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {

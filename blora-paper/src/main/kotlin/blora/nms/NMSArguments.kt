@@ -1,9 +1,9 @@
 package blora.nms
 
+import blora.command.argument.*
 import blora.internal.api.command.CommandContext
 import blora.internal.api.command.argument.ArgumentType
 import blora.internal.api.position.EntityAnchor
-import blora.command.argument.*
 import com.mojang.brigadier.arguments.*
 import io.papermc.paper.adventure.PaperAdventure
 import net.minecraft.commands.arguments.*

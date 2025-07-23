@@ -1,7 +1,6 @@
 package blora.guild.dataprovider
 
 import blora.database.DB
-import blora.database.guild.dao.GuildDao
 import blora.database.guild.dao.GuildJoinRequestDao
 import blora.menu.v2.page.PageableDataProvider
 

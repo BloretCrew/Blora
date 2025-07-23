@@ -16,7 +16,7 @@ class PageableDynamicMenuPageSnapshot<D>(
     val title: Component?,
     val items: Map<Int, MenuItemSnapshot<PageableMenuClickContext<D>>>,
     val playerInventoryClickHandler: (ItemStack, PageableMenuClickContext<D>) -> Boolean
-) : MenuPageSnapshot<PageableMenuClickContext<D>, PageableMenuViewContext<D>>{
+) : MenuPageSnapshot<PageableMenuClickContext<D>, PageableMenuViewContext<D>> {
 
     override fun createContext(
         menu: Menu,

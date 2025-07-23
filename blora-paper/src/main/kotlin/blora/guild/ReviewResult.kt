@@ -1,7 +1,7 @@
 package blora.guild
 
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 
 data class ReviewResult(
     val reviewer: UUID,

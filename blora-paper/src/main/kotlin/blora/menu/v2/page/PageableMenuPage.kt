@@ -18,11 +18,25 @@ class PageableMenuPage<D>(
 
     override fun fireLaunchEffect(menu: Menu) {
         this.builder.dataProvider
-        this.launchEffect(PageableMenuViewContext(menu, this.currentPage, this.builder.calculateMaxPage(menu.lines), this.builder.dataProvider))
+        this.launchEffect(
+            PageableMenuViewContext(
+                menu,
+                this.currentPage,
+                this.builder.calculateMaxPage(menu.lines),
+                this.builder.dataProvider
+            )
+        )
     }
 
     override fun fireDisposeEffect(menu: Menu) {
-        this.disposeEffect(PageableMenuViewContext(menu, this.currentPage, this.builder.calculateMaxPage(menu.lines), this.builder.dataProvider))
+        this.disposeEffect(
+            PageableMenuViewContext(
+                menu,
+                this.currentPage,
+                this.builder.calculateMaxPage(menu.lines),
+                this.builder.dataProvider
+            )
+        )
     }
 
     override fun render(

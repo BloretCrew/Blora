@@ -1,8 +1,8 @@
 package blora.command.argument
 
+import blora.command.CommandContextWrapper
 import blora.internal.api.command.CommandContext
 import blora.internal.api.command.argument.ArgumentType
-import blora.command.CommandContextWrapper
 import blora.nms.internalGetArgumentValue
 import blora.nms.nms
 import io.papermc.paper.adventure.PaperAdventure

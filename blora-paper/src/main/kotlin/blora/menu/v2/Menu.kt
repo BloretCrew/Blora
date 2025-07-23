@@ -31,7 +31,8 @@ class Menu(
     private var lastClick = System.currentTimeMillis()
     private val inventory: Inventory
     private val closers: MutableList<(Menu) -> Unit> = mutableListOf()
-    private val snapshot: MenuPageSnapshot<*, *> = StaticMenuPage(Component.empty(), emptyMap(), { _, _ -> false }, {}, {})
+    private val snapshot: MenuPageSnapshot<*, *> =
+        StaticMenuPage(Component.empty(), emptyMap(), { _, _ -> false }, {}, {})
 
     init {
         require(lines >= 1 && lines <= 6)

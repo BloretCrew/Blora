@@ -4,9 +4,9 @@ import blora.database.redeem.dao.RedeemDao
 import blora.extension.asDisplayName
 import blora.extension.localization
 import blora.extension.openDialog
-import blora.menu.*
 import blora.mail.Attachment
 import blora.mail.modifyAmountDialog
+import blora.menu.*
 import blora.plugin.BloraPlugin
 import blora.util.castString
 import io.papermc.paper.datacomponent.DataComponentTypes

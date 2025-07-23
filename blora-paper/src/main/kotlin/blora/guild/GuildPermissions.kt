@@ -1,7 +1,5 @@
 package blora.guild
 
-import java.util.EnumSet
-
 enum class GuildPermissions {
 
     MODIFY_GUILD_NAME,

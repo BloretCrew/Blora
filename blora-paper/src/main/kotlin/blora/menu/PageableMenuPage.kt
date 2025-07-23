@@ -9,11 +9,11 @@ import plutoproject.adventurekt.text.replacements
 
 // TODO
 class PageableMenuPage<T>(
-   val title: Component? = null,
-   val lines: Int,
-   val items: MutableList<T>,
-   val itemBuilder: MenuItemBuilder.(T) -> Unit,
-   val playerInventoryClickHandler: (ItemStack, MenuContext) -> Boolean = { item, context -> false },
+    val title: Component? = null,
+    val lines: Int,
+    val items: MutableList<T>,
+    val itemBuilder: MenuItemBuilder.(T) -> Unit,
+    val playerInventoryClickHandler: (ItemStack, MenuContext) -> Boolean = { item, context -> false },
 ) : MenuPage<PageableMenuPageContext<T>>() {
 
     private var currentPage: Int = 1

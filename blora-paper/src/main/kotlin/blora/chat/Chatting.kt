@@ -9,11 +9,7 @@ import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.*
-import plutoproject.adventurekt.text.style.WithStyle
-import plutoproject.adventurekt.text.style.callback
-import plutoproject.adventurekt.text.style.openUrl
-import plutoproject.adventurekt.text.style.showText
-import plutoproject.adventurekt.text.style.suggestCommand
+import plutoproject.adventurekt.text.style.*
 
 object Chatting {
 
@@ -224,7 +220,8 @@ object Chatting {
                         }
                     } else if (content.startsWith("cmd:") ||
                         (content.startsWith("cmd:\"/") && content.endsWith("\"")) ||
-                        (content.startsWith("cmd:'/") && content.endsWith("'"))) {
+                        (content.startsWith("cmd:'/") && content.endsWith("'"))
+                    ) {
                         val command = content.substring(4).let {
                             if ((it.startsWith("\"") && it.endsWith("\"")) || (it.startsWith("'") && it.endsWith("'"))) {
                                 it.substring(1, it.length - 1)

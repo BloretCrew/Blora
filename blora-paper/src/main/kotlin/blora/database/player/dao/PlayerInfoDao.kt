@@ -1,11 +1,9 @@
 package blora.database.player.dao
 
 import blora.database.player.table.PlayerInfoTable
-import blora.database.player.table.PlayerLoginTable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
-import java.time.LocalDate
 import java.util.*
 
 class PlayerInfoDao(id: EntityID<Int>) : IntEntity(id) {

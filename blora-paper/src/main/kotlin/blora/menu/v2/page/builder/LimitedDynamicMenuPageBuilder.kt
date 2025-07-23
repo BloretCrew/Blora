@@ -11,7 +11,8 @@ class LimitedDynamicMenuPageBuilder
     : MenuPageBuilder<LimitedDynamicMenuClickContext, LimitedDynamicMenuViewContext, LimitedDynamicMenuPage>() {
 
     override fun build(menu: Menu): LimitedDynamicMenuPage {
-        val finalItems = mutableMapOf<Int, MenuItemBuilder<LimitedDynamicMenuClickContext>.(LimitedDynamicMenuViewContext) -> Unit>()
+        val finalItems =
+            mutableMapOf<Int, MenuItemBuilder<LimitedDynamicMenuClickContext>.(LimitedDynamicMenuViewContext) -> Unit>()
         for (rowIndex in (0 until min(menu.lines, this.map.size))) {
             val row = this.map[rowIndex]
             for (columnIndex in (0 until min(9, row.length))) {

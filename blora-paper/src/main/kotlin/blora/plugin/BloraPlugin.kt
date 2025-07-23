@@ -1,6 +1,5 @@
 package blora.plugin
 
-import blora.internal.api.QuickEntityLib
 import blora.chat.PlayerInventoryView
 import blora.command.BloraCommandLibWrapper
 import blora.command.defaults.BloraCommand
@@ -13,6 +12,7 @@ import blora.configuration.ConfigurationContents
 import blora.database.BloraDatabase
 import blora.entity.QuickEntityLibWrapper
 import blora.injector.BloraInjector
+import blora.internal.api.QuickEntityLib
 import blora.listener.ChatListener
 import blora.listener.SystemMailListener
 import blora.listener.UnauthorizedListener

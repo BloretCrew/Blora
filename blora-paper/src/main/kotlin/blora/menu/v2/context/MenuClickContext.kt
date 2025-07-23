@@ -1,7 +1,7 @@
 package blora.menu.v2.context
 
-import blora.menu.v2.MenuStack
 import blora.menu.v2.Menu
+import blora.menu.v2.MenuStack
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryAction

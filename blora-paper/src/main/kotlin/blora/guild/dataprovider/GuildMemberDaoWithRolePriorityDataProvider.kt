@@ -7,7 +7,7 @@ import blora.menu.v2.page.PageableDataProvider
 
 class GuildMemberDaoWithRolePriorityDataProvider(
     val guild: GuildDao
-): PageableDataProvider<Pair<GuildMemberInfoDao, Int>> {
+) : PageableDataProvider<Pair<GuildMemberInfoDao, Int>> {
 
     private var loadedData = listOf<Pair<GuildMemberInfoDao, Int>>()
 

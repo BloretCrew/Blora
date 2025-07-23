@@ -1,6 +1,5 @@
 package blora.permission
 
-import blora.permission.Permissions.Mail.CreateSystemMail
 import org.bukkit.Bukkit
 import org.bukkit.permissions.Permission
 import org.bukkit.permissions.PermissionDefault

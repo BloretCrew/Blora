@@ -3,19 +3,15 @@ package blora.guild.dialog.guildview.guildbank
 import blora.database.DB
 import blora.database.guild.dao.GuildBankLogDao
 import blora.database.guild.dao.GuildDao
-import blora.database.guild.dao.GuildInviteCodeDao
 import blora.dialog.ConfirmationDialog
 import blora.dialog.Dialog
 import blora.dialog.action.ClickAction
 import blora.dialog.action.DynamicCustomClickTypeInjected
 import blora.dialog.body.PlainMessageDialogBody
-import blora.dialog.input.BooleanInputControl
 import blora.dialog.input.NumberRangeInputControl
 import blora.extension.localization
 import blora.extension.openDialog
 import blora.plugin.ThirdPartys
-import blora.util.randomString
-import net.benwoodworth.knbt.NbtByte
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtFloat
 import net.kyori.adventure.text.Component
@@ -24,11 +20,15 @@ import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 
-fun guildBank_withdrawDialog(viewer: Player, guild: GuildDao, callback: () -> Unit, warningMessage: Component? = null,): Dialog {
+fun guildBank_withdrawDialog(
+    viewer: Player,
+    guild: GuildDao,
+    callback: () -> Unit,
+    warningMessage: Component? = null,
+): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {
