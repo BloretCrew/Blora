@@ -4,29 +4,27 @@ import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.database.guild.dao.GuildRoleDao
 import blora.extension.localization
-import blora.extension.openDialog
 import blora.guild.dialog.guildview.guildsettings.guildRoleManagement_modifyRole_modifyNameDialog
-import blora.guild.role.RolePermissions
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.description
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.menuPage
-import blora.menu.title
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.description
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.LimitedDynamicMenuPage
+import blora.menu.v2.page.builder.backButton
+import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.title
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: GuildRoleDao, cachedPermissions: RolePermissions = role.permission.clone()): SimpleMenuPage {
-    return menuPage {
-        lines(5)
+fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildRoleDao): LimitedDynamicMenuPage {
+    var cachedPermissions = role.permission.clone()
+    return limitedDynamicMenuPage(menu) {
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
                     parsedPlaceholder("guild", guild.displayName)
                     parsedPlaceholder("role", role.displayName)
@@ -35,52 +33,31 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
                 this.guild.menu.menuGuild_role_managementModify_roleTitle
             }
         }
-
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
-
+        backButton()
         1 to 5 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuGuild_role_managementModify_roleButtonModify_name
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuGuild_role_managementModify_roleButtonModify_name
                 }
             }
-            clickEvent {
-                viewer.openDialog(
-                    guildRoleManagement_modifyRole_modifyNameDialog(viewer, role, it.menuContext)
-                )
+            clickEvent { clickContext ->
+                guildRoleManagement_modifyRole_modifyNameDialog(clickContext.viewer, guild, role)
             }
         }
-
         3 to 2 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionModify_guild_name
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionModify_guild_name
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.modifyGuildName) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.modifyGuildName) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -90,20 +67,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         3 to 3 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionModify_guild_icon
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionModify_guild_icon
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.modifyGuildIcon) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.modifyGuildIcon) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -113,20 +88,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         3 to 4 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionModify_guild_visibility
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionModify_guild_visibility
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.modifyGuildVisibility) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.modifyGuildVisibility) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -136,20 +109,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         3 to 5 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionModify_guild_join_strategy
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionModify_guild_join_strategy
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.modifyGuildJoinStrategy) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.modifyGuildJoinStrategy) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -159,20 +130,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         3 to 6 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionKick_player
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionKick_player
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.kickPlayer) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.kickPlayer) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -182,20 +151,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         3 to 7 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionReview_player
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionReview_player
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.reviewPlayer) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.reviewPlayer) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -205,20 +172,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         3 to 8 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionInvite_player
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionInvite_player
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.invitePlayer) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.invitePlayer) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -228,20 +193,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         4 to 2 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionRequest_ally
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionRequest_ally
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.requestAlly) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.requestAlly) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -251,20 +214,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         4 to 3 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionReview_ally
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionReview_ally
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.reviewAlly) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.reviewAlly) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -274,20 +235,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         4 to 4 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionStop_ally
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionStop_ally
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.stopAlly) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.stopAlly) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -297,20 +256,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         4 to 5 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionManage_invitation_code
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionManage_invitation_code
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.manageInvitationCode) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.manageInvitationCode) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -320,20 +277,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         4 to 6 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionStore_bank
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionStore_bank
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.storeBank) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.storeBank) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -343,20 +298,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         4 to 7 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionWithdraw_bank
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionWithdraw_bank
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.withdrawBank) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.withdrawBank) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -366,20 +319,18 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
             }
         }
         4 to 8 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.guildRole_permissionUse_vitality
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionUse_vitality
                 }
-                description {
-                    localization(viewer) {
-                        if (cachedPermissions.useVitality) {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemAllow
-                        } else {
-                            this.guild.menu.menuGuild_role_managementModify_roleItemDeny
-                        }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.useVitality) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
                     }
                 }
             }
@@ -390,23 +341,24 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
         }
 
         5 to 9 eq {
-            icon(ItemStack(Material.EMERALD))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuGuild_role_managementModify_roleButtonConfirm
-                    }
+            icon { material { Material.EMERALD } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuGuild_role_managementModify_roleButtonConfirm
                 }
             }
-            clickEvent { menuPageContext ->
-                if (role.permission != cachedPermissions) {
+            clickEvent { clickContext ->
+                DB.trans {
+                    guild.refresh()
+                }
+                if (guild.owner == clickContext.viewer.uniqueId && role.permission != cachedPermissions) {
                     DB.trans {
                         role.permission = cachedPermissions
                         role.flush()
                     }
-                    viewer.send {
+                    clickContext.viewer.send {
                         localization(
-                            player = viewer,
+                            player = clickContext.viewer,
                             tags = {
                                 parsedPlaceholder("role", role.displayName)
                             }
@@ -415,7 +367,7 @@ fun guildRoleManagement_modifyRoleMenu(viewer: Player, guild: GuildDao, role: Gu
                         }
                     }
                 }
-                menuPageContext.stack.pop()
+                clickContext.stack.pop()
             }
         }
     }

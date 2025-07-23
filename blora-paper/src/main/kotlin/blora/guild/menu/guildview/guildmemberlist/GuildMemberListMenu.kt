@@ -5,37 +5,38 @@ package blora.guild.menu.guildview.guildmemberlist
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.extension.localization
+import blora.extension.resolvableProfile
 import blora.guild.GuildPermissions
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.description
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.mapping
-import blora.menu.menuPage
-import blora.menu.title
+import blora.guild.dataprovider.GuildMemberDaoWithRolePriorityDataProvider
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.description
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageableMenuPage
+import blora.menu.v2.page.builder.showBackButton
+import blora.menu.v2.page.builder.title
 import blora.util.castString
 import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.ResolvableProfile
-import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
 import plutoproject.adventurekt.text.text
 
-fun guildMemberListMenu(viewer: Player, guild: GuildDao, permissions: Collection<GuildPermissions>, currentPage: Int = 1): SimpleMenuPage {
-    val members = guild.members.toMutableList()
-    val memberMaxRolePriority = DB.listRolePriorities(guild)
-    val viewerPriority = memberMaxRolePriority[viewer.uniqueId]
-    return menuPage {
-        lines(5)
+fun guildMemberListMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    return pageableMenuPage(menu, GuildMemberDaoWithRolePriorityDataProvider(guild)) {
+        DB.trans {
+            guild.refresh()
+        }
+        val isMember = guild.members.contains(menu.viewer.uniqueId)
+        val permissions = guild.getPlayerPermissions(menu.viewer.uniqueId, isMember)
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
                     parsedPlaceholder("guild", guild.displayName)
                 }
@@ -43,169 +44,113 @@ fun guildMemberListMenu(viewer: Player, guild: GuildDao, permissions: Collection
                 this.guild.menu.menuGuild_member_listTitle
             }
         }
+        showBackButton()
 
-        mapping(
-            "#########",
-            "#       #",
-            "#       #",
-            "#       #",
-            "#########",
-        )
-
-        '#' eq {
-            icon(ItemStack(Material.BLACK_STAINED_GLASS_PANE))
-        }
-
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
+        if (permissions.contains(GuildPermissions.INVITE_PLAYER)) {
+            5 to 4 eq {
+                icon { material { Material.PAPER } }
+                name {
+                    localization(menu.viewer) {
+                        this.guild.menu.menuGuild_viewButtonInvite_player
                     }
                 }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
-
-        if (members.size <= (currentPage - 1) * 21 - 1)
-            return@menuPage
-
-        if (currentPage > 1) {
-            5 to 1 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonPrevious_page
-                        }
+                clickEvent { clickContext ->
+                    clickContext.stack.push {
+                        guildMemberList_inviteMenu(menu, guild)
                     }
-                }
-                clickEvent {
-                    it.stack.replace(guildMemberListMenu(viewer, guild, permissions,  currentPage - 1))
-                }
-            }
-        }
-
-        if (members.size > (currentPage * 21)) {
-            5 to 9 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonNext_page
-                        }
-                    }
-                }
-                clickEvent {
-                    it.stack.replace(guildMemberListMenu(viewer, guild, permissions,  currentPage + 1))
                 }
             }
         }
 
         if (permissions.contains(GuildPermissions.REVIEW_PLAYER)) {
-            val requests = DB.listJoinRequestsForGuild(guild.gid).filter { !it.finished }.toMutableList()
+            val requests = DB.listValidJoinRequestsForGuild(guild.gid).filter { !it.finished }.toMutableList()
             5 to 5 eq {
-                icon(ItemStack(Material.BOOK))
-                hoverText {
-                    title {
-                        localization(
-                            viewer,
-                            tags = {
-                                parsedPlaceholder("requests", requests.size.toString())
-                            }
-                        ) {
-                            this.guild.menu.menuGuild_member_listButtonJoin_requestDescription
-                        }
+                icon { material { Material.BOOK } }
+                name {
+                    localization(menu.viewer) {
+                        this.guild.menu.menuGuild_member_listButtonJoin_request
                     }
                 }
-                clickEvent {
-                    it.stack.push(guildMemberList_joinRequestsMenu(viewer, guild, requests))
+                description {
+                    localization(
+                        menu.viewer,
+                        tags = {
+                            parsedPlaceholder("requests", requests.size.toString())
+                        }
+                    ) {
+                        this.guild.menu.menuGuild_member_listButtonJoin_requestDescription
+                    }
+                }
+                clickEvent { clickContext ->
+                    clickContext.stack.push {
+                        guildMemberList_joinRequestsMenu(menu, guild)
+                    }
                 }
             }
         }
 
-        if (permissions.contains(GuildPermissions.INVITE_PLAYER)) {
-            5 to 4 eq {
-                icon(ItemStack(Material.PAPER))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.guild.menu.menuGuild_viewButtonInvite_player
-                        }
+        if (permissions.contains(GuildPermissions.BLOCKLIST)) {
+            5 to 6 eq {
+                icon { material { Material.BLACK_DYE } }
+                name {
+                    localization(menu.viewer) {
+                        this.guild.menu.menuGuild_member_listButtonBlocklist
                     }
                 }
-                clickEvent { menuPageContext ->
-                    menuPageContext.stack.push(guildMemberList_inviteMenu(viewer, guild))
+                clickEvent { clickContext ->
+                    clickContext.stack.push {
+                        guildMemberList_blocklistMenu(menu, guild)
+                    }
                 }
             }
         }
 
-        members.forEachIndexed { index, memberUuid ->
-            if (index < (currentPage - 1) * 21 || index > currentPage * 21 - 1) // not current page
-                return@forEachIndexed
-            val counterIndex = index - (currentPage - 1) * 21
-            val cachedPlayerName = DB.getPlayerDisplayName(memberUuid)
-            val memberInfo = DB.getMemberInfo(guild.gid, memberUuid)
-            val roles = DB.listRolesForPlayer(memberUuid, guild.gid)
-            ((counterIndex / 7) + 2) to (counterIndex - ((counterIndex / 7) * 7) + 2) eq {
-                icon(ItemStack(Material.PLAYER_HEAD).apply {
-                    this.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile(Bukkit.getOfflinePlayer(memberUuid).playerProfile))
-                })
-                hoverText {
-                    title {
-                        text { cachedPlayerName }
-                    }
-                    description {
-                        if (memberInfo == null) {
-                            newline()
-                            localization(viewer) {
-                                this.guild.menu.menuGuild_member_listPlayerDescriptionError
+        val viewerPriority = DB.getMaxRolePriority(menu.viewer.uniqueId, guild)
+
+        dataItem { viewContext, (memberInfo, playerPriority) ->
+            val cachedPlayerName = DB.getPlayerDisplayName(memberInfo.player)
+            val roles = DB.listRolesForPlayer(memberInfo.player, guild.gid)
+            icon {
+                material { Material.PLAYER_HEAD }
+                DataComponentTypes.PROFILE eq memberInfo.player.resolvableProfile()
+            }
+            name {
+                text { cachedPlayerName }
+            }
+            description {
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        if (memberInfo.player == guild.owner) {
+                            componentPlaceholder("role") {
+                                localization(menu.viewer) {
+                                    this.guild.menu.menuGuild_member_listPlayerDescriptionOwner
+                                }
                             }
                         } else {
-                            newline()
-                            localization(
-                                player = viewer,
-                                tags = {
-                                    if (memberUuid == guild.owner) {
-                                        componentPlaceholder("role") {
-                                            localization(viewer) {
-                                                this.guild.menu.menuGuild_member_listPlayerDescriptionOwner
-                                            }
-                                        }
-                                    } else {
-                                        parsedPlaceholder("role", roles.first().displayName)
-                                    }
-                                }
-                            ) {
-                                this.guild.menu.menuGuild_member_listPlayerDescriptionRole
-                            }
-                            newline()
-                            localization(
-                                player = viewer,
-                                tags = {
-                                    parsedPlaceholder("join_at", memberInfo.joinAt.castString())
-                                }
-                            ) {
-                                this.guild.menu.menuGuild_member_listPlayerDescriptionJoin_at
-                            }
+                            parsedPlaceholder("role", roles.first().displayName)
                         }
                     }
+                ) {
+                    this.guild.menu.menuGuild_member_listPlayerDescriptionRole
                 }
-                clickEvent {
-                    val priority = memberMaxRolePriority[memberUuid]
-                    if (viewer.uniqueId != memberUuid &&
-                        (viewer.uniqueId == guild.owner || (viewerPriority != null && priority != null && viewerPriority > priority)) &&
-                        memberInfo != null) {
-                        it.stack.push(guildMemberList_memberManagementMenu(viewer, guild, memberInfo, permissions) {
-                            if (guild.members.size <= (currentPage - 1) * 21 - 1) { // this page does no longer exist
-                                it.stack.replace(guildMemberListMenu(viewer, guild, permissions, currentPage - 1))
-                            } else {
-                                it.stack.replace(guildMemberListMenu(viewer, guild, permissions, currentPage))
-                            }
-                        })
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("join_at", memberInfo.joinAt.castString())
+                    }
+                ) {
+                    this.guild.menu.menuGuild_member_listPlayerDescriptionJoin_at
+                }
+            }
+            clickEvent { clickContext ->
+                if (clickContext.viewer.uniqueId != memberInfo.player &&
+                    (clickContext.viewer.uniqueId == guild.owner || viewerPriority > playerPriority)
+                ) {
+                    clickContext.stack.push {
+                        guildMemberList_memberManagementMenu(menu, guild, memberInfo)
                     }
                 }
             }

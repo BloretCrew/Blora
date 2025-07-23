@@ -2,13 +2,10 @@
 
 package blora.menu
 
-import io.papermc.paper.datacomponent.DataComponentTypes
-import net.kyori.adventure.text.Component
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
-import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.ComponentKt
 import kotlin.math.min
 

@@ -2,35 +2,31 @@ package blora.guild.menu.guildview.guildrolemanagement
 
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
-import blora.database.guild.dao.GuildRoleDao
 import blora.extension.localization
 import blora.extension.openDialog
-import blora.guild.GuildPermissions
-import blora.guild.dialog.guildview.guildrolemanagement.guildRoleManagemenet_createNewRole
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.description
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.mapping
-import blora.menu.menuPage
-import blora.menu.title
-import blora.plugin.BloraPlugin
+import blora.guild.dataprovider.GuildRoleDaoDataProvider
+import blora.guild.dialog.guildview.guildrolemanagement.guildRoleManagemenet_createNewRoleDialog
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.description
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageableMenuPage
+import blora.menu.v2.page.builder.showBackButton
+import blora.menu.v2.page.builder.title
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun guildRoleManagementMenu(viewer: Player, guild: GuildDao, permissions: Collection<GuildPermissions>, cachedRoles: MutableList<GuildRoleDao>? = null, currentPage: Int = 1): SimpleMenuPage {
-    val roles = cachedRoles ?: BloraPlugin.database.listRolesForGuild(guild.gid).toMutableList()
-    return menuPage {
-        lines(5)
+fun guildRoleManagementMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    return pageableMenuPage(menu, GuildRoleDaoDataProvider(guild.gid)) {
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
                     parsedPlaceholder("guild", guild.displayName)
                 }
@@ -38,155 +34,74 @@ fun guildRoleManagementMenu(viewer: Player, guild: GuildDao, permissions: Collec
                 this.guild.menu.menuGuild_role_managementTitle
             }
         }
-
-        mapping(
-            "#########",
-            "#       #",
-            "#       #",
-            "#       #",
-            "#########",
-        )
-
-        '#' eq {
-            icon(ItemStack(Material.BLACK_STAINED_GLASS_PANE))
-        }
-
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
-
-        if (roles.size <= (currentPage - 1) * 21 - 1)
-            return@menuPage
-
-        if (currentPage > 1) {
-            5 to 1 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonPrevious_page
-                        }
-                    }
-                }
-                clickEvent {
-                    it.stack.pop()
-                    it.stack.push(guildRoleManagementMenu(viewer, guild, permissions, roles,  currentPage - 1))
-                }
-            }
-        }
-
-        if (roles.size > (currentPage * 21)) {
-            5 to 9 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonNext_page
-                        }
-                    }
-                }
-                clickEvent {
-                    it.stack.pop()
-                    it.stack.push(guildRoleManagementMenu(viewer, guild, permissions, roles,  currentPage + 1))
-                }
-            }
-        }
+        showBackButton()
 
         5 to 5 eq {
-            icon(ItemStack(Material.APPLE))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuGuild_role_managementButtonCreate_role
-                    }
+            icon { material { Material.APPLE } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuGuild_role_managementButtonCreate_role
                 }
             }
-            clickEvent {
-                viewer.openDialog(
-                    guildRoleManagemenet_createNewRole(
-                        viewer,
+            clickEvent { clickContext ->
+                clickContext.viewer.openDialog(
+                    guildRoleManagemenet_createNewRoleDialog(
+                        clickContext.viewer,
                         guild,
                         { role ->
-                            roles.add(role)
-                            roles.sortedWith { first, second ->
-                                val priorityCompare = first.priority.compareTo(second.priority)
-                                if (priorityCompare != 0)
-                                    return@sortedWith priorityCompare
-                                return@sortedWith first.roleId.compareTo(second.roleId)
-                            }
-                            it.stack.pop()
-                            it.stack.push(guildRoleManagementMenu(viewer, guild, permissions, roles,  currentPage))
+                            clickContext.menu.rerender()
                         }
                     )
                 )
             }
         }
 
-        roles.forEachIndexed { index, role ->
-            if (index < (currentPage - 1) * 21 || index > currentPage * 21 - 1) // not current page
-                return@forEachIndexed
-            val counterIndex = index - (currentPage - 1) * 21
-            ((counterIndex / 7) + 2) to (counterIndex - ((counterIndex / 7) * 7) + 2) eq {
-                icon(ItemStack(Material.PAPER))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            role.displayName
-                        }
-                    }
-                    description {
-                        newline()
-                        localization(viewer) {
-                            this.guild.menu.menuGuild_role_managementItemTooltip1
-                        }
-                        if (!role.systemCreated) {
-                            newline()
-                            localization(viewer) {
-                                this.guild.menu.menuGuild_role_managementItemTooltip2
-                            }
-                        }
+        dataItem { viewContext, role ->
+            icon { material { Material.PAPER } }
+            name {
+                localization(viewContext.viewer) {
+                    role.displayName
+                }
+            }
+            description {
+                newline()
+                localization(viewContext.viewer) {
+                    this.guild.menu.menuGuild_role_managementItemTooltip1
+                }
+                if (!role.systemCreated) {
+                    newline()
+                    localization(viewContext.viewer) {
+                        this.guild.menu.menuGuild_role_managementItemTooltip2
                     }
                 }
-                clickEvent { menuPageContext ->
-                    if (menuPageContext.clickType.isLeftClick) {
-                        menuPageContext.stack.push(guildRoleManagement_modifyRoleMenu(viewer, guild, role))
-                    } else if (menuPageContext.clickType.isRightClick && !role.systemCreated) {
-                        DB.trans {
-                            role.delete()
-                        }
-                        roles.remove(role)
-                        roles.sortedWith { first, second ->
-                            val priorityCompare = first.priority.compareTo(second.priority)
-                            if (priorityCompare != 0)
-                                return@sortedWith priorityCompare
-                            return@sortedWith first.roleId.compareTo(second.roleId)
-                        }
-                        if (roles.size <= (currentPage - 1) * 21 - 1) {
-                            menuPageContext.stack.replace(guildRoleManagementMenu(viewer, guild, permissions, roles, currentPage - 1))
-                        } else {
-                            menuPageContext.stack.replace(guildRoleManagementMenu(viewer, guild, permissions, roles, currentPage))
-                        }
-                        viewer.send {
-                            localization(
-                                player = viewer,
-                                tags = {
-                                    parsedPlaceholder("role", role.displayName)
-                                }
-                            ) {
-                                this.guild.guildRoleDelete_success
+            }
+            clickEvent { clickContext ->
+                if (clickContext.click.isLeftClick) {
+                    clickContext.stack.push {
+                        guildRoleManagement_modifyRoleMenu(menu, guild, role)
+                    }
+                } else if (clickContext.click.isRightClick) {
+                    DB.trans {
+                        guild.refresh()
+                    }
+                    if (guild.owner != clickContext.viewer.uniqueId) {
+                        clickContext.stack.pop()
+                        return@clickEvent
+                    }
+                    DB.trans {
+                        role.delete()
+                    }
+                    clickContext.viewer.send {
+                        localization(
+                            player = clickContext.viewer,
+                            tags = {
+                                parsedPlaceholder("role", role.displayName)
                             }
+                        ) {
+                            this.guild.guildRoleDelete_success
                         }
                     }
+                    clickContext.menu.rerender()
                 }
             }
         }

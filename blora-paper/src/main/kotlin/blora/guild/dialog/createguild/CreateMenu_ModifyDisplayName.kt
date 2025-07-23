@@ -14,7 +14,7 @@ import net.benwoodworth.knbt.NbtString
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.component
 
-fun createGuild_modifyDisplayName(viewer: Player, menuContext: MenuContext, context: CreatingGuildContext): Dialog {
+fun createGuild_modifyDisplayName(viewer: Player, context: CreatingGuildContext, rerenderCallback: () -> Unit): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {
@@ -42,7 +42,7 @@ fun createGuild_modifyDisplayName(viewer: Player, menuContext: MenuContext, cont
                 callback = {
                     val guildDisplayName = ((it as NbtCompound)["guild_display_name"] as NbtString).value
                     context.displayName = guildDisplayName
-                    menuContext.stack.replace(createMenuPage(viewer, context))
+                    rerenderCallback()
                 }
             )
         ),

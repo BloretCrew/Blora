@@ -3,138 +3,106 @@ package blora.guild.menu.createguild
 import blora.configuration.CONF
 import blora.database.DB
 import blora.extension.localization
-import blora.extension.openDialog
 import blora.guild.CreatingGuildContext
 import blora.guild.GuildModule
 import blora.guild.dialog.createguild.createGuild_modifyDisplayName
 import blora.guild.dialog.createguild.createGuild_setIdDialog
-import blora.guild.menu.guildview.guildView
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.description
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.inventoryClick
-import blora.menu.lines
-import blora.menu.menuPage
-import blora.menu.title
+import blora.guild.menu.guildview.guildViewMenu
+import blora.item.clone
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.description
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.backButton
+import blora.menu.v2.page.builder.inventoryClick
+import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.title
 import blora.permission.Permissions
 import blora.plugin.BloraPlugin
 import org.black_ixx.playerpoints.PlayerPoints
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.mini
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun createMenuPage(viewer: Player, context: CreatingGuildContext = CreatingGuildContext()): SimpleMenuPage {
-    return menuPage {
-        lines(5)
+fun createMenuPage(menu: Menu): MenuPage<*, *> {
+    val context = CreatingGuildContext()
+    return limitedDynamicMenuPage(menu) {
         title {
-            localization(viewer) {
+            localization(menu.viewer) {
                 this.guild.menu.menuCreate_guildTitle
             }
         }
-
         inventoryClick { item, clickContext ->
-            context.icon = item.clone().apply {
-                this.amount = 1
-            }
-            clickContext.stack.replace(createMenuPage(viewer, context))
+            context.icon = item
+            clickContext.menu.rerender()
             return@inventoryClick true
         }
-
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
-
+        backButton()
         3 to 2 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuCreate_guildButtonSet_id
-                    }
-                }
-                if (context.id.isNotEmpty()) {
-                    description {
-                        newline()
-                        mini("<italic:false><white>${context.id}")
-                    }
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuCreate_guildButtonSet_id
                 }
             }
-            clickEvent { menuPageContext ->
-                viewer.openDialog(
-                    createGuild_setIdDialog(viewer, menuPageContext.menuContext, context)
-                )
-            }
-        }
-
-        3 to 5 eq {
-            icon(ItemStack(Material.PAPER))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuCreate_guildButtonModify_display_name
-                    }
-                }
-                if (context.displayName.isNotEmpty()) {
-                    description {
-                        newline()
-                        localization(viewer) {
-                            context.displayName
-                        }
-                    }
-                }
-            }
-            clickEvent { menuPageContext ->
-                viewer.openDialog(
-                    createGuild_modifyDisplayName(viewer, menuPageContext.menuContext, context)
-                )
-            }
-        }
-
-        3 to 8 eq {
-            icon(context.icon)
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuCreate_guildButtonModify_icon
-                    }
-                }
+            if (context.id.isNotEmpty()) {
                 description {
                     newline()
-                    localization(viewer) {
-                        "<italic:false><white>${this.guild.menu.menuCreate_guildButtonModify_iconTooltip}"
-                    }
+                    mini("<italic:false><white>${context.id}")
                 }
             }
-            clickEvent {
-
+            clickEvent { clickContext ->
+                createGuild_setIdDialog(clickContext.viewer, context, { clickContext.menu.rerender() })
             }
         }
-        5 to 9 eq {
-            icon(ItemStack(Material.EMERALD))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuCreate_guildButtonCreate
+        3 to 5 eq {
+            icon { material { Material.PAPER } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuCreate_guildButtonModify_display_name
+                }
+            }
+            if (context.displayName.isNotEmpty()) {
+                description {
+                    newline()
+                    localization(menu.viewer) {
+                        context.displayName
                     }
                 }
             }
-            clickEvent { menuPageContext ->
+            clickEvent { clickContext ->
+                createGuild_modifyDisplayName(clickContext.viewer, context, { clickContext.menu.rerender() })
+            }
+        }
+        3 to 8 eq {
+            icon { clone { context.icon } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuCreate_guildButtonModify_icon
+                }
+            }
+            description {
+                newline()
+                localization(menu.viewer) {
+                    "<italic:false><white>${this.guild.menu.menuCreate_guildButtonModify_iconTooltip}"
+                }
+            }
+        }
+
+        5 to 9 eq {
+            icon { material { Material.EMERALD } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuCreate_guildButtonCreate
+                }
+            }
+            clickEvent { clickContext ->
+                val viewer = clickContext.viewer
                 if (!viewer.hasPermission(Permissions.Guild.Create)) {
                     viewer.send {
                         localization(viewer) {
@@ -157,7 +125,7 @@ fun createMenuPage(viewer: Player, context: CreatingGuildContext = CreatingGuild
                     }
                     return@clickEvent
                 }
-                if (playerJoinedGuilds.filter { it.owner  == viewer.uniqueId }.size >= CONF.guild.playerMaxOwn) {
+                if (playerJoinedGuilds.filter { it.owner == viewer.uniqueId }.size >= CONF.guild.playerMaxOwn) {
                     viewer.send {
                         localization(
                             player = viewer,
@@ -213,9 +181,9 @@ fun createMenuPage(viewer: Player, context: CreatingGuildContext = CreatingGuild
                         this.guild.guildCreateSuccess
                     }
                 }
-                menuPageContext.stack.replace(guildView(viewer, guild, mutableListOf()) {
-                    // DO NOTHING BECAUSE NO NEED TO RERENDER
-                })
+                clickContext.stack.replace {
+                    guildViewMenu(menu, guild)
+                }
             }
         }
     }

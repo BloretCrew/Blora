@@ -11,22 +11,20 @@ import blora.database.guild.table.GuildJoinNotifyTable
 import blora.database.guild.table.GuildJoinRequestTable
 import blora.database.guild.table.GuildMemberInfoTable
 import blora.extension.localization
-import blora.guild.GuildPermissions
-import blora.guild.menu.guildMenu
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.confirmationMenuLine5
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.menuPage
-import blora.menu.title
+import blora.extension.resolvableProfile
+import blora.item.material
+import blora.menu.line5_confirmrationMenu
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.backButton
+import blora.menu.v2.page.builder.completeDynamicMenuPage
+import blora.menu.v2.page.builder.title
 import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.ResolvableProfile
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -37,7 +35,6 @@ import plutoproject.adventurekt.text.text
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
-import kotlin.time.Duration.Companion.days
 
 private val buttons = listOf(
     4 to 2,
@@ -46,16 +43,15 @@ private val buttons = listOf(
     4 to 8,
 )
 
-fun guildMemberList_memberManagementMenu(viewer: Player, guild: GuildDao, member: GuildMemberInfoDao, permissions: Collection<GuildPermissions>, rerenderCallback: () -> Unit): SimpleMenuPage {
-    val cachedPlayerName = DB.getPlayerDisplayName(member.player)
-    val viewerPriority = DB.getMaxRolePriority(viewer.uniqueId, guild)
-    val playerPriority = DB.getMaxRolePriority(member.player, guild)
-    val isOwner = viewer.uniqueId == guild.owner
-    return menuPage {
-        lines(5)
+fun guildMemberList_memberManagementMenu(menu: Menu, guild: GuildDao, member: GuildMemberInfoDao): MenuPage<*, *> {
+    return completeDynamicMenuPage(menu) {
+        val cachedPlayerName = DB.getPlayerDisplayName(member.player)
+        val viewerPriority = DB.getMaxRolePriority(menu.viewer.uniqueId, guild)
+        val playerPriority = DB.getMaxRolePriority(member.player, guild)
+        val isOwner = menu.viewer.uniqueId == guild.owner
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
                     parsedPlaceholder("guild", guild.displayName)
                     parsedPlaceholder("player", cachedPlayerName)
@@ -64,29 +60,15 @@ fun guildMemberList_memberManagementMenu(viewer: Player, guild: GuildDao, member
                 this.guild.menu.menuGuild_member_listMember_managementTitle
             }
         }
-
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
+        backButton()
 
         2 to 5 eq {
-            icon(ItemStack(Material.PLAYER_HEAD).apply {
-                this.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile(Bukkit.getOfflinePlayer(member.player).playerProfile))
-            })
-            hoverText {
-                title {
-                    text { cachedPlayerName }
-                }
+            icon {
+                material { Material.PLAYER_HEAD }
+                DataComponentTypes.PROFILE eq member.player.resolvableProfile()
+            }
+            name {
+                text { cachedPlayerName }
             }
         }
 
@@ -94,15 +76,21 @@ fun guildMemberList_memberManagementMenu(viewer: Player, guild: GuildDao, member
 
         if (isOwner) {
             buttons[buttonIndex] eq {
-                icon(ItemStack(Material.NETHER_STAR))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.guild.menu.menuGuild_member_listMember_managementButtonTransfer_owner
-                        }
+                icon { material { Material.NETHER_STAR } }
+                name {
+                    localization(menu.viewer) {
+                        this.guild.menu.menuGuild_member_listMember_managementButtonTransfer_owner
                     }
                 }
-                clickEvent {
+                clickEvent { clickContext ->
+                    DB.trans {
+                        guild.refresh()
+                    }
+                    if (guild.owner != clickContext.viewer.uniqueId) {
+                        clickContext.menu.rerender()
+                        return@clickEvent
+                    }
+                    val viewer = clickContext.viewer
                     if (CONF.guild.ownerTransferCooldownDays > 0) {
                         if (guild.lastOwnerTransferDate.plusDays(CONF.guild.ownerTransferCooldownDays.toLong()) >= LocalDate.now()) {
                             viewer.send {
@@ -111,10 +99,12 @@ fun guildMemberList_memberManagementMenu(viewer: Player, guild: GuildDao, member
                                     tags = {
                                         parsedPlaceholder(
                                             "days",
-                                            abs(ChronoUnit.DAYS.between(
-                                                guild.lastOwnerTransferDate.plusDays(CONF.guild.ownerTransferCooldownDays.toLong()),
-                                                LocalDate.now()
-                                            )).toString()
+                                            abs(
+                                                ChronoUnit.DAYS.between(
+                                                    guild.lastOwnerTransferDate.plusDays(CONF.guild.ownerTransferCooldownDays.toLong()),
+                                                    LocalDate.now()
+                                                )
+                                            ).toString()
                                         )
                                     }
                                 ) {
@@ -151,94 +141,103 @@ fun guildMemberList_memberManagementMenu(viewer: Player, guild: GuildDao, member
                                 }
                             }
                         }
-                    it.menu.destroy()
-                    guildMenu(viewer).open() // reopen after transfer because it has many dangerous permission issues
+                    clickContext.stack.pop() // goto member list
+                    clickContext.stack.pop() // goto guild view
                 }
             }
             buttonIndex++
             buttons[buttonIndex] eq {
-                icon(ItemStack(Material.BOOKSHELF))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.guild.menu.menuGuild_member_listMember_managementButtonModify_roles
-                        }
+                icon { material { Material.BOOKSHELF } }
+                name {
+                    localization(menu.viewer) {
+                        this.guild.menu.menuGuild_member_listMember_managementButtonModify_roles
                     }
                 }
-                clickEvent {
-                    it.stack.push(guildMemberList_memberManagement_roleManagementMenu(viewer, guild, member))
+                clickEvent { clickContext ->
+                    clickContext.stack.push {
+                        guildMemberList_memberManagement_roleManagementMenu(menu, guild, member)
+                    }
                 }
             }
             buttonIndex++
         }
-        if (member.player != viewer.uniqueId && viewerPriority > playerPriority) {
+
+        if (member.player != menu.viewer.uniqueId && viewerPriority > playerPriority) {
             buttons[buttonIndex] eq {
-                icon(ItemStack(Material.BARRIER))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.guild.menu.menuGuild_member_listMember_managementButtonKick
-                        }
+                icon { material { Material.BARRIER } }
+                name {
+                    localization(menu.viewer) {
+                        this.guild.menu.menuGuild_member_listMember_managementButtonKick
                     }
                 }
-                clickEvent {
-                    it.stack.push(confirmationMenuLine5(
-                        viewer,
-                        component {
-                            localization(
-                                player = viewer,
-                                tags = {
-                                    parsedPlaceholder("player", cachedPlayerName)
-                                }
-                            ) {
-                                this.guild.menu.menuGuild_member_listMember_managementKickTitle
-                            }
-                        }
-                    ) {
-                        val roles = DB.listRolesForPlayer(member.player, guild.gid)
-                        DB.trans {
-                            for (role in roles) {
-                                role.ownedMembers = role.ownedMembers.toMutableList().apply { remove(member.player) }.toList()
-                                role.flush()
-                            }
-                            GuildInvitationTable.deleteWhere {
-                                GuildInvitationTable.invitee eq member.player and
-                                        (GuildInvitationTable.gid eq guild.gid)
-                            }
-                            GuildJoinNotifyTable.deleteWhere {
-                                GuildJoinNotifyTable.player eq member.player and
-                                        (GuildJoinNotifyTable.gid eq guild.gid)
-                            }
-                            GuildMemberInfoTable.deleteWhere {
-                                GuildMemberInfoTable.player eq member.player and
-                                        (GuildMemberInfoTable.gid eq guild.gid)
-                            }
-                            GuildJoinRequestTable.deleteWhere {
-                                GuildJoinRequestTable.player eq member.player and
-                                        (GuildJoinRequestTable.gid eq guild.gid)
-                            }
-                            guild.members = guild.members.toMutableList().apply { remove(member.player) }.toList()
-                            guild.flush()
-                        }
-                        val player = Bukkit.getPlayer(member.player)
-                        if (player != null && player.isOnline) {
-                            player.send {
+                clickEvent { clickContext ->
+                    if (!DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).kickPlayer) {
+                        clickContext.menu.rerender()
+                        return@clickEvent
+                    }
+                    clickContext.stack.push {
+                        line5_confirmrationMenu(
+                            menu,
+                            component {
                                 localization(
-                                    player = viewer,
+                                    player = clickContext.viewer,
                                     tags = {
-                                        parsedPlaceholder("guild", guild.displayName)
-                                        parsedPlaceholder("player", viewer.name)
+                                        parsedPlaceholder("player", cachedPlayerName)
                                     }
                                 ) {
-                                    this.guild.guildKick
+                                    this.guild.menu.menuGuild_member_listMember_managementKickTitle
                                 }
                             }
-                        } else {
-                            // todo: kick notify for offline player
+                        ) {
+                            if (!DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).kickPlayer) {
+                                clickContext.menu.rerender()
+                                return@line5_confirmrationMenu
+                            }
+                            val roles = DB.listRolesForPlayer(member.player, guild.gid)
+                            DB.trans {
+                                for (role in roles) {
+                                    role.ownedMembers =
+                                        role.ownedMembers.toMutableList().apply { remove(member.player) }.toList()
+                                    role.flush()
+                                }
+                                GuildInvitationTable.deleteWhere {
+                                    GuildInvitationTable.invitee eq member.player and
+                                            (GuildInvitationTable.gid eq guild.gid)
+                                }
+                                GuildJoinNotifyTable.deleteWhere {
+                                    GuildJoinNotifyTable.player eq member.player and
+                                            (GuildJoinNotifyTable.gid eq guild.gid)
+                                }
+                                GuildMemberInfoTable.deleteWhere {
+                                    GuildMemberInfoTable.player eq member.player and
+                                            (GuildMemberInfoTable.gid eq guild.gid)
+                                }
+                                GuildJoinRequestTable.deleteWhere {
+                                    GuildJoinRequestTable.player eq member.player and
+                                            (GuildJoinRequestTable.gid eq guild.gid)
+                                }
+                                guild.members = guild.members.toMutableList().apply { remove(member.player) }.toList()
+                                guild.flush()
+                            }
+                            val player = Bukkit.getPlayer(member.player)
+                            if (player != null && player.isOnline) {
+                                player.send {
+                                    localization(
+                                        player = clickContext.viewer,
+                                        tags = {
+                                            parsedPlaceholder("guild", guild.displayName)
+                                            parsedPlaceholder("player", clickContext.viewer.name)
+                                        }
+                                    ) {
+                                        this.guild.guildKick
+                                    }
+                                }
+                            } else {
+                                // todo: kick notify for offline player
+                            }
+                            clickContext.stack.pop()
                         }
-                        it.stack.pop()
-                        rerenderCallback()
-                    })
+                    }
                 }
             }
         }

@@ -212,6 +212,7 @@ data class GuildMenuLocalizationContents(
     val menuGuild_member_listPlayerDescriptionError: String = "<red>获取玩家信息时出现错误",
     val menuGuild_member_listButtonJoin_request: String = "加入申请",
     val menuGuild_member_listButtonJoin_requestDescription: String = "<white>当前有 <requests> 个申请待处理",
+    val menuGuild_member_listButtonBlocklist: String = "加入申请",
     val menuGuild_member_listJoin_requestsTitle: String = "<guild> | 成员列表 | 加入申请",
     val menuGuild_member_listJoin_requestsDescriptionAccpet: String = "<green>左键同意",
     val menuGuild_member_listJoin_requestsDescriptionReject: String = "<red>右键拒绝",

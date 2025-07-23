@@ -1,6 +1,9 @@
+@file:Suppress("UnstableApiUsage")
+
 package blora.extension
 
 import blora.dialog.Dialog
+import io.papermc.paper.datacomponent.item.ResolvableProfile
 import net.minecraft.core.Holder
 import net.minecraft.network.protocol.Packet
 import net.minecraft.network.protocol.common.ClientboundShowDialogPacket
@@ -13,4 +16,8 @@ fun Player.sendPacket(packet: Packet<*>) {
 
 fun Player.openDialog(dialog: Dialog) {
     this.sendPacket(ClientboundShowDialogPacket(Holder.direct(dialog.toNms())))
+}
+
+fun Player.resolvableProfile(): ResolvableProfile {
+    return ResolvableProfile.resolvableProfile(this.playerProfile)
 }

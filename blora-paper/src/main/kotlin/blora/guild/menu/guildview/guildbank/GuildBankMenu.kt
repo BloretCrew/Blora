@@ -1,32 +1,31 @@
 package blora.guild.menu.guildview.guildbank
 
+import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.extension.localization
 import blora.extension.openDialog
-import blora.guild.GuildPermissions
 import blora.guild.dialog.guildview.guildbank.guildBank_storeDialog
 import blora.guild.dialog.guildview.guildbank.guildBank_withdrawDialog
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.description
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.menuPage
-import blora.menu.title
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.description
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.LimitedDynamicMenuPage
+import blora.menu.v2.page.builder.backButton
+import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.title
 import blora.plugin.ThirdPartys
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun guildBankMenu(viewer: Player, guild: GuildDao, permissions: Collection<GuildPermissions>): SimpleMenuPage {
-    return menuPage {
-        lines(5)
+fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
+    return limitedDynamicMenuPage(menu) {
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
                     parsedPlaceholder("guild", guild.displayName)
                 }
@@ -34,101 +33,83 @@ fun guildBankMenu(viewer: Player, guild: GuildDao, permissions: Collection<Guild
                 this.guild.menu.menuGuild_bankTitle
             }
         }
-
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
-
+        backButton()
         3 to 3 eq {
-            icon(ItemStack(Material.CHEST))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuGuild_bankButtonStore
-                    }
-                }
-                description {
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder("amount", ThirdPartys.vaultApi.getBalance(viewer).toString())
-                        }
-                    ) {
-                        this.guild.menu.menuGuild_bankButtonStoreDescription
-                    }
+            icon { material { Material.CHEST } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuGuild_bankButtonStore
                 }
             }
-            clickEvent {
-                if (!(ThirdPartys.vaultApi.getBalance(viewer) > 0)) {
-                    viewer.send {
-                        localization(viewer) {
+            description {
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("amount", ThirdPartys.vaultApi.getBalance(menu.viewer).toString())
+                    }
+                ) {
+                    this.guild.menu.menuGuild_bankButtonStoreDescription
+                }
+            }
+            clickEvent { clickContext ->
+                if (!(ThirdPartys.vaultApi.getBalance(clickContext.viewer) > 0)) {
+                    clickContext.viewer.send {
+                        localization(clickContext.viewer) {
                             this.guild.menu.menuGuild_bankButtonStoreWarning
                         }
                     }
                     return@clickEvent
                 }
-                if (!permissions.contains(GuildPermissions.STORE_BANK)) {
-                    viewer.send {
-                        localization(viewer) {
+                if (!DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).storeBank) {
+                    clickContext.viewer.send {
+                        localization(clickContext.viewer) {
                             this.guild.guildBankStoreNo_permission
                         }
                     }
                     return@clickEvent
                 }
-                viewer.openDialog(
-                    guildBank_storeDialog(viewer, guild, { it.menu.rerender() })
+                clickContext.viewer.openDialog(
+                    guildBank_storeDialog(clickContext.viewer, guild, { clickContext.menu.rerender() })
                 )
             }
         }
 
         3 to 7 eq {
-            icon(ItemStack(Material.ENDER_CHEST))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuGuild_bankButtonWithdraw
-                    }
-                }
-                description {
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder("amount", guild.bankBalance.toString())
-                        }
-                    ) {
-                        this.guild.menu.menuGuild_bankButtonWithdrawDescription
-                    }
+            icon { material { Material.ENDER_CHEST } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuGuild_bankButtonWithdraw
                 }
             }
-            clickEvent {
+            description {
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("amount", guild.bankBalance.toString())
+                    }
+                ) {
+                    this.guild.menu.menuGuild_bankButtonWithdrawDescription
+                }
+            }
+            clickEvent { clickContext ->
                 if (!(guild.bankBalance > 0)) {
-                    viewer.send {
-                        localization(viewer) {
+                    clickContext.viewer.send {
+                        localization(clickContext.viewer) {
                             this.guild.menu.menuGuild_bankButtonWithdrawWarning
                         }
                     }
                     return@clickEvent
                 }
-                if (!permissions.contains(GuildPermissions.WITHDRAW_BANK)) {
-                    viewer.send {
-                        localization(viewer) {
+                if (!DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).withdrawBank) {
+                    clickContext.viewer.send {
+                        localization(clickContext.viewer) {
                             this.guild.guildBankWithdrawNo_permission
                         }
                     }
                     return@clickEvent
                 }
-                viewer.openDialog(
-                    guildBank_withdrawDialog(viewer, guild, { it.menu.rerender() })
+                clickContext.viewer.openDialog(
+                    guildBank_withdrawDialog(clickContext.viewer, guild, { clickContext.menu.rerender() })
                 )
             }
         }

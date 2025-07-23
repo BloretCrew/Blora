@@ -21,7 +21,7 @@ import org.bukkit.entity.Player
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun createGuild_setIdDialog(viewer: Player, menuContext: MenuContext, context: CreatingGuildContext, warningMessage: Component? = null): Dialog {
+fun createGuild_setIdDialog(viewer: Player, context: CreatingGuildContext, rerenderCallback: () -> Unit, warningMessage: Component? = null): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {
@@ -60,8 +60,8 @@ fun createGuild_setIdDialog(viewer: Player, menuContext: MenuContext, context: C
                         viewer.openDialog(
                             createGuild_setIdDialog(
                                 viewer,
-                                menuContext,
                                 context,
+                                rerenderCallback,
                                 component {
                                     localization(viewer) {
                                         this.guild.dialog.dialogCreate_guildSet_idWarningId_illegal
@@ -75,8 +75,8 @@ fun createGuild_setIdDialog(viewer: Player, menuContext: MenuContext, context: C
                         viewer.openDialog(
                             createGuild_setIdDialog(
                                 viewer,
-                                menuContext,
                                 context,
+                                rerenderCallback,
                                 component {
                                     localization(
                                         player = viewer,
@@ -96,8 +96,8 @@ fun createGuild_setIdDialog(viewer: Player, menuContext: MenuContext, context: C
                         viewer.openDialog(
                             createGuild_setIdDialog(
                                 viewer,
-                                menuContext,
                                 context,
+                                rerenderCallback,
                                 component {
                                     localization(viewer) {
                                         this.guild.dialog.dialogCreate_guildSet_idWarningId_exists
@@ -108,7 +108,7 @@ fun createGuild_setIdDialog(viewer: Player, menuContext: MenuContext, context: C
                         return@DynamicCustomClickTypeInjected
                     }
                     context.id = guildId
-                    menuContext.stack.replace(createMenuPage(viewer, context))
+                    rerenderCallback()
                 }
             )
         ),

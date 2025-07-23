@@ -4,34 +4,31 @@ import blora.configuration.CONF
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.extension.localization
-import blora.guild.GuildJoinSource
-import blora.guild.GuildJoinStrategy
-import blora.guild.GuildPermissions
-import blora.guild.anyGuildSettings
-import blora.guild.anyRoleManagement
+import blora.guild.*
 import blora.guild.menu.guildview.guildbank.guildBankMenu
 import blora.guild.menu.guildview.guildinvitationcode.guildInvitationCodeMenu
 import blora.guild.menu.guildview.guildmemberlist.guildMemberListMenu
 import blora.guild.menu.guildview.guildrolemanagement.guildRoleManagementMenu
 import blora.guild.menu.guildview.guildsettings.guildSettingsMenu
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.description
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.menuPage
-import blora.menu.title
+import blora.item.clone
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.description
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.backButton
+import blora.menu.v2.page.builder.completeDynamicMenuPage
+import blora.menu.v2.page.builder.title
 import blora.plugin.BloraPlugin
 import blora.util.castString
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
-import java.util.EnumSet
+import java.util.*
 
 private enum class GuildViewButtons {
 
@@ -80,15 +77,18 @@ private val guildButtonPositions = listOf(
     4 to 8
 )
 
-fun guildView(viewer: Player, guild: GuildDao, guilds: MutableList<GuildDao>, rerenderGuildViewParent: () -> Unit): SimpleMenuPage {
-    val isMember = guild.members.contains(viewer.uniqueId)
-    val permissions = guild.getPlayerPermissions(viewer.uniqueId, isMember)
-    val buttons = permissions.toButtons(guild, isMember)
-    return menuPage {
-        lines(6)
+fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    return completeDynamicMenuPage(menu) {
+        DB.trans {
+            guild.refresh()
+        } // ensure data updated for security
+        val isMember = guild.members.contains(menu.viewer.uniqueId)
+        val permissions = guild.getPlayerPermissions(menu.viewer.uniqueId, isMember)
+        val buttons = permissions.toButtons(guild, isMember)
+
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
                     parsedPlaceholder("guild", guild.displayName)
                 }
@@ -97,207 +97,200 @@ fun guildView(viewer: Player, guild: GuildDao, guilds: MutableList<GuildDao>, re
             }
         }
 
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
+        backButton()
 
         1 to 5 eq {
-            icon(guild.parsedIcon)
-            hoverText {
-                title {
-                    localization(viewer) {
-                        guild.displayName
-                    }
+            icon { clone { guild.parsedIcon } }
+            name {
+                localization(menu.viewer) {
+                    guild.displayName
                 }
-                description {
-                    newline()
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder("guild_level", guild.level.toString())
-                        }
-                    ) {
-                        "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionLevel
+            }
+            description {
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_level", guild.level.toString())
                     }
-                    newline()
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder("guild_owner", BloraPlugin.database.getPlayerDisplayName(guild.owner))
-                        }
-                    ) {
-                        "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionOwner
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionLevel
+                }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_owner", BloraPlugin.database.getPlayerDisplayName(guild.owner))
                     }
-                    newline()
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder("guild_create_date", guild.createAt.castString())
-                        }
-                    ) {
-                        "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionCreated_at
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionOwner
+                }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_create_date", guild.createAt.castString())
                     }
-                    newline()
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder("guild_members", guild.members.size.toString())
-                        }
-                    ) {
-                        "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionMembers
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionCreated_at
+                }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_members", guild.members.size.toString())
                     }
-                    newline()
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder("guild_vitality", guild.vitality.toString())
-                        }
-                    ) {
-                        "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionVitality
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionMembers
+                }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_vitality", guild.vitality.toString())
                     }
-                    newline()
-                    localization(
-                        player = viewer,
-                        tags = {
-                            componentPlaceholder("guild_join_strategy") {
-                                localization(viewer) {
-                                    when (guild.joinStrategy) {
-                                        GuildJoinStrategy.DIRECT -> this.guild.guildJoin_strategyDirect
-                                        GuildJoinStrategy.INVITE_DIRECT -> this.guild.guildJoin_strategyInvite_direct
-                                        GuildJoinStrategy.REQUIRE_REVIEW -> this.guild.guildJoin_strategyRequire_review
-                                        GuildJoinStrategy.NOT_ALLOW -> this.guild.guildJoin_strategyNot_allow
-                                    }
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionVitality
+                }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        componentPlaceholder("guild_join_strategy") {
+                            localization(menu.viewer) {
+                                when (guild.joinStrategy) {
+                                    GuildJoinStrategy.DIRECT -> this.guild.guildJoin_strategyDirect
+                                    GuildJoinStrategy.INVITE_DIRECT -> this.guild.guildJoin_strategyInvite_direct
+                                    GuildJoinStrategy.REQUIRE_REVIEW -> this.guild.guildJoin_strategyRequire_review
+                                    GuildJoinStrategy.NOT_ALLOW -> this.guild.guildJoin_strategyNot_allow
                                 }
                             }
                         }
-                    ) {
-                        "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionJoin_strategy
                     }
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionJoin_strategy
                 }
             }
         }
+
         buttons.forEachIndexed { index, button ->
             guildButtonPositions[index] eq {
                 when (button) {
                     GuildViewButtons.GUILD_SETTINGS -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonGuild_settings
-                                }
+                        icon { material { Material.PAPER } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonGuild_settings
                             }
                         }
                         clickEvent {
-                            it.stack.push(guildSettingsMenu(viewer, guild, guilds, permissions, rerenderGuildViewParent))
+                            it.stack.push {
+                                guildSettingsMenu(menu, guild)
+                            }
                         }
                     }
+
                     GuildViewButtons.ROLE_MANAGEMENT -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonRole_management
-                                }
+                        icon { material { Material.PAPER } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonRole_management
                             }
                         }
                         clickEvent {
-                            it.stack.push(guildRoleManagementMenu(viewer, guild, permissions))
+                            it.stack.push {
+                                guildRoleManagementMenu(menu, guild)
+                            }
                         }
                     }
+
                     GuildViewButtons.MEMBER_LIST -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonMember_list
-                                }
+                        icon { material { Material.PAPER } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonMember_list
                             }
                         }
                         clickEvent {
-                            it.stack.push(guildMemberListMenu(viewer, guild, permissions))
+                            it.stack.push {
+                                guildMemberListMenu(menu, guild)
+                            }
                         }
                     }
+
                     GuildViewButtons.ALLY_LIST -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonAlly_list
-                                }
+                        icon { material { Material.ALLAY_SPAWN_EGG } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonAlly_list
                             }
                         }
+                        clickEvent {
+                        }
                     }
+
                     GuildViewButtons.INVITATION_CODES -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonInvitation_codes
-                                }
+                        icon { material { Material.NAME_TAG } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonInvitation_codes
                             }
                         }
-                        clickEvent { menuPageContext ->
-                            menuPageContext.stack.push(guildInvitationCodeMenu(viewer, guild))
+                        clickEvent {
+                            it.stack.push {
+                                guildInvitationCodeMenu(menu, guild)
+                            }
                         }
                     }
+
                     GuildViewButtons.ENDER_CHEST -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonEnder_chest
-                                }
+                        icon { material { Material.ENDER_CHEST } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonEnder_chest
                             }
                         }
+                        clickEvent {
+                        }
                     }
+
                     GuildViewButtons.BANK -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonBank
-                                }
+                        icon { material { Material.CHEST } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonBank
                             }
                         }
                         clickEvent {
-                            it.stack.push(guildBankMenu(viewer, guild, permissions))
+                            it.stack.push {
+                                guildBankMenu(menu, guild)
+                            }
                         }
                     }
+
                     GuildViewButtons.VITALITY_SHOP -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonVitality_shop
-                                }
-                            }
-                        }
-                    }
-                    GuildViewButtons.JOIN_GUILD -> {
-                        icon(ItemStack(Material.PAPER))
-                        hoverText {
-                            title {
-                                localization(viewer) {
-                                    this.guild.menu.menuGuild_viewButtonJoin_guild
-                                }
+                        icon { material { Material.BEEHIVE } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonVitality_shop
                             }
                         }
                         clickEvent {
-                            if (DB.listGuildForPlayer(viewer.uniqueId).size >= CONF.guild.playerMaxJoin) {
-                                viewer.send {
+                        }
+                    }
+
+                    GuildViewButtons.JOIN_GUILD -> {
+                        icon { material { Material.IRON_PICKAXE } }
+                        name {
+                            localization(menu.viewer) {
+                                this.guild.menu.menuGuild_viewButtonJoin_guild
+                            }
+                        }
+                        clickEvent { clickContext ->
+                            if (DB.listGuildForPlayer(clickContext.viewer.uniqueId).size >= CONF.guild.playerMaxJoin) {
+                                clickContext.viewer.send {
                                     localization(
-                                        player = viewer,
+                                        player = clickContext.viewer,
                                         tags = {
                                             parsedPlaceholder("amount", CONF.guild.playerMaxJoin.toString())
                                         }
@@ -308,11 +301,11 @@ fun guildView(viewer: Player, guild: GuildDao, guilds: MutableList<GuildDao>, re
                                 return@clickEvent
                             }
                             if (guild.joinStrategy == GuildJoinStrategy.DIRECT) {
-                                DB.guildJoinDirect(guild, viewer.uniqueId, GuildJoinSource.GuildList)
-                                DB.announceJoin(guild, viewer)
-                                viewer.send {
+                                DB.guildJoinDirect(guild, clickContext.viewer.uniqueId, GuildJoinSource.GuildList)
+                                DB.announceJoin(guild, clickContext.viewer)
+                                clickContext.viewer.send {
                                     localization(
-                                        player = viewer,
+                                        player = clickContext.viewer,
                                         tags = {
                                             parsedPlaceholder("guild", guild.displayName)
                                         }
@@ -320,13 +313,13 @@ fun guildView(viewer: Player, guild: GuildDao, guilds: MutableList<GuildDao>, re
                                         this.guild.guildJoinSuccess
                                     }
                                 }
-                                it.stack.replace(guildView(viewer, guild, guilds, rerenderGuildViewParent))
+                                clickContext.menu.rerender()
                             } else if (guild.joinStrategy == GuildJoinStrategy.INVITE_DIRECT || guild.joinStrategy == GuildJoinStrategy.REQUIRE_REVIEW) {
-                                DB.createJoinRequest(guild, viewer, GuildJoinSource.GuildList)
-                                DB.announceJoinRequest(guild, viewer)
-                                viewer.send {
+                                DB.createJoinRequest(guild, clickContext.viewer, GuildJoinSource.GuildList)
+                                DB.announceJoinRequest(guild, clickContext.viewer)
+                                clickContext.viewer.send {
                                     localization(
-                                        player = viewer,
+                                        player = clickContext.viewer,
                                         tags = {
                                             parsedPlaceholder("guild", guild.displayName)
                                         }

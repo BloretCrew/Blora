@@ -9,15 +9,13 @@ import blora.dialog.action.DynamicCustomClickTypeInjected
 import blora.dialog.input.TextInputControl
 import blora.extension.localization
 import blora.guild.GuildPermissions
-import blora.guild.menu.guildview.guildsettings.guildSettingsMenu
-import blora.menu.MenuContext
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtString
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 
-fun guildSettings_modifyDisplayName(viewer: Player, menuContext: MenuContext, guild: GuildDao, guilds: MutableList<GuildDao>, permissions: Collection<GuildPermissions>, rerenderGuildViewParent: () -> Unit): Dialog {
+fun guildSettings_modifyDisplayNameDialog(viewer: Player, guild: GuildDao, rerenderCallback: () -> Unit): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {
@@ -43,6 +41,15 @@ fun guildSettings_modifyDisplayName(viewer: Player, menuContext: MenuContext, gu
             },
             action = DynamicCustomClickTypeInjected(
                 callback = {
+                    DB.trans {
+                        guild.refresh()
+                    }
+                    val isMember = guild.members.contains(viewer.uniqueId)
+                    val permissions = guild.getPlayerPermissions(viewer.uniqueId, isMember)
+                    if (!permissions.contains(GuildPermissions.MODIFY_GUILD_NAME)) {
+                        rerenderCallback()
+                        return@DynamicCustomClickTypeInjected
+                    }
                     val guildDisplayName = ((it as NbtCompound)["guild_display_name"] as NbtString).value
                     DB.trans {
                         guild.displayName = guildDisplayName
@@ -53,7 +60,7 @@ fun guildSettings_modifyDisplayName(viewer: Player, menuContext: MenuContext, gu
                             this.guild.guildUpdateDisplay_name
                         }
                     }
-                    menuContext.stack.replace(guildSettingsMenu(viewer, guild, guilds, permissions, rerenderGuildViewParent))
+                    rerenderCallback()
                 }
             )
         ),

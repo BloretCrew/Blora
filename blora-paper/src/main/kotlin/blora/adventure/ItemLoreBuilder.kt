@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 package blora.adventure
 
 import io.papermc.paper.datacomponent.item.ItemLore

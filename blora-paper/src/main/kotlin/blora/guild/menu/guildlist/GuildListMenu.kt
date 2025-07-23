@@ -3,189 +3,110 @@ package blora.guild.menu.guildlist
 import blora.database.guild.dao.GuildDao
 import blora.extension.localization
 import blora.guild.GuildJoinStrategy
-import blora.guild.menu.guildview.guildView
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.description
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.mapping
-import blora.menu.menuPage
-import blora.menu.title
-import blora.permission.Permissions
+import blora.guild.dataprovider.GuildDaoDataProvider
+import blora.item.clone
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.description
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageableMenuPage
+import blora.menu.v2.page.builder.showBackButton
 import blora.plugin.BloraPlugin
 import blora.util.castString
-import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun guildListMenuPage(viewer: Player, showBackButton: Boolean, systemFilter: (Player, GuildDao) -> Boolean, userFilter: (Player, GuildDao) -> Boolean = { _, _ -> true }, currentPage: Int = 1): SimpleMenuPage {
-    val guilds = BloraPlugin.database
-        .listGuilds()
-        .filter { systemFilter(viewer, it) }
-        .filter { userFilter(viewer, it) } // use for search
-        .toMutableList()
-    return menuPage {
-        title {
-            localization(viewer) {
-                this.guild.menu.menuGuild_listTitle
-            }
-        }
-        lines(5)
-
-        mapping(
-            "#########",
-            "#       #",
-            "#       #",
-            "#       #",
-            "#########"
+fun guildListMenu(
+    menu: Menu,
+    systemFilter: (Player, GuildDao) -> Boolean,
+    userFilter: (Player, GuildDao) -> Boolean = { _, _ -> true }
+): MenuPage<*, *> {
+    return pageableMenuPage(menu, GuildDaoDataProvider {
+        systemFilter(menu.viewer, it) && userFilter(
+            menu.viewer,
+            it
         )
-        '#' eq {
-            icon(ItemStack(Material.BLACK_STAINED_GLASS_PANE))
-        }
-
-        if (guilds.size <= (currentPage - 1) * 21 - 1)
-            return@menuPage
-
-        if (showBackButton) {
-            1 to 1 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonBack
-                        }
-                    }
-                }
-                clickEvent {
-                    it.stack.pop()
+    }) {
+        showBackButton()
+        dataItem { viewContext, guild ->
+            icon { clone { guild.parsedIcon } }
+            name {
+                localization(menu.viewer) {
+                    "<italic:false><white>" + guild.displayName
                 }
             }
-        }
-        if (currentPage > 1) {
-            5 to 1 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonPrevious_page
-                        }
+            description {
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_level", guild.level.toString())
                     }
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionLevel
                 }
-                clickEvent {
-                    it.stack.replace(guildListMenuPage(viewer, showBackButton, systemFilter, userFilter, currentPage - 1))
-                }
-            }
-        }
-
-        if (guilds.size > (currentPage * 21)) {
-            5 to 9 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonNext_page
-                        }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_owner", BloraPlugin.database.getPlayerDisplayName(guild.owner))
                     }
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionOwner
                 }
-                clickEvent {
-                    it.stack.replace(guildListMenuPage(viewer, showBackButton, systemFilter, userFilter, currentPage + 1))
-                }
-            }
-        }
-        guilds.forEachIndexed { index, guild ->
-            if (index < (currentPage - 1) * 21 || index > currentPage * 21 - 1) // not current page
-                return@forEachIndexed
-            val counterIndex = index - (currentPage - 1) * 21
-            ((counterIndex / 7) + 2) to (counterIndex - ((counterIndex / 7) * 7) + 2) eq {
-                icon(guild.parsedIcon)
-                hoverText {
-                    title {
-                        localization(player = viewer) {
-                            "<italic:false><white>" + guild.displayName
-                        }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_create_date", guild.createAt.castString())
                     }
-                    description {
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("guild_level", guild.level.toString())
-                            }
-                        ) {
-                            "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionLevel
-                        }
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("guild_owner", BloraPlugin.database.getPlayerDisplayName(guild.owner))
-                            }
-                        ) {
-                            "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionOwner
-                        }
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("guild_create_date", guild.createAt.castString())
-                            }
-                        ) {
-                            "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionCreated_at
-                        }
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("guild_members", guild.members.size.toString())
-                            }
-                        ) {
-                            "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionMembers
-                        }
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("guild_vitality", guild.vitality.toString())
-                            }
-                        ) {
-                            "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionVitality
-                        }
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                componentPlaceholder("guild_join_strategy") {
-                                    localization(viewer) {
-                                        when (guild.joinStrategy) {
-                                            GuildJoinStrategy.DIRECT -> this.guild.guildJoin_strategyDirect
-                                            GuildJoinStrategy.INVITE_DIRECT -> this.guild.guildJoin_strategyInvite_direct
-                                            GuildJoinStrategy.REQUIRE_REVIEW -> this.guild.guildJoin_strategyRequire_review
-                                            GuildJoinStrategy.NOT_ALLOW -> this.guild.guildJoin_strategyNot_allow
-                                        }
-                                    }
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionCreated_at
+                }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_members", guild.members.size.toString())
+                    }
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionMembers
+                }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        parsedPlaceholder("guild_vitality", guild.vitality.toString())
+                    }
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionVitality
+                }
+                newline()
+                localization(
+                    player = menu.viewer,
+                    tags = {
+                        componentPlaceholder("guild_join_strategy") {
+                            localization(menu.viewer) {
+                                when (guild.joinStrategy) {
+                                    GuildJoinStrategy.DIRECT -> this.guild.guildJoin_strategyDirect
+                                    GuildJoinStrategy.INVITE_DIRECT -> this.guild.guildJoin_strategyInvite_direct
+                                    GuildJoinStrategy.REQUIRE_REVIEW -> this.guild.guildJoin_strategyRequire_review
+                                    GuildJoinStrategy.NOT_ALLOW -> this.guild.guildJoin_strategyNot_allow
                                 }
                             }
-                        ) {
-                            "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionJoin_strategy
                         }
                     }
+                ) {
+                    "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionJoin_strategy
                 }
-                clickEvent { clickContext ->
-                    if (clickContext.clickType.isLeftClick) {
-                        clickContext.stack.push(guildView(viewer, guild, guilds) {
-                            if (guilds.size <= (currentPage - 1) * 21 - 1) { // this page does no longer exist
-                                clickContext.stack.replace(guildListMenuPage(viewer, showBackButton, systemFilter, userFilter, currentPage - 1))
-                            } else {
-                                clickContext.stack.replace(guildListMenuPage(viewer, showBackButton, systemFilter, userFilter, currentPage))
-                            }
-                        })
-                    }
-                }
+            }
+            clickEvent {
+
             }
         }
     }

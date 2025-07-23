@@ -4,94 +4,78 @@ import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.extension.localization
 import blora.guild.GuildPermissions
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.inventoryClick
-import blora.menu.lines
-import blora.menu.menuPage
-import blora.menu.title
+import blora.item.clone
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.backButton
+import blora.menu.v2.page.builder.inventoryClick
+import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.title
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.audience.send
+import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun guildSettings_modifyIconMenu(viewer: Player, guild: GuildDao, guilds: MutableList<GuildDao>, permissions: Collection<GuildPermissions>, rerenderGuildViewParent: () -> Unit, cachedItem: ItemStack = guild.parsedIcon.clone()) : SimpleMenuPage {
-    return menuPage {
-        lines(5)
+fun guildSettings_modifyIconMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    var cachedIcon = guild.parsedIcon
+    return limitedDynamicMenuPage(menu) {
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
-
+                    parsedPlaceholder("guild", guild.displayName)
                 }
             ) {
                 this.guild.menu.menuGuild_settingsModify_iconTitle
             }
         }
         inventoryClick { item, clickContext ->
-            clickContext.stack.replace(guildSettings_modifyIconMenu(
-                viewer,
-                guild,
-                guilds,
-                permissions,
-                rerenderGuildViewParent,
-                item.clone().apply { this.amount = 1 }
-            ))
+            cachedIcon = item
+            clickContext.menu.rerender()
             return@inventoryClick true
         }
 
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
+        backButton()
 
         3 to 5 eq {
-            icon(cachedItem)
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuGuild_settingsModify_iconButtonIcon
-                    }
+            icon { clone { cachedIcon } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuGuild_settingsModify_iconButtonIcon
                 }
             }
         }
 
         5 to 9 eq {
-            icon(ItemStack(Material.EMERALD))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuGuild_settingsModify_iconButtonConfirm
-                    }
+            icon { material { Material.EMERALD } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuGuild_settingsModify_iconButtonConfirm
                 }
             }
-            clickEvent { menuPageContext ->
-                if (guild.parsedIcon != cachedItem) {
-                    DB.trans {
-                        guild.parsedIcon = cachedItem
-                        guild.flush()
-                    }
-                    viewer.send {
-                        localization(viewer) {
-                            this.guild.guildUpdateIcon
+            clickEvent { clickContext ->
+                DB.trans {
+                    guild.refresh()
+                }
+                val isMember = guild.members.contains(menu.viewer.uniqueId)
+                val permissions = guild.getPlayerPermissions(menu.viewer.uniqueId, isMember)
+                if (permissions.contains(GuildPermissions.MODIFY_GUILD_ICON)) {
+                    if (guild.parsedIcon != cachedIcon) {
+                        DB.trans {
+                            guild.parsedIcon = cachedIcon
+                            guild.flush()
+                        }
+                        clickContext.viewer.send {
+                            localization(clickContext.viewer) {
+                                this.guild.guildUpdateIcon
+                            }
                         }
                     }
-                    menuPageContext.stack.pop()
-                    menuPageContext.stack.replace(guildSettingsMenu(viewer, guild, guilds, permissions, rerenderGuildViewParent))
-                } else {
-                    menuPageContext.stack.pop()
                 }
+                clickContext.stack.pop()
             }
         }
     }

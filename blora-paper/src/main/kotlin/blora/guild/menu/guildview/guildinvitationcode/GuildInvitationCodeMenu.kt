@@ -4,44 +4,31 @@ import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.extension.localization
 import blora.extension.openDialog
+import blora.guild.dataprovider.GuildInviteCodeDaoDataProvider
 import blora.guild.dialog.guildview.guildinvitationcode.guildInvitationCode_CreateInvitationCodeDialog
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.description
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.mapping
-import blora.menu.menuPage
-import blora.menu.title
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.description
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageableMenuPage
+import blora.menu.v2.page.builder.showBackButton
+import blora.menu.v2.page.builder.title
 import blora.util.castString
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
-import java.time.LocalDate
 
-fun guildInvitationCodeMenu(viewer: Player, guild: GuildDao, currentPage: Int = 1): SimpleMenuPage {
-    val invitationCodes = DB.listInvitationCodes(guild.gid)
-        .filter {
-            if (it.expireAt != null && it.expireAt!! < LocalDate.now() && !it.outdated) {
-                DB.trans {
-                    it.outdated = true
-                    it.flush()
-                }
-                return@filter true
-            }
-            return@filter true
-        }
-        .filter { !it.outdated }
-    return menuPage {
-        lines(5)
+fun guildInvitationCodeMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    return pageableMenuPage(menu, GuildInviteCodeDaoDataProvider(guild.gid)) {
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
                     parsedPlaceholder("guild", guild.displayName)
                 }
@@ -49,88 +36,29 @@ fun guildInvitationCodeMenu(viewer: Player, guild: GuildDao, currentPage: Int = 
                 this.guild.menu.menuGuild_invitation_codeTitle
             }
         }
-
-        mapping(
-            "#########",
-            "#       #",
-            "#       #",
-            "#       #",
-            "#########",
-        )
-
-        '#' eq {
-            icon(ItemStack(Material.BLACK_STAINED_GLASS_PANE))
-        }
-
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
-            }
-            clickEvent {
-                it.stack.pop()
-            }
-        }
-
-        if (currentPage > 1) {
-            5 to 1 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonPrevious_page
-                        }
-                    }
-                }
-                clickEvent {
-                    it.stack.pop()
-                    it.stack.push(guildInvitationCodeMenu(viewer, guild, currentPage - 1))
-                }
-            }
-        }
-
-        if (invitationCodes.size > (currentPage * 21)) {
-            5 to 9 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonNext_page
-                        }
-                    }
-                }
-                clickEvent {
-                    it.stack.pop()
-                    it.stack.push(guildInvitationCodeMenu(viewer, guild, currentPage + 1))
-                }
-            }
-        }
+        showBackButton()
 
         5 to 5 eq {
-            icon(ItemStack(Material.APPLE))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.guild.menu.menuGuild_invitation_codeButtonCreate
-                    }
+            icon { material { Material.APPLE } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.menu.menuGuild_invitation_codeButtonCreate
                 }
             }
-            clickEvent { menuPageContext ->
-                viewer.openDialog(
-                    guildInvitationCode_CreateInvitationCodeDialog(viewer, guild) {
-                        menuPageContext.stack.replace(guildInvitationCodeMenu(viewer, guild, currentPage))
-                        viewer.send {
-                            localization(
-                                player = viewer,
-                                tags = {
-                                    parsedPlaceholder("code", it)
+            clickEvent { clickContext ->
+                clickContext.viewer.openDialog(
+                    guildInvitationCode_CreateInvitationCodeDialog(clickContext.viewer, guild) {
+                        clickContext.menu.rerender()
+                        if (DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).manageInvitationCode) {
+                            clickContext.viewer.send {
+                                localization(
+                                    player = clickContext.viewer,
+                                    tags = {
+                                        parsedPlaceholder("code", it)
+                                    }
+                                ) {
+                                    this.guild.guildInvitation_codeCreate
                                 }
-                            ) {
-                                this.guild.guildInvitation_codeCreate
                             }
                         }
                     }
@@ -138,96 +66,87 @@ fun guildInvitationCodeMenu(viewer: Player, guild: GuildDao, currentPage: Int = 
             }
         }
 
-        invitationCodes.forEachIndexed { index, code ->
-            if (index < (currentPage - 1) * 21 || index > currentPage * 21 - 1) // not current page
-                return@forEachIndexed
-            val counterIndex = index - (currentPage - 1) * 21
-            ((counterIndex / 7) + 2) to (counterIndex - ((counterIndex / 7) * 7) + 2) eq {
-                icon(ItemStack(Material.NAME_TAG))
-                hoverText {
-                    title {
+        dataItem { viewContext, code ->
+            icon { material { Material.NAME_TAG } }
+            name {
+                localization(
+                    player = viewContext.viewer,
+                    tags = {
+                        parsedPlaceholder("code", code.inviteCode)
+                    }
+                ) {
+                    this.guild.menu.menuGuild_invitation_codeItemFormat
+                }
+            }
+            description {
+                newline()
+                localization(
+                    player = viewContext.viewer,
+                    tags = {
+                        parsedPlaceholder("single_use", code.singleUsable.toString())
+                    }
+                ) {
+                    this.guild.menu.menuGuild_invitation_codeItemDescriptionSingle_use
+                }
+                newline()
+                localization(
+                    player = viewContext.viewer,
+                    tags = {
+                        parsedPlaceholder("creator", DB.getPlayerDisplayName(code.creator))
+                    }
+                ) {
+                    this.guild.menu.menuGuild_invitation_codeItemDescriptionCreator
+                }
+                newline()
+                localization(
+                    player = viewContext.viewer,
+                    tags = {
+                        parsedPlaceholder("date", code.createdAt.castString())
+                    }
+                ) {
+                    this.guild.menu.menuGuild_invitation_codeItemDescriptionCreated_at
+                }
+                newline()
+                localization(
+                    player = viewContext.viewer,
+                    tags = {
+                        if (code.expireAt != null) {
+                            parsedPlaceholder("date", code.expireAt!!.castString())
+                        } else {
+                            componentPlaceholder("date") {
+                                localization(viewContext.viewer) {
+                                    this.guild.menu.menuGuild_invitation_codeItemDescriptionExpireInfinite
+                                }
+                            }
+                        }
+                    }
+                ) {
+                    this.guild.menu.menuGuild_invitation_codeItemDescriptionExpire_at
+                }
+                newline()
+                newline()
+                localization(viewContext.viewer) {
+                    this.guild.menu.menuGuild_invitation_codeItemDescriptionRight
+                }
+            }
+            clickEvent { clickContext ->
+                if (clickContext.click.isRightClick) {
+                    if (!DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).manageInvitationCode)
+                        return@clickEvent
+                    DB.trans {
+                        code.delete()
+                    }
+                    clickContext.viewer.send {
                         localization(
-                            player = viewer,
+                            player = clickContext.viewer,
                             tags = {
                                 parsedPlaceholder("code", code.inviteCode)
                             }
                         ) {
-                            this.guild.menu.menuGuild_invitation_codeItemFormat
+                            this.guild.guildInvitation_codeDelete
                         }
                     }
-                    description {
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("single_use", code.singleUsable.toString())
-                            }
-                        ) {
-                            this.guild.menu.menuGuild_invitation_codeItemDescriptionSingle_use
-                        }
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("creator", DB.getPlayerDisplayName(code.creator))
-                            }
-                        ) {
-                            this.guild.menu.menuGuild_invitation_codeItemDescriptionCreator
-                        }
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("date", code.createdAt.castString())
-                            }
-                        ) {
-                            this.guild.menu.menuGuild_invitation_codeItemDescriptionCreated_at
-                        }
-                        newline()
-                        localization(
-                            player = viewer,
-                            tags = {
-                                if (code.expireAt != null) {
-                                    parsedPlaceholder("date", code.expireAt!!.castString())
-                                } else {
-                                    componentPlaceholder("date") {
-                                        localization(viewer) {
-                                            this.guild.menu.menuGuild_invitation_codeItemDescriptionExpireInfinite
-                                        }
-                                    }
-                                }
-                            }
-                        ) {
-                            this.guild.menu.menuGuild_invitation_codeItemDescriptionExpire_at
-                        }
-                        newline()
-                        newline()
-                        localization(viewer) {
-                            this.guild.menu.menuGuild_invitation_codeItemDescriptionRight
-                        }
-                    }
-                }
-                clickEvent {
-                    if (it.clickType.isRightClick) {
-                        DB.trans {
-                            code.delete()
-                        }
-                        viewer.send {
-                            localization(
-                                player = viewer,
-                                tags = {
-                                    parsedPlaceholder("code", code.inviteCode)
-                                }
-                            ) {
-                                this.guild.guildInvitation_codeDelete
-                            }
-                        }
-                        if (invitationCodes.size - 1 <= (currentPage - 1) * 21 - 1) { // this page does no longer exist
-                            it.stack.replace(guildInvitationCodeMenu(viewer, guild, currentPage - 1))
-                        } else {
-                            it.stack.replace(guildInvitationCodeMenu(viewer, guild, currentPage))
-                        }
-                    }
+                    clickContext.menu.rerender()
                 }
             }
         }

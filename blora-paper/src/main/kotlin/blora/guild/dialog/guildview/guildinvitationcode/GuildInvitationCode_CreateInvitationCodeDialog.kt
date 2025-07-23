@@ -11,22 +11,15 @@ import blora.dialog.action.DynamicCustomClickTypeInjected
 import blora.dialog.body.PlainMessageDialogBody
 import blora.dialog.input.BooleanInputControl
 import blora.dialog.input.NumberRangeInputControl
-import blora.extension.containsLetterAndNumberOnly
 import blora.extension.localization
-import blora.extension.openDialog
-import blora.mail.Attachment
-import blora.plugin.BloraPlugin
-import blora.redeem.createRedeemDialog
 import blora.util.randomString
 import net.benwoodworth.knbt.NbtByte
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtFloat
-import net.benwoodworth.knbt.NbtString
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.component
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.math.sin
 
 fun guildInvitationCode_CreateInvitationCodeDialog(viewer: Player, guild: GuildDao, callback: (String) -> Unit): Dialog {
     return ConfirmationDialog(
@@ -88,15 +81,17 @@ fun guildInvitationCode_CreateInvitationCodeDialog(viewer: Player, guild: GuildD
                     val expireDays = (compound["expire_days"] as NbtFloat).value.toInt()
 
                     val code = randomString(8)
-                    DB.trans {
-                        GuildInviteCodeDao.new {
-                            this.guildId = guild.gid
-                            this.inviteCode = code
-                            this.singleUsable = singleUse
-                            this.expireAt = if (infinite) null else LocalDate.now().plusDays(expireDays.toLong())
+                    if (DB.getRolePermissions(viewer.uniqueId, guild.gid).manageInvitationCode) {
+                        DB.trans {
+                            GuildInviteCodeDao.new {
+                                this.guildId = guild.gid
+                                this.inviteCode = code
+                                this.singleUsable = singleUse
+                                this.expireAt = if (infinite) null else LocalDate.now().plusDays(expireDays.toLong())
 
-                            this.creator = viewer.uniqueId
-                            this.createdAt = LocalDateTime.now()
+                                this.creator = viewer.uniqueId
+                                this.createdAt = LocalDateTime.now()
+                            }
                         }
                     }
                     callback(code)

@@ -27,7 +27,7 @@ enum class GuildPermissions {
 
 }
 
-fun EnumSet<GuildPermissions>.anyGuildSettings(): Boolean {
+fun Collection<GuildPermissions>.anyGuildSettings(): Boolean {
     return this.contains(GuildPermissions.MODIFY_GUILD_NAME) ||
             this.contains(GuildPermissions.MODIFY_GUILD_ID) ||
             this.contains(GuildPermissions.MODIFY_GUILD_ICON) ||
@@ -35,7 +35,7 @@ fun EnumSet<GuildPermissions>.anyGuildSettings(): Boolean {
             this.contains(GuildPermissions.MODIFY_GUILD_JOIN_STRATEGY)
 }
 
-fun EnumSet<GuildPermissions>.anyRoleManagement(): Boolean {
+fun Collection<GuildPermissions>.anyRoleManagement(): Boolean {
     return this.contains(GuildPermissions.CREATE_ROLE) ||
             this.contains(GuildPermissions.MODIFY_ROLE) ||
             this.contains(GuildPermissions.DELETE_ROLE)

@@ -6,44 +6,37 @@ import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.database.guild.dao.GuildInvitationDao
 import blora.extension.localization
-import blora.menu.SimpleMenuPage
-import blora.menu.clickEvent
-import blora.menu.hoverText
-import blora.menu.icon
-import blora.menu.lines
-import blora.menu.mapping
-import blora.menu.menuPage
-import blora.menu.title
+import blora.extension.resolvableProfile
+import blora.guild.dataprovider.OnlinePlayerDataProvider
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.MenuPage
+import blora.menu.v2.page.builder.backButton
+import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageableMenuPage
+import blora.menu.v2.page.builder.title
 import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.ResolvableProfile
-import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.parsedPlaceholder
 import plutoproject.adventurekt.text.text
 import java.time.LocalDateTime
 
-fun guildMemberList_inviteMenu(viewer: Player, guild: GuildDao, requestCurrentPage: Int = 1): SimpleMenuPage {
-    val invitable = Bukkit.getOnlinePlayers()
-        .filter { it != viewer }
-        .filter { !guild.members.contains(it.uniqueId) }
-        .filter { it.isOnline }
-        .filter { DB.getJoinRequest(guild.gid, viewer.uniqueId) == null }
-        .filter { !DB.isInvited(viewer.uniqueId, guild.gid) }
-        .toMutableList()
-
-    var currentPage = requestCurrentPage
-
-    while (invitable.size <= (currentPage - 1) * 21 - 1 && currentPage > 1)
-        currentPage -= 1
-
-    return menuPage {
-        lines(5)
+fun guildMemberList_inviteMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    return pageableMenuPage(menu, OnlinePlayerDataProvider({ player ->
+        (player != menu.viewer) &&
+                (!guild.members.contains(player.uniqueId)) &&
+                (!guild.blocklist.contains(player.uniqueId)) &&
+                (DB.getValidJoinRequest(guild.gid, player.uniqueId) == null) &&
+                (!DB.isInvited(player.uniqueId, guild.gid)) &&
+                (player.isOnline)
+    })) {
         title {
             localization(
-                player = viewer,
+                player = menu.viewer,
                 tags = {
                     parsedPlaceholder("guild", guild.displayName)
                 }
@@ -51,125 +44,68 @@ fun guildMemberList_inviteMenu(viewer: Player, guild: GuildDao, requestCurrentPa
                 this.guild.menu.menuGuild_viewInviteTitle
             }
         }
+        backButton()
 
-        mapping(
-            "#########",
-            "#       #",
-            "#       #",
-            "#       #",
-            "#########",
-        )
-
-        '#' eq {
-            icon(ItemStack(Material.BLACK_STAINED_GLASS_PANE))
-        }
-
-        1 to 1 eq {
-            icon(ItemStack(Material.ARROW))
-            hoverText {
-                title {
-                    localization(viewer) {
-                        this.menuButtonBack
-                    }
-                }
+        dataItem { viewContext, invitablePlayer ->
+            icon {
+                material { Material.PLAYER_HEAD }
+                DataComponentTypes.PROFILE eq invitablePlayer.resolvableProfile()
             }
-            clickEvent {
-                it.stack.pop()
+            name {
+                text { invitablePlayer.name }
             }
-        }
-
-        if (currentPage > 1) {
-            5 to 1 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonPrevious_page
+            clickEvent { clickContext ->
+                if (!DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).invitePlayer) {
+                    clickContext.stack.pop()
+                    return@clickEvent
+                }
+                if (guild.blocklist.contains(invitablePlayer.uniqueId)) {
+                    clickContext.viewer.send {
+                        localization(clickContext.viewer) {
+                            this.guild.guildOtherBlocked
                         }
                     }
+                    return@clickEvent
                 }
-                clickEvent {
-                    it.stack.pop()
-                    it.stack.push(guildMemberList_inviteMenu(viewer, guild, currentPage - 1))
+                if (DB.getValidJoinRequest(guild.gid, invitablePlayer.uniqueId) != null) {
+                    clickContext.menu.rerender()
+                    return@clickEvent
                 }
-            }
-        }
-
-        if (invitable.size > (currentPage * 21)) {
-            5 to 9 eq {
-                icon(ItemStack(Material.ARROW))
-                hoverText {
-                    title {
-                        localization(viewer) {
-                            this.menuButtonNext_page
+                if (DB.isInvited(invitablePlayer.uniqueId, guild.gid)) {
+                    clickContext.menu.rerender()
+                    return@clickEvent
+                }
+                DB.trans {
+                    GuildInvitationDao.new {
+                        this.guildId = guild.gid
+                        this.invitee = invitablePlayer.uniqueId
+                        this.inviter = clickContext.viewer.uniqueId
+                        this.invitedAt = LocalDateTime.now()
+                    }.flush()
+                }
+                clickContext.viewer.send {
+                    localization(
+                        player = clickContext.viewer,
+                        tags = {
+                            parsedPlaceholder("guild", guild.displayName)
+                            parsedPlaceholder("invitee", invitablePlayer.name)
                         }
+                    ) {
+                        this.guild.guildInviteInviter
                     }
                 }
-                clickEvent {
-                    it.stack.pop()
-                    it.stack.push(guildMemberList_inviteMenu(viewer, guild, currentPage + 1))
-                }
-            }
-        }
-
-        invitable.forEachIndexed { index, invitablePlayer ->
-            if (index < (currentPage - 1) * 21 || index > currentPage * 21 - 1) // not current page
-                return@forEachIndexed
-            val counterIndex = index - (currentPage - 1) * 21
-            ((counterIndex / 7) + 2) to (counterIndex - ((counterIndex / 7) * 7) + 2) eq {
-                icon(ItemStack(Material.PLAYER_HEAD).apply {
-                    this.setData(DataComponentTypes.PROFILE, ResolvableProfile.resolvableProfile(invitablePlayer.playerProfile))
-                })
-                hoverText {
-                    title {
-                        text { invitablePlayer.name }
+                invitablePlayer.send {
+                    localization(
+                        player = invitablePlayer,
+                        tags = {
+                            parsedPlaceholder("guild", guild.displayName)
+                            parsedPlaceholder("inviter", clickContext.viewer.name)
+                        }
+                    ) {
+                        this.guild.guildInviteInvitee
                     }
                 }
-                clickEvent {
-                    if (guild.blocklist.contains(invitablePlayer.uniqueId)) {
-                        viewer.send {
-                            localization(viewer) {
-                                this.guild.guildOtherBlocked
-                            }
-                        }
-                        return@clickEvent
-                    }
-                    DB.trans {
-                        GuildInvitationDao.new {
-                            this.guildId = guild.gid
-                            this.invitee = invitablePlayer.uniqueId
-                            this.inviter = viewer.uniqueId
-                            this.invitedAt = LocalDateTime.now()
-                        }
-                    }
-                    viewer.send {
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("guild", guild.displayName)
-                                parsedPlaceholder("invitee", invitablePlayer.name)
-                            }
-                        ) {
-                            this.guild.guildInviteInviter
-                        }
-                    }
-                    invitablePlayer.send {
-                        localization(
-                            player = invitablePlayer,
-                            tags = {
-                                parsedPlaceholder("guild", guild.displayName)
-                                parsedPlaceholder("inviter", viewer.name)
-                            }
-                        ) {
-                            this.guild.guildInviteInvitee
-                        }
-                    }
-                    if (invitable.size <= (currentPage - 1) * 21 - 1) { // this page does no longer exist
-                        it.stack.replace(guildMemberList_inviteMenu(viewer, guild, currentPage - 1))
-                    } else {
-                        it.stack.replace(guildMemberList_inviteMenu(viewer, guild, currentPage))
-                    }
-                }
+                clickContext.menu.rerender()
             }
         }
     }

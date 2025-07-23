@@ -28,7 +28,7 @@ class MenuStack(val menu: Menu, val lines: Int, var base: MenuPage<*>) {
     fun pop() {
         if (pages.isEmpty())
             return
-        this.pages.pop()
+        this.pages.popSafely()
         this.menu.update(
             if (this.pages.isEmpty())
                 this.base

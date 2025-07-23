@@ -1,11 +1,54 @@
 package blora.menu
 
 import blora.extension.localization
+import blora.item.material
+import blora.menu.v2.Menu
+import blora.menu.v2.item.clickEvent
+import blora.menu.v2.item.icon
+import blora.menu.v2.item.name
+import blora.menu.v2.page.StaticMenuPage
+import blora.menu.v2.page.builder.backButton
+import blora.menu.v2.page.builder.staticMenuPage
+import blora.menu.v2.page.builder.title
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.text.raw
+
+fun line5_confirmrationMenu(
+    menu: Menu,
+    title: Component,
+    confirmCallback: () -> Unit
+): StaticMenuPage {
+    return staticMenuPage(menu) {
+        title { title }
+        backButton()
+        3 to 3 eq {
+            icon { material { Material.LIME_CONCRETE } }
+            name {
+                localization(menu.viewer) {
+                    this.menuButtonConfirm
+                }
+            }
+            clickEvent {
+                it.stack.pop()
+                confirmCallback()
+            }
+        }
+        3 to 7 eq {
+            icon { material { Material.RED_CONCRETE } }
+            name {
+                localization(menu.viewer) {
+                    this.menuButtonCancel
+                }
+            }
+            clickEvent {
+                it.stack.pop()
+            }
+        }
+    }
+}
 
 fun confirmationMenuLine5(
     viewer: Player,

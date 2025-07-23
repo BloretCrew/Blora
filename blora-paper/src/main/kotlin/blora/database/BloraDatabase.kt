@@ -1,5 +1,6 @@
 package blora.database
 
+import blora.database.guild.dao.GuildBlocklistDao
 import blora.database.guild.dao.GuildDao
 import blora.database.guild.dao.GuildDisbandNotifyDao
 import blora.database.guild.dao.GuildInvitationDao
@@ -8,6 +9,7 @@ import blora.database.guild.dao.GuildJoinRequestDao
 import blora.database.guild.dao.GuildMemberInfoDao
 import blora.database.guild.dao.GuildRoleDao
 import blora.database.guild.table.GuildBankLogTable
+import blora.database.guild.table.GuildBlocklistTable
 import blora.database.guild.table.GuildDisbandNotifyTable
 import blora.database.guild.table.GuildInvitationTable
 import blora.database.guild.table.GuildInviteCodeTable
@@ -96,10 +98,19 @@ class BloraDatabase(
             SchemaUtils.create(GuildMemberInfoTable)
             SchemaUtils.create(GuildJoinRequestTable)
             SchemaUtils.create(GuildBankLogTable)
+            SchemaUtils.create(GuildBlocklistTable)
         }
     }
 
     // Guild
+
+    fun listBlocklist(guild: String): List<GuildBlocklistDao> {
+        return trans {
+            GuildBlocklistDao.find {
+                GuildBlocklistTable.gid eq guild
+            }.toList()
+        }
+    }
 
     fun getInvitationCode(code: String): GuildInviteCodeDao? {
         return trans {
@@ -134,15 +145,21 @@ class BloraDatabase(
         }
     }
 
-    fun listJoinRequestsForGuild(guild: String): List<GuildJoinRequestDao> {
+    fun listValidJoinRequestsForGuild(guild: String): List<GuildJoinRequestDao> {
         return trans {
             GuildJoinRequestDao.find {
-                GuildJoinRequestTable.gid eq guild
+                GuildJoinRequestTable.gid eq guild and
+                        (GuildJoinRequestTable.finished eq false)
             }.toList()
         }
     }
 
     fun getRolePermissions(player: UUID, guild: String): RolePermissions {
+        val guildDao = getGuildByGid(guild)
+        if (guildDao == null || !guildDao.members.contains(player))
+            return RolePermissions.denyAll()
+        if (guildDao.owner == player)
+            return RolePermissions.allowAll()
         val roles = listRolesForPlayer(player, guild)
         return roles.map { it.permission }.merge()
     }
@@ -180,11 +197,12 @@ class BloraDatabase(
         }.associate { it }
     }
 
-    fun getJoinRequest(guild: String, player: UUID): GuildJoinRequestDao? {
+    fun getValidJoinRequest(guild: String, player: UUID): GuildJoinRequestDao? {
         return trans {
             GuildJoinRequestDao.find {
                 GuildJoinRequestTable.gid eq guild and
-                        (GuildJoinRequestTable.player eq player)
+                        (GuildJoinRequestTable.player eq player) and
+                        (GuildJoinRequestTable.finished eq false)
             }.firstOrNull()
         }
     }
@@ -244,6 +262,9 @@ class BloraDatabase(
         trans {
             guild.members = guild.members.toMutableList().apply { this.add(player) }.toList()
             guild.flush()
+            GuildInvitationTable.deleteWhere {
+                GuildInvitationTable.invitee eq player
+            }
             GuildMemberInfoDao.new {
                 this.guildId = guild.gid
                 this.player = player
@@ -261,6 +282,9 @@ class BloraDatabase(
         trans {
             guild.members = guild.members.toMutableList().apply { this.add(player) }.toList()
             guild.flush()
+            GuildInvitationTable.deleteWhere {
+                GuildInvitationTable.invitee eq player
+            }
             GuildMemberInfoDao.new {
                 this.guildId = guild.gid
                 this.player = player
@@ -378,6 +402,14 @@ class BloraDatabase(
                 GuildRoleTable.gid eq guild.gid and
                         (GuildRoleTable.rid eq "member")
             }.first()
+        }
+    }
+
+    fun listMemberInfo(guild: String): List<GuildMemberInfoDao> {
+        return trans {
+            GuildMemberInfoDao.find {
+                GuildMemberInfoTable.gid eq guild
+            }.toList()
         }
     }
 

@@ -22,7 +22,7 @@ import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 
-fun guildSettings_modifyIdDialog(viewer: Player, menuContext: MenuContext, guild: GuildDao, guilds: MutableList<GuildDao>, permissions: Collection<GuildPermissions>, rerenderGuildViewParent: () -> Unit, warningMessage: Component? = null): Dialog {
+fun guildSettings_modifyIdDialog(viewer: Player, guild: GuildDao, rerenderCallback: () -> Unit, warningMessage: Component? = null): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {
@@ -56,16 +56,22 @@ fun guildSettings_modifyIdDialog(viewer: Player, menuContext: MenuContext, guild
             },
             action = DynamicCustomClickTypeInjected(
                 callback = {
+                    DB.trans {
+                        guild.refresh()
+                    }
+                    val isMember = guild.members.contains(viewer.uniqueId)
+                    val permissions = guild.getPlayerPermissions(viewer.uniqueId, isMember)
+                    if (!permissions.contains(GuildPermissions.MODIFY_GUILD_ID)) {
+                        rerenderCallback()
+                        return@DynamicCustomClickTypeInjected
+                    }
                     val guildId = ((it as NbtCompound)["guild_id"] as NbtString).value
                     if (!guildId.containsLetterAndNumberOnly()) {
                         viewer.openDialog(
                             guildSettings_modifyIdDialog(
                                 viewer,
-                                menuContext,
                                 guild,
-                                guilds,
-                                permissions,
-                                rerenderGuildViewParent,
+                                rerenderCallback,
                                 component {
                                     localization(viewer) {
                                         this.guild.dialog.dialogGuild_settingsSet_idWarningId_illegal
@@ -79,11 +85,8 @@ fun guildSettings_modifyIdDialog(viewer: Player, menuContext: MenuContext, guild
                         viewer.openDialog(
                             guildSettings_modifyIdDialog(
                                 viewer,
-                                menuContext,
                                 guild,
-                                guilds,
-                                permissions,
-                                rerenderGuildViewParent,
+                                rerenderCallback,
                                 component {
                                     localization(viewer) {
                                         this.guild.dialog.dialogGuild_settingsSet_idWarningId_exists
@@ -99,7 +102,7 @@ fun guildSettings_modifyIdDialog(viewer: Player, menuContext: MenuContext, guild
                             this.guild.guildUpdateId
                         }
                     }
-                    menuContext.stack.replace(guildSettingsMenu(viewer, guild, guilds, permissions, rerenderGuildViewParent))
+                    rerenderCallback()
                 }
             )
         ),

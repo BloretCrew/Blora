@@ -79,6 +79,31 @@ data class RolePermissions(
 
     companion object {
 
+        fun allowAll(): RolePermissions {
+            return RolePermissions(
+                modifyGuildName = true,
+                modifyGuildId = true,
+                modifyGuildIcon = true,
+                modifyGuildVisibility = true,
+                modifyGuildJoinStrategy = true,
+                createRole = true,
+                modifyRole = true,
+                deleteRole = true,
+                kickPlayer = true,
+                reviewPlayer = true,
+                invitePlayer = true,
+                requestAlly = true,
+                reviewAlly = true,
+                stopAlly = true,
+                manageInvitationCode = true,
+                storeBank = true,
+                withdrawBank = true,
+                useVitality = true,
+                blocklist = true,
+                enderChest = true,
+            )
+        }
+
         fun denyAll(): RolePermissions {
             return RolePermissions(
                 modifyGuildName = false,

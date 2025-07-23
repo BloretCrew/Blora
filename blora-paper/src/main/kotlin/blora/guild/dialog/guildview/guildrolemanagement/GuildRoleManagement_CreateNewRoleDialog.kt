@@ -20,9 +20,8 @@ import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
-import plutoproject.adventurekt.text.style.callback
 
-fun guildRoleManagemenet_createNewRole(
+fun guildRoleManagemenet_createNewRoleDialog(
     viewer: Player,
     guild: GuildDao,
     callback: (GuildRoleDao) -> Unit,
@@ -61,7 +60,7 @@ fun guildRoleManagemenet_createNewRole(
                         this.guild.dialog.dialogGuild_role_managementCreate_roleInputPlaceholderName
                     }
                 },
-                initial = initialRoleId,
+                initial = initialRoleName,
             )
         ),
         yes = ClickAction(
@@ -72,11 +71,17 @@ fun guildRoleManagemenet_createNewRole(
             },
             action = DynamicCustomClickTypeInjected(
                 callback = {
+                    DB.trans {
+                        guild.refresh()
+                    }
+                    if (guild.owner != viewer.uniqueId) {
+                        return@DynamicCustomClickTypeInjected
+                    }
                     val roleId = ((it as NbtCompound)["role_id"] as NbtString).value
                     val roleName = (it["role_name"] as NbtString).value
                     if (!roleId.containsLetterAndNumberOnly() || roleId.isEmpty() || roleId.isBlank()) {
                         viewer.openDialog(
-                            guildRoleManagemenet_createNewRole(
+                            guildRoleManagemenet_createNewRoleDialog(
                                 viewer,
                                 guild,
                                 callback,
@@ -93,7 +98,7 @@ fun guildRoleManagemenet_createNewRole(
                     }
                     if (DB.getRoleForGuild(guild.gid, roleId) != null) {
                         viewer.openDialog(
-                            guildRoleManagemenet_createNewRole(
+                            guildRoleManagemenet_createNewRoleDialog(
                                 viewer,
                                 guild,
                                 callback,

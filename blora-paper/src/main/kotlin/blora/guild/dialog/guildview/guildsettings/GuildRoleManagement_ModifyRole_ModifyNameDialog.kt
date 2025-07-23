@@ -1,6 +1,7 @@
 package blora.guild.dialog.guildview.guildsettings
 
 import blora.database.DB
+import blora.database.guild.dao.GuildDao
 import blora.database.guild.dao.GuildRoleDao
 import blora.dialog.ConfirmationDialog
 import blora.dialog.Dialog
@@ -16,7 +17,7 @@ import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun guildRoleManagement_modifyRole_modifyNameDialog(viewer: Player, role: GuildRoleDao, context: MenuContext): Dialog {
+fun guildRoleManagement_modifyRole_modifyNameDialog(viewer: Player, guild: GuildDao, role: GuildRoleDao): Dialog {
     return ConfirmationDialog(
         title = component {
             localization(viewer) {
@@ -42,22 +43,26 @@ fun guildRoleManagement_modifyRole_modifyNameDialog(viewer: Player, role: GuildR
             },
             action = DynamicCustomClickTypeInjected(
                 callback = {
-                    val roleName = ((it as NbtCompound)["role_name"] as NbtString).value
                     DB.trans {
-                        role.displayName = roleName
-                        role.flush()
+                        guild.refresh()
                     }
-                    viewer.send {
-                        localization(
-                            player = viewer,
-                            tags = {
-                                parsedPlaceholder("role", role.displayName)
+                    if (guild.owner == viewer.uniqueId) {
+                        val roleName = ((it as NbtCompound)["role_name"] as NbtString).value
+                        DB.trans {
+                            role.displayName = roleName
+                            role.flush()
+                        }
+                        viewer.send {
+                            localization(
+                                player = viewer,
+                                tags = {
+                                    parsedPlaceholder("role", role.displayName)
+                                }
+                            ) {
+                                this.guild.guildRoleUpdate_name
                             }
-                        ) {
-                            this.guild.guildRoleUpdate_name
                         }
                     }
-                    context.menu.rerender()
                 }
             )
         ),
