@@ -87,7 +87,7 @@ object ChatListener : Listener {
     }
 
     @Suppress("DEPRECATION")
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onAsyncPlayerChat(event: AsyncPlayerChatEvent) {
         if (event.isCancelled) { // if the event is already cancelled by other plugins
             return
