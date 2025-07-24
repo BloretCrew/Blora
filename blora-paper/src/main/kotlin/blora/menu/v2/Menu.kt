@@ -31,7 +31,7 @@ class Menu(
     private var lastClick = System.currentTimeMillis()
     private val inventory: Inventory
     private val closers: MutableList<(Menu) -> Unit> = mutableListOf()
-    private val snapshot: MenuPageSnapshot<*, *> =
+    private var snapshot: MenuPageSnapshot<*, *> =
         StaticMenuPage(Component.empty(), emptyMap(), { _, _ -> false }, {}, {})
 
     init {
@@ -64,7 +64,12 @@ class Menu(
 
     fun rerender(): Menu {
         this.inventory.clear()
-        stack.currentOrNull()?.render(this, this.inventory)
+        val current = stack.currentOrNull()
+        if (current != null) {
+            this.snapshot = current.render(this, this.inventory)
+        } else {
+            this.snapshot = StaticMenuPage(Component.empty(), emptyMap(), { _, _ -> false }, {}, {})
+        }
         return this
     }
 
