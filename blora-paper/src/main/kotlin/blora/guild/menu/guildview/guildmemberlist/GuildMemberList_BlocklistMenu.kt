@@ -34,7 +34,7 @@ fun guildMemberList_blocklistMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                     parsedPlaceholder("guild", guild.displayName)
                 }
             ) {
-                this.guild.menu.menuGuild_member_listJoin_requestsTitle
+                this.guild.menu.menuGuild_member_listBlocklistTitle
             }
         }
         showBackButton()
