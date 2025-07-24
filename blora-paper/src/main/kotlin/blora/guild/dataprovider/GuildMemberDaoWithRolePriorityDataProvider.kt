@@ -3,13 +3,31 @@ package blora.guild.dataprovider
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.database.guild.dao.GuildMemberInfoDao
+import blora.menu.v2.Menu
 import blora.menu.v2.page.PageableDataProvider
+import org.jetbrains.exposed.dao.EntityChange
+import org.jetbrains.exposed.dao.EntityChangeType
+import org.jetbrains.exposed.dao.EntityHook
+import org.jetbrains.exposed.dao.toEntity
 
 class GuildMemberDaoWithRolePriorityDataProvider(
     val guild: GuildDao
 ) : PageableDataProvider<Pair<GuildMemberInfoDao, Int>> {
 
+    private val removedFilter: MutableList<GuildMemberInfoDao> = mutableListOf()
     private var loadedData = listOf<Pair<GuildMemberInfoDao, Int>>()
+
+    private var hookedMenu: Menu? = null
+
+    private val hook: (EntityChange) -> Unit = { change ->
+        if (change.entityClass == GuildMemberInfoDao) {
+            val entity = change.toEntity(GuildMemberInfoDao)
+            if (change.changeType == EntityChangeType.Removed && entity != null) {
+                this.removedFilter.add(entity)
+            }
+            this.hookedMenu?.rerender()
+        }
+    }
 
     override val size: Int
         get() = this.loadedData.size
@@ -20,7 +38,19 @@ class GuildMemberDaoWithRolePriorityDataProvider(
 
     override fun refresh() {
         val memberMaxRolePriority = DB.listRolePriorities(this.guild)
-        this.loadedData = DB.listMemberInfo(this.guild.gid).map { it to memberMaxRolePriority[it.player]!! }
+        this.loadedData = DB.listMemberInfo(this.guild.gid)
+            .map { it to memberMaxRolePriority[it.player]!! }
+            .filter { !this.removedFilter.contains(it.first) }
+    }
+
+    override fun hook(menu: Menu) {
+        this.hookedMenu = menu
+        EntityHook.subscribe(this.hook)
+    }
+
+    override fun unhook() {
+        this.hookedMenu = null
+        EntityHook.unsubscribe(this.hook)
     }
 
 }

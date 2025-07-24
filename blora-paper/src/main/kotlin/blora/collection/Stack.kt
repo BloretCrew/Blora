@@ -28,4 +28,8 @@ class Stack<T> {
         return last
     }
 
+    fun clear() {
+        this.items.clear()
+    }
+
 }

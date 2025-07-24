@@ -17,7 +17,7 @@ class PageableMenuPage<D>(
         internal set
 
     override fun fireLaunchEffect(menu: Menu) {
-        this.builder.dataProvider
+        this.builder.dataProvider.hook(menu)
         this.launchEffect(
             PageableMenuViewContext(
                 menu,
@@ -29,6 +29,7 @@ class PageableMenuPage<D>(
     }
 
     override fun fireDisposeEffect(menu: Menu) {
+        this.builder.dataProvider.unhook()
         this.disposeEffect(
             PageableMenuViewContext(
                 menu,
@@ -53,7 +54,8 @@ interface PageableDataProvider<D> {
     val size: Int
 
     operator fun get(index: Int): D
-
     fun refresh()
+    fun hook(menu: Menu)
+    fun unhook()
 
 }

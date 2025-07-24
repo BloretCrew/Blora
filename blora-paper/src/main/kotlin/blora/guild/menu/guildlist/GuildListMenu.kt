@@ -4,6 +4,7 @@ import blora.database.guild.dao.GuildDao
 import blora.extension.localization
 import blora.guild.GuildJoinStrategy
 import blora.guild.dataprovider.GuildDaoDataProvider
+import blora.guild.menu.guildview.guildViewMenu
 import blora.item.clone
 import blora.menu.v2.Menu
 import blora.menu.v2.item.clickEvent
@@ -105,8 +106,10 @@ fun guildListMenu(
                     "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionJoin_strategy
                 }
             }
-            clickEvent {
-
+            clickEvent { clickContext ->
+                clickContext.stack.push {
+                    guildViewMenu(menu, guild)
+                }
             }
         }
     }

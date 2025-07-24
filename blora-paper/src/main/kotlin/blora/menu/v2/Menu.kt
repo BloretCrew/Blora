@@ -19,6 +19,8 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
+import plutoproject.adventurekt.audience.send
+import plutoproject.adventurekt.text.text
 
 class Menu(
     val viewer: Player,
@@ -74,13 +76,14 @@ class Menu(
     }
 
     fun destroy() {
+        this.stack.clear()
         this.inventory.clear() // prevent bug if some plugin cancel player closing inventory
         HandlerList.unregisterAll(this) // unregister to prevent trigger closer
         this.viewer.closeInventory()
     }
 
     fun closer(closer: (Menu) -> Unit): Menu {
-        closers.add(closer)
+        this.closers.add(closer)
         return this
     }
 
@@ -123,9 +126,9 @@ class Menu(
 
     @EventHandler
     fun closeHandler(event: InventoryCloseEvent) {
-        if (event.inventory == this.inventory) {
-            this.closers.forEach { it(this) }
-        }
+        if (event.inventory.holder != this || event.inventory != this.inventory)
+            return
+        this.closers.forEach { it(this) }
     }
 
     @EventHandler

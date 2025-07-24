@@ -32,6 +32,9 @@ fun guildMenu(viewer: Player): Menu {
         5,
         200L
     ).apply {
+        this.closer {
+            it.destroy()
+        }
         this.stack.push {
             limitedDynamicMenuPage(this) {
                 title {
@@ -183,5 +186,5 @@ fun guildMenu(viewer: Player): Menu {
                 }
             }
         }
-    }.open()
+    }
 }

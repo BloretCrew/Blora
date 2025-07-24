@@ -39,4 +39,8 @@ class MenuStack(val menu: Menu) {
         this.replace(page())
     }
 
+    fun clear() {
+        this.pages.clear()
+    }
+
 }

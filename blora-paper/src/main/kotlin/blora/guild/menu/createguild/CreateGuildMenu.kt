@@ -3,6 +3,7 @@ package blora.guild.menu.createguild
 import blora.configuration.CONF
 import blora.database.DB
 import blora.extension.localization
+import blora.extension.openDialog
 import blora.guild.CreatingGuildContext
 import blora.guild.GuildModule
 import blora.guild.dialog.createguild.createGuild_modifyDisplayName
@@ -57,7 +58,9 @@ fun createMenuPage(menu: Menu): MenuPage<*, *> {
                 }
             }
             clickEvent { clickContext ->
-                createGuild_setIdDialog(clickContext.viewer, context, { clickContext.menu.rerender() })
+                clickContext.viewer.openDialog(
+                    createGuild_setIdDialog(clickContext.viewer, context, { clickContext.menu.rerender() })
+                )
             }
         }
         3 to 5 eq {
@@ -76,7 +79,9 @@ fun createMenuPage(menu: Menu): MenuPage<*, *> {
                 }
             }
             clickEvent { clickContext ->
-                createGuild_modifyDisplayName(clickContext.viewer, context, { clickContext.menu.rerender() })
+                clickContext.viewer.openDialog(
+                    createGuild_modifyDisplayName(clickContext.viewer, context, { clickContext.menu.rerender() })
+                )
             }
         }
         3 to 8 eq {
