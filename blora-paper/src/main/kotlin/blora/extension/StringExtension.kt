@@ -34,6 +34,19 @@ fun String.containsLetterAndNumberOnly(): Boolean {
     return true
 }
 
+fun String.containsNumberOnly(): Boolean {
+    if (this.contains(".") && this.count { it == '.' } > 1) {
+        return false
+    }
+
+    for (char in this.replace(".", "").substring(if (this.startsWith("-")) 1 else 0)) {
+        if (!char.isDigit()) {
+            return false
+        }
+    }
+    return true
+}
+
 fun String.containsLowercaseLetterOnly(): Boolean {
     for (char in this) {
         if (!char.isLetter() || !char.isLowerCase()) {
