@@ -16,6 +16,7 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
+import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
@@ -40,6 +41,20 @@ object ChatListener : Listener {
         "blora:whisper",
         "blora:msg"
     )
+
+    private var registered: Boolean = false
+
+    fun register() {
+        if (!registered) {
+            Bukkit.getPluginManager().registerEvents(this, BloraPlugin)
+            registered = true
+        }
+    }
+
+    fun unregister() {
+        HandlerList.unregisterAll(this)
+        this.registered = false
+    }
 
     private fun listAllPlaceholders(player: Player): List<String> {
         return buildList {

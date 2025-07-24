@@ -5,6 +5,7 @@ package blora.guild.menu.guildview.guildmemberlist
 import blora.configuration.CONF
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
+import blora.database.guild.dao.GuildKickNotifyDao
 import blora.database.guild.dao.GuildMemberInfoDao
 import blora.database.guild.table.GuildInvitationTable
 import blora.database.guild.table.GuildJoinNotifyTable
@@ -33,6 +34,7 @@ import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
 import plutoproject.adventurekt.text.text
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 
@@ -223,7 +225,7 @@ fun guildMemberList_memberManagementMenu(menu: Menu, guild: GuildDao, member: Gu
                             if (player != null && player.isOnline) {
                                 player.send {
                                     localization(
-                                        player = clickContext.viewer,
+                                        player = player,
                                         tags = {
                                             parsedPlaceholder("guild", guild.displayName)
                                             parsedPlaceholder("player", clickContext.viewer.name)
@@ -233,7 +235,15 @@ fun guildMemberList_memberManagementMenu(menu: Menu, guild: GuildDao, member: Gu
                                     }
                                 }
                             } else {
-                                // todo: kick notify for offline player
+                                DB.trans {
+                                    GuildKickNotifyDao.new {
+                                        this.guildId = guild.gid
+                                        this.guildName = guild.displayName
+                                        this.player = member.player
+                                        this.operator = clickContext.viewer.uniqueId
+                                        this.kickAt = LocalDateTime.now()
+                                    }
+                                }
                             }
                             clickContext.stack.pop()
                         }

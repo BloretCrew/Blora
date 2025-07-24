@@ -18,6 +18,7 @@ data class ConfigurationContents(
 @Serializable
 data class Guild(
     val level: GuildLevel = GuildLevel(),
+    val notifyDelaySeconds: Int = 2,
     val ownerTransferCooldownDays: Int = 30,
     val playerMaxJoin: Int = 3,
     val playerMaxOwn: Int = 1,
@@ -96,6 +97,7 @@ data class Chat(
 
 @Serializable
 data class Mail(
+    val notifyDelaySeconds: Int = 2,
     val unreadTips: Boolean = true,
     val coinsClaimable: Boolean = true,
     val bloriusClaimable: Boolean = true,

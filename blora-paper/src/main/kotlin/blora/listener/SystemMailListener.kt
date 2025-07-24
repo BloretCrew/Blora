@@ -1,5 +1,6 @@
 package blora.listener
 
+import blora.configuration.CONF
 import blora.extension.localization
 import blora.mail.MailModule
 import blora.plugin.BloraPlugin
@@ -13,6 +14,7 @@ import plutoproject.adventurekt.text.parsedPlaceholder
 import plutoproject.adventurekt.text.style.runCommand
 import plutoproject.adventurekt.text.style.showText
 import plutoproject.adventurekt.text.with
+import kotlin.math.max
 
 object SystemMailListener : Listener {
 
@@ -62,31 +64,39 @@ object SystemMailListener : Listener {
             MailModule.receiveNewMail(player, systemMail, visible = true, notify = false)
         }
         if (BloraPlugin.configuration.mail.unreadTips) {
-            val amount = BloraPlugin.database
-                .getMailsByReceiverUuid(player.uniqueId)
-                .filter { it.visible }
-                .filter { !it.isRead }
-                .toList()
-                .size
-            if (amount < 1)
-                return
-            player.send {
-                localization(
-                    player = player,
-                    tags = {
-                        parsedPlaceholder(
-                            "amount",
-                            amount.toString()
-                        )
+            Bukkit.getScheduler().runTaskLater(
+                BloraPlugin,
+                Runnable {
+                    if (!event.player.isOnline)
+                        return@Runnable
+                    val amount = BloraPlugin.database
+                        .getMailsByReceiverUuid(player.uniqueId)
+                        .filter { it.visible }
+                        .filter { !it.isRead }
+                        .toList()
+                        .size
+                    if (amount < 1)
+                        return@Runnable
+                    player.send {
+                        localization(
+                            player = player,
+                            tags = {
+                                parsedPlaceholder(
+                                    "amount",
+                                    amount.toString()
+                                )
+                            }
+                        ) {
+                            this.mail.mailJoinUnreadTips
+                        } with runCommand("/mail") with showText {
+                            localization(player) {
+                                this.mail.mailJoinUnreadTipsHover
+                            }
+                        }
                     }
-                ) {
-                    this.mail.mailJoinUnreadTips
-                } with runCommand("/mail") with showText {
-                    localization(player) {
-                        this.mail.mailJoinUnreadTipsHover
-                    }
-                }
-            }
+                },
+                max(CONF.mail.notifyDelaySeconds, 0) * 20L
+            )
         }
     }
 

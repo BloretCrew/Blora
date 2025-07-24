@@ -14,6 +14,7 @@ import blora.entity.QuickEntityLibWrapper
 import blora.injector.BloraInjector
 import blora.internal.api.QuickEntityLib
 import blora.listener.ChatListener
+import blora.listener.GuildListener
 import blora.listener.SystemMailListener
 import blora.listener.UnauthorizedListener
 import blora.listener.VanillaCommandsRemoverListener
@@ -141,6 +142,7 @@ internal fun registerListeners() {
         UnauthorizedListener.register()
     }
     SystemMailListener.register()
-    Bukkit.getPluginManager().registerEvents(VanillaCommandsRemoverListener, BloraPlugin)
-    Bukkit.getPluginManager().registerEvents(ChatListener, BloraPlugin)
+    GuildListener.register()
+    ChatListener.register()
+    VanillaCommandsRemoverListener.register()
 }

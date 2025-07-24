@@ -73,10 +73,39 @@ class BloraDatabase(
             SchemaUtils.create(GuildJoinRequestTable)
             SchemaUtils.create(GuildBankLogTable)
             SchemaUtils.create(GuildBlocklistTable)
+            SchemaUtils.create(GuildKickNotifyTable)
         }
     }
 
     // Guild
+
+    fun getGuildDisplayName(guildId: String): String? {
+        return getGuildByGid(guildId)?.displayName
+    }
+
+    fun listJoinNotifies(player: UUID): List<GuildJoinNotifyDao> {
+        return trans {
+            GuildJoinNotifyDao.find {
+                GuildJoinNotifyTable.player eq player
+            }.toList()
+        }
+    }
+
+    fun listDisbandNotifies(player: UUID): List<GuildDisbandNotifyDao> {
+        return trans {
+            GuildDisbandNotifyDao.find {
+                QueryParameter(player, UUIDColumnType()) eq anyFrom(GuildDisbandNotifyTable.members)
+            }.toList()
+        }
+    }
+
+    fun listKickNotifies(player: UUID): List<GuildKickNotifyDao> {
+        return trans {
+            GuildKickNotifyDao.find {
+                GuildKickNotifyTable.player eq player
+            }.toList()
+        }
+    }
 
     fun listBlocklist(guild: String): List<GuildBlocklistDao> {
         return trans {
