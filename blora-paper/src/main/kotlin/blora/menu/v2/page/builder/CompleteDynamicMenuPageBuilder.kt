@@ -22,7 +22,10 @@ class CompleteDynamicMenuPageBuilder
 
     internal var builder: CompleteDynamicMenuPageBuilder.() -> Unit = {}
 
+    private var previousRecordedPageId: String? = null
+
     internal fun reset() {
+        this.previousRecordedPageId = this.pageId
         this.title = null
         this.items.clear()
         this.mapItems.clear()
@@ -37,6 +40,9 @@ class CompleteDynamicMenuPageBuilder
     ): CompleteDynamicMenuPageSnapshot {
         this.reset()
         this.builder()
+        if (this.previousRecordedPageId != null && this.pageId != previousRecordedPageId) {
+            throw RuntimeException("page id shouldn't be dynamic!")
+        }
         val viewContext = CompleteDynamicMenuViewContext(menu)
         val finalItems =
             mutableMapOf<Int, MenuItemBuilder<CompleteDynamicMenuClickContext>.(CompleteDynamicMenuViewContext) -> Unit>()
@@ -105,7 +111,11 @@ class CompleteDynamicMenuPageBuilder
     }
 
     override fun build(menu: Menu): CompleteDynamicMenuPage {
+        this.builder()
+        this.reset()
+        // generate page id
         return CompleteDynamicMenuPage(
+            this.pageId,
             this,
             this.launchEffect,
             this.disposeEffect

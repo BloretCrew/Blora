@@ -21,6 +21,7 @@ import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.completeDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import blora.plugin.BloraPlugin
 import blora.util.castString
@@ -79,6 +80,7 @@ private val guildButtonPositions = listOf(
 )
 
 fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    val guildId = guild.id // not using gid but id is because id won't be duplicated event guild admin changed gid
     return completeDynamicMenuPage(menu) {
         DB.trans {
             guild.refresh()
@@ -86,6 +88,10 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
         val isMember = guild.members.contains(menu.viewer.uniqueId)
         val permissions = guild.getPlayerPermissions(menu.viewer.uniqueId, isMember)
         val buttons = permissions.toButtons(guild, isMember)
+
+        pageId {
+            "guild_$guildId"
+        }
 
         title {
             localization(

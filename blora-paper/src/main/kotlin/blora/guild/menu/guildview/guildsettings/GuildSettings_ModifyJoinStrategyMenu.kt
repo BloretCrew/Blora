@@ -14,14 +14,19 @@ import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import org.bukkit.Material
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.newline
 
 fun guildSettings_modifyJoinStrategyMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    val guildId = guild.id
     var cachedJoinStrategy = guild.joinStrategy
     return limitedDynamicMenuPage(menu) {
+        pageId {
+            "guild_${guildId}_settings_modifyJoinStrategy"
+        }
         title {
             localization(
                 player = menu.viewer,

@@ -19,6 +19,7 @@ import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.ComponentKt
 
 class LimitedDynamicMenuPage(
+    override val pageId: String,
     val title: (ComponentKt.(LimitedDynamicMenuViewContext) -> Unit)? = null,
     val items: Map<Int, MenuItemBuilder<LimitedDynamicMenuClickContext>.(LimitedDynamicMenuViewContext) -> Unit>,
     val playerInventoryClickHandler: (ItemStack, LimitedDynamicMenuClickContext) -> Boolean,

@@ -30,7 +30,10 @@ class PageableMenuPageBuilder<D>(
         { _, _ -> }
     internal var builder: PageableMenuPageBuilder<D>.() -> Unit = {}
 
+    private var previousRecordedPageId: String? = null
+
     internal fun reset() {
+        this.previousRecordedPageId = this.pageId
         this.title = null
         this.items.clear()
         this.mapItems.clear()
@@ -78,6 +81,9 @@ class PageableMenuPageBuilder<D>(
             )
         }
         this.builder()
+        if (this.previousRecordedPageId != null && this.pageId != previousRecordedPageId) {
+            throw RuntimeException("page id shouldn't be dynamic!")
+        }
         this.dataProvider.refresh()
         var currentPage = page
         val maxPage = this.calculateMaxPage(menu.lines)
@@ -263,7 +269,11 @@ class PageableMenuPageBuilder<D>(
     }
 
     override fun build(menu: Menu): PageableMenuPage<D> {
+        this.builder()
+        this.reset()
+        // generate page id
         return PageableMenuPage(
+            this.pageId,
             this,
             this.launchEffect,
             this.disposeEffect

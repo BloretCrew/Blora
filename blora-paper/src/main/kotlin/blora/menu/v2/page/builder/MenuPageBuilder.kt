@@ -10,12 +10,14 @@ import blora.menu.v2.item.clickEvent
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
+import blora.util.randomString
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.text.ComponentKt
 
 abstract class MenuPageBuilder<C : MenuClickContext, V : MenuViewContext, P : MenuPage<out C, out V>> {
 
+    internal var pageId: String = randomString(16)
     internal var title: (ComponentKt.(V) -> Unit)? = null
     internal val items: MutableMap<Int, MenuItemBuilder<out C>.(V) -> Unit> = mutableMapOf()
     internal val mapItems: MutableMap<Char, MenuItemBuilder<out C>.(V) -> Unit> = mutableMapOf()
@@ -51,6 +53,10 @@ fun <C : MenuClickContext, V : MenuViewContext, P : MenuPage<out C, out V>> Menu
             it.stack.pop()
         }
     }
+}
+
+fun <C : MenuClickContext, V : MenuViewContext, P : MenuPage<out C, out V>> MenuPageBuilder<out C, out V, out P>.pageId(provider: () -> String) {
+    this.pageId = provider.invoke()
 }
 
 fun <C : MenuClickContext, V : MenuViewContext, P : MenuPage<out C, out V>> MenuPageBuilder<out C, out V, out P>.title(

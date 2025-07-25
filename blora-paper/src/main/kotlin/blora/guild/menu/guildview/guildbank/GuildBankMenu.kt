@@ -18,6 +18,7 @@ import blora.menu.v2.item.name
 import blora.menu.v2.page.LimitedDynamicMenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import blora.plugin.ThirdPartys
 import org.bukkit.Material
@@ -25,7 +26,11 @@ import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.parsedPlaceholder
 
 fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
+    val guildId = guild.id
     return limitedDynamicMenuPage(menu) {
+        pageId {
+            "guild_${guildId}_bank"
+        }
         title {
             localization(
                 player = menu.viewer,

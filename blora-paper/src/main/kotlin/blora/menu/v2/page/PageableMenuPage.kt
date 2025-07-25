@@ -8,6 +8,7 @@ import blora.menu.v2.page.snapshot.MenuPageSnapshot
 import org.bukkit.inventory.Inventory
 
 class PageableMenuPage<D>(
+    override val pageId: String,
     private val builder: PageableMenuPageBuilder<D>,
     private val launchEffect: (PageableMenuViewContext<D>) -> Unit,
     private val disposeEffect: (PageableMenuViewContext<D>) -> Unit,

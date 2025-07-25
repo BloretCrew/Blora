@@ -14,14 +14,20 @@ import blora.menu.v2.item.name
 import blora.menu.v2.page.LimitedDynamicMenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import org.bukkit.Material
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.parsedPlaceholder
 
 fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildRoleDao): LimitedDynamicMenuPage {
-    var cachedPermissions = role.permission.clone()
+    val guildId = guild.id
+    val roleId = role.id
+    val cachedPermissions = role.permission.clone()
     return limitedDynamicMenuPage(menu) {
+        pageId {
+            "guild_${guildId}_roleManagement_modifyRole_${roleId}"
+        }
         title {
             localization(
                 player = menu.viewer,

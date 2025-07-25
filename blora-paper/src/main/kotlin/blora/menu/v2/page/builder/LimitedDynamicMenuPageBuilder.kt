@@ -36,6 +36,7 @@ class LimitedDynamicMenuPageBuilder
             }
         }
         return LimitedDynamicMenuPage(
+            this.pageId,
             this.title,
             finalItems,
             this.playerInventoryClickHandler,

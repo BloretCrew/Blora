@@ -11,6 +11,7 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 
 class StaticMenuPage(
+    override val pageId: String,
     val title: Component?,
     val items: Map<Int, MenuItemSnapshot<StaticMenuClickContext>>,
     val playerInventoryClickHandler: (ItemStack, StaticMenuClickContext) -> Boolean,

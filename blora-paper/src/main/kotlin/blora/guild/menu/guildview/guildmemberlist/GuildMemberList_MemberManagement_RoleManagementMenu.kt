@@ -13,6 +13,7 @@ import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.pageableMenuPage
 import blora.menu.v2.page.builder.showBackButton
 import blora.menu.v2.page.builder.title
@@ -25,8 +26,13 @@ fun guildMemberList_memberManagement_roleManagementMenu(
     guild: GuildDao,
     member: GuildMemberInfoDao
 ): MenuPage<*, *> {
+    val guildId = guild.id
+    val memberId = member.id
     return pageableMenuPage(menu, GuildRoleDaoDataProvider(guild.gid)) {
         val cachedPlayerName = DB.getPlayerDisplayName(member.player)
+        pageId {
+            "guild_${guildId}_memberList_memberManagement_${memberId}_roleManagement"
+        }
         title {
             localization(
                 player = menu.viewer,

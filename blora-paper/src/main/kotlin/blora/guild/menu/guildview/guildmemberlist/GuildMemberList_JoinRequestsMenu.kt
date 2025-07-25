@@ -16,6 +16,7 @@ import blora.menu.v2.item.description
 import blora.menu.v2.item.icon
 import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.pageableMenuPage
 import blora.menu.v2.page.builder.showBackButton
 import blora.menu.v2.page.builder.title
@@ -29,7 +30,11 @@ import plutoproject.adventurekt.text.text
 import java.time.LocalDateTime
 
 fun guildMemberList_joinRequestsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    val guildId = guild.id
     return pageableMenuPage(menu, ValidGuildJoinRequestDaoDataProvider(guild.gid)) {
+        pageId {
+            "guild_${guildId}_memberList_joinRequests"
+        }
         title {
             localization(
                 player = menu.viewer,

@@ -8,6 +8,7 @@ import blora.menu.v2.page.snapshot.MenuPageSnapshot
 import org.bukkit.inventory.Inventory
 
 class CompleteDynamicMenuPage(
+    override val pageId: String,
     private val builder: CompleteDynamicMenuPageBuilder,
     private val launchEffect: (CompleteDynamicMenuViewContext) -> Unit,
     private val disposeEffect: (CompleteDynamicMenuViewContext) -> Unit,

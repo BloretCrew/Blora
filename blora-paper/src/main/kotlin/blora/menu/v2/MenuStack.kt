@@ -16,6 +16,8 @@ class MenuStack(val menu: Menu) {
     }
 
     fun push(page: MenuPage<*, *>) {
+        if (this.pages.any { it.pageId == page.pageId })
+            throw IllegalArgumentException("Page ID ${page.pageId} already exists.")
         this.pages.push(page)
         page.fireLaunchEffect(menu)
         this.menu.rerender()
@@ -30,7 +32,17 @@ class MenuStack(val menu: Menu) {
         this.menu.rerender()
     }
 
+    fun popUntil(pageId: String, include: Boolean = false) {
+        if (!this.pages.any { it.pageId == pageId })
+            return
+        this.pages.popUntil(this.pages.first { it.pageId == pageId }, include)
+        this.menu.rerender()
+    }
+
     fun replace(page: MenuPage<*, *>) {
+        // when replace current page will be pop, so don't consider it when checking page id
+        if (this.pages.toList().subList(0, this.pages.toList().size - 2).any { it.pageId == page.pageId })
+            throw IllegalArgumentException("Page ID ${page.pageId} already exists.")
         this.pages.replace(page.apply { this.fireLaunchEffect(menu) })?.fireDisposeEffect(menu)
         this.menu.rerender()
     }

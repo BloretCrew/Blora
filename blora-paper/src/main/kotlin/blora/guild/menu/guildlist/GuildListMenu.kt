@@ -14,17 +14,23 @@ import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.pageableMenuPage
 import blora.menu.v2.page.builder.showBackButton
+import blora.menu.v2.page.builder.title
 import blora.plugin.BloraPlugin
 import blora.util.castString
+import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
+import plutoproject.adventurekt.text.raw
 
 fun guildListMenu(
     menu: Menu,
+    pageId: String,
+    title: Component,
     systemFilter: (Player, GuildDao) -> Boolean,
     userFilter: (Player, GuildDao) -> Boolean = { _, _ -> true }
 ): MenuPage<*, *> {
@@ -34,6 +40,12 @@ fun guildListMenu(
             it
         )
     }) {
+        pageId {
+            pageId
+        }
+        title {
+            raw { title }
+        }
         showBackButton()
         dataItem { viewContext, guild ->
             icon { clone { guild.parsedIcon } }

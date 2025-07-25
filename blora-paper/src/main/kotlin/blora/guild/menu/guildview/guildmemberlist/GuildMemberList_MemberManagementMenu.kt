@@ -22,6 +22,7 @@ import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.completeDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Bukkit
@@ -46,11 +47,16 @@ private val buttons = listOf(
 )
 
 fun guildMemberList_memberManagementMenu(menu: Menu, guild: GuildDao, member: GuildMemberInfoDao): MenuPage<*, *> {
+    val guildId = guild.id
+    val memberId = member.id
     return completeDynamicMenuPage(menu) {
         val cachedPlayerName = DB.getPlayerDisplayName(member.player)
         val viewerPriority = DB.getMaxRolePriority(menu.viewer.uniqueId, guild)
         val playerPriority = DB.getMaxRolePriority(member.player, guild)
         val isOwner = menu.viewer.uniqueId == guild.owner
+        pageId {
+            "guild_${guildId}_memberList_memberManagement_${memberId}"
+        }
         title {
             localization(
                 player = menu.viewer,

@@ -20,6 +20,7 @@ import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.inventoryClick
 import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import blora.permission.Permissions
 import blora.plugin.BloraPlugin
@@ -33,6 +34,9 @@ import plutoproject.adventurekt.text.parsedPlaceholder
 fun createMenuPage(menu: Menu): MenuPage<*, *> {
     val context = CreatingGuildContext()
     return limitedDynamicMenuPage(menu) {
+        pageId {
+            "create_guild"
+        }
         title {
             localization(menu.viewer) {
                 this.guild.menu.menuCreate_guildTitle

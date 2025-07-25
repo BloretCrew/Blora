@@ -18,6 +18,7 @@ import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.completeDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import org.bukkit.Material
 import plutoproject.adventurekt.audience.send
@@ -37,12 +38,17 @@ private val buttons = listOf(
 )
 
 fun guildSettingsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    val guildId = guild.id
     return completeDynamicMenuPage(menu) {
         DB.trans {
             guild.refresh()
         } // ensure data updated for security
         val isMember = guild.members.contains(menu.viewer.uniqueId)
         val permissions = guild.getPlayerPermissions(menu.viewer.uniqueId, isMember)
+
+        pageId {
+            "guild_${guildId}_settings"
+        }
 
         title {
             localization(

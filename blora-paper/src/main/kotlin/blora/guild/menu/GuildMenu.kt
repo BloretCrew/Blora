@@ -17,6 +17,7 @@ import blora.menu.v2.item.clickEvent
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import blora.permission.Permissions
 import blora.plugin.BloraPlugin
@@ -24,6 +25,7 @@ import org.black_ixx.playerpoints.PlayerPoints
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
+import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
 
 fun guildMenu(viewer: Player): Menu {
@@ -37,6 +39,9 @@ fun guildMenu(viewer: Player): Menu {
         }
         this.stack.push {
             limitedDynamicMenuPage(this) {
+                pageId {
+                    "guild"
+                }
                 title {
                     localization(viewer) {
                         this.guild.menu.menuGuildTitle
@@ -53,6 +58,12 @@ fun guildMenu(viewer: Player): Menu {
                         clickContext.stack.push {
                             guildListMenu(
                                 clickContext.menu,
+                                "guild_list",
+                                component {
+                                    localization(clickContext.viewer) {
+                                        this.guild.menu.menuGuild_listTitle
+                                    }
+                                },
                                 systemFilter = { player, guild ->
                                     ((guild.public || guild.members.contains(viewer.uniqueId)) &&
                                             !guild.blocklist.contains(viewer.uniqueId)) ||
@@ -89,6 +100,12 @@ fun guildMenu(viewer: Player): Menu {
                             clickContext.stack.push(
                                 guildListMenu(
                                     clickContext.menu,
+                                    "my_guild_list",
+                                    component {
+                                        localization(clickContext.viewer) {
+                                            this.guild.menu.menuMy_guildTitle
+                                        }
+                                    },
                                     systemFilter = { player, guild ->
                                         guild.members.contains(viewer.uniqueId)
                                     }

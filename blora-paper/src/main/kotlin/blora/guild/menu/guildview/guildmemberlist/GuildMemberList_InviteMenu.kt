@@ -16,6 +16,7 @@ import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.dataItem
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.pageableMenuPage
 import blora.menu.v2.page.builder.title
 import io.papermc.paper.datacomponent.DataComponentTypes
@@ -26,14 +27,18 @@ import plutoproject.adventurekt.text.text
 import java.time.LocalDateTime
 
 fun guildMemberList_inviteMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
-    return pageableMenuPage(menu, OnlinePlayerDataProvider({ player ->
+    val guildId = guild.id
+    return pageableMenuPage(menu, OnlinePlayerDataProvider { player ->
         (player != menu.viewer) &&
                 (!guild.members.contains(player.uniqueId)) &&
                 (!guild.blocklist.contains(player.uniqueId)) &&
                 (DB.getValidJoinRequest(guild.gid, player.uniqueId) == null) &&
                 (!DB.isInvited(player.uniqueId, guild.gid)) &&
                 (player.isOnline)
-    })) {
+    }) {
+        pageId {
+            "guild_${guildId}_memberList_invite"
+        }
         title {
             localization(
                 player = menu.viewer,

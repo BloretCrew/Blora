@@ -91,6 +91,7 @@ class StaticMenuPageBuilder : MenuPageBuilder<StaticMenuClickContext, StaticMenu
             }
         }
         return StaticMenuPage(
+            this.pageId,
             if (this.title != null) component { title!!(context) } else null,
             finalItems,
             this.playerInventoryClickHandler,

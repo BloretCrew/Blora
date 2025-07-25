@@ -14,14 +14,19 @@ import blora.menu.v2.page.MenuPage
 import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.inventoryClick
 import blora.menu.v2.page.builder.limitedDynamicMenuPage
+import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import org.bukkit.Material
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.parsedPlaceholder
 
 fun guildSettings_modifyIconMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
+    val guildId = guild.id
     var cachedIcon = guild.parsedIcon
     return limitedDynamicMenuPage(menu) {
+        pageId {
+            "guild_${guildId}_settings_modifyIcon"
+        }
         title {
             localization(
                 player = menu.viewer,
