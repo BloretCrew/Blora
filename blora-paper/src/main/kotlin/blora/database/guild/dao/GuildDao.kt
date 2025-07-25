@@ -35,7 +35,7 @@ class GuildDao(id: EntityID<Int>) : IntEntity(id) {
     var bankBalance: Double by GuildTable.bankBalance
     var bankBalanceMax: Double by GuildTable.bankBalanceMax
 
-    var vitality: Long by GuildTable.vitality
+    var vitality: Double by GuildTable.vitality
 
     var createAt: LocalDateTime by GuildTable.createdAt
     var lastOwnerTransferDate: LocalDate by GuildTable.lastOwnerTransferDate

@@ -11,8 +11,11 @@ import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
 import blora.database.BloraDatabase
 import blora.entity.QuickEntityLibWrapper
+import blora.guild.GuildVitalityManager
 import blora.injector.BloraInjector
 import blora.internal.api.QuickEntityLib
+import blora.internal.api.scheduler.BukkitMain
+import blora.listener.BasicListener
 import blora.listener.ChatListener
 import blora.listener.GuildListener
 import blora.listener.SystemMailListener
@@ -23,6 +26,9 @@ import blora.menu.MenuApi
 import blora.messaging.BloraClient
 import blora.permission.Permissions
 import blora.scheduler.QuickSchedulerLibWrapper
+import dev.inmo.krontab.KronScheduler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
@@ -39,7 +45,8 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
         get() = this.databaseLoader
     val localeDirectory: File
         get() = File(this.dataFolder, "locales")
-
+    val scheduler = KronScheduler
+    val scope = CoroutineScope(Dispatchers.BukkitMain)
 
     override fun onEnable() {
         ThirdPartys.init()
@@ -54,6 +61,7 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
 
         VanillaCommandHooker.hookEnableStage()
         PlayerInventoryView.startJob()
+        GuildVitalityManager.startJob()
         BloraInjector.init()
 
         connectDatabase()
@@ -71,6 +79,7 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
 
     override fun onDisable() {
         PlayerInventoryView.stopJob()
+        GuildVitalityManager.stopJob()
         BloraInjector.close()
         this.database.disconnect()
         this.client.close()
@@ -141,6 +150,7 @@ internal fun registerListeners() {
     if (BloraPlugin.configuration.security.ensureAuthorized) {
         UnauthorizedListener.register()
     }
+    BasicListener.register()
     SystemMailListener.register()
     GuildListener.register()
     ChatListener.register()

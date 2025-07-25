@@ -6,7 +6,7 @@ class StringReader(val input: String) {
 
     fun readUntilNotLetterOrDigitOrUnderline(): String {
         val stringBuilder = StringBuilder()
-        while (this.readable() && (this.peek().isLetterOrDigit() || this.peek() == '_' || this.peek() == ':')) {
+        while (this.readable() && (this.peek().isLetterOrDigit() || this.peek() == '_' || this.peek() == ':' || this.peek() == '.')) {
             stringBuilder.append(this.read())
         }
         return stringBuilder.toString()

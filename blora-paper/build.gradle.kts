@@ -12,6 +12,9 @@ dependencies {
     compileOnly(files("libs/Vault-1.7.3.jar"))
 
     compileOnly(libs.kotlinx.coroutines)
+    compileOnly(libs.krontab)
+
+    compileOnly(libs.kotlinx.datetime)
 
     compileOnly(libs.kotlinx.serialization.core)
     compileOnly(libs.kotlinx.serialization.json)

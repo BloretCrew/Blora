@@ -1,11 +1,15 @@
 package blora.guild
 
 import blora.database.guild.dao.GuildDao
+import blora.database.guild.dao.GuildJoinLogDao
 import blora.database.guild.dao.GuildMemberInfoDao
+import blora.database.guild.dao.GuildPlayerOnlineDao
 import blora.database.guild.dao.GuildRoleDao
+import blora.database.guild.table.GuildJoinLogTable
 import blora.guild.role.RolePermissions
 import blora.plugin.BloraPlugin
 import org.bukkit.entity.Player
+import org.jetbrains.exposed.sql.and
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -15,6 +19,23 @@ object GuildModule {
         return BloraPlugin.database.trans {
             createAdminRole(owner, context.id)
             createMemberRole(owner, context.id)
+            GuildMemberInfoDao.new {
+                this.guildId = context.id
+                this.player = owner.uniqueId
+                this.joinAt = LocalDateTime.now()
+
+                this.parsedJoinSource = GuildJoinSource.Creator
+            }
+            GuildJoinLogDao.new {
+                this.guildId = context.id
+                this.player = owner.uniqueId
+                this.firstJoin = LocalDateTime.now()
+            }
+            GuildPlayerOnlineDao.new {
+                this.guildId = context.id
+                this.player = owner.uniqueId
+                this.lastCalculate = LocalDateTime.now()
+            }
             GuildMemberInfoDao.new {
                 this.guildId = context.id
                 this.player = owner.uniqueId
@@ -37,7 +58,7 @@ object GuildModule {
                 this.bankBalance = 0.0
                 this.bankBalanceMax = 0.0
 
-                this.vitality = 0L
+                this.vitality = 0.0
 
                 this.createAt = LocalDateTime.now()
                 this.lastOwnerTransferDate = LocalDate.now()

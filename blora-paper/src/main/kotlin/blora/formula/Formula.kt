@@ -34,3 +34,15 @@ class Formula(
     }
 
 }
+/*
+fun main() {
+    val formula1 = FormulaTokenizer.parse("100 * 8")
+    val formula2 = FormulaTokenizer.parse("test + 100 * 8")
+    val formula3 = FormulaTokenizer.parse("(test + 100) * 8")
+    val formula4 = FormulaTokenizer.parse("(test + 100) * 8 + (8 * (2 + 3))")
+    println(formula1?.calculate())
+    println(formula2?.calculate(FormulaVariable.simple("test", 123.0)))
+    println(formula3?.calculate(FormulaVariable.simple("test", 123.0)))
+    println(formula4?.calculate(FormulaVariable.simple("test", 123.0)))
+}
+*/

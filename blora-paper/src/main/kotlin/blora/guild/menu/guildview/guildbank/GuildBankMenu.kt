@@ -1,7 +1,10 @@
 package blora.guild.menu.guildview.guildbank
 
+import blora.configuration.CONF
 import blora.database.DB
+import blora.database.guild.dao.GuildBloriusToVitalityTimesDao
 import blora.database.guild.dao.GuildDao
+import blora.extension.format
 import blora.extension.localization
 import blora.extension.openDialog
 import blora.guild.dialog.guildview.guildbank.guildBank_storeDialog
@@ -34,7 +37,94 @@ fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
             }
         }
         backButton()
-        3 to 3 eq {
+
+        val canExchangeBlorius = CONF.guild.vitality.bloriusExchangeValue > 0 && CONF.guild.vitality.bloriusExchangePrice > 0 && CONF.guild.vitality.bloriusExchangeMaxTimes > 0
+
+        val storeButtonPosition = if (canExchangeBlorius) {
+            3 to 2
+        } else {
+            3 to 3
+        }
+
+        val withdrawButtonPosition = if (canExchangeBlorius) {
+            3 to 8
+        } else {
+            3 to 7
+        }
+
+        if (canExchangeBlorius) {
+            3 to 5 eq {
+                icon { material { Material.AMETHYST_SHARD } }
+                name {
+                    localization(
+                        player = menu.viewer,
+                        tags = {
+                            parsedPlaceholder("value", CONF.guild.vitality.bloriusExchangeValue.format(2))
+                        }
+                    ) {
+                        this.guild.menu.menuGuild_bankButtonExchange_vitality
+                    }
+                }
+                description {
+                    localization(
+                        player = menu.viewer,
+                        tags = {
+                            parsedPlaceholder("value", CONF.guild.vitality.bloriusExchangePrice.toString())
+                        }
+                    ) {
+                        this.guild.menu.menuGuild_bankButtonExchange_vitalityDescription
+                    }
+                }
+                clickEvent {  clickContext ->
+                    val dao = DB.getBloriusToVitalityTimes(guild.gid)
+                    if (dao != null && dao.times >= CONF.guild.vitality.bloriusExchangeMaxTimes) {
+                        clickContext.viewer.send {
+                            localization(menu.viewer) {
+                                this.guild.guildVitalityExchangeLimit
+                            }
+                        }
+                        return@clickEvent
+                    }
+                    if (ThirdPartys.playerPoints.look(clickContext.viewer.uniqueId) < CONF.guild.vitality.bloriusExchangePrice) {
+                        clickContext.viewer.send {
+                            localization(menu.viewer) {
+                                this.guild.guildVitalityExchangeNot_enough_money
+                            }
+                        }
+                        return@clickEvent
+                    }
+
+                    ThirdPartys.playerPoints.take(clickContext.viewer.uniqueId, CONF.guild.vitality.bloriusExchangePrice)
+
+                    val finalDao = dao ?: DB.trans {
+                        GuildBloriusToVitalityTimesDao.new {
+                            this.guildId = guild.gid
+                            this.times = 0
+                        }
+                    }
+                    DB.trans {
+                        guild.vitality += CONF.guild.vitality.bloriusExchangeValue
+                        guild.flush()
+
+                        finalDao.times += 1
+                        finalDao.flush()
+                    }
+
+                    clickContext.viewer.send {
+                        localization(
+                            player = menu.viewer,
+                            tags = {
+                                parsedPlaceholder("value", CONF.guild.vitality.bloriusExchangeValue.format(2))
+                            }
+                        ) {
+                            this.guild.guildVitalityExchangeSuccess
+                        }
+                    }
+                }
+            }
+        }
+
+        storeButtonPosition eq {
             icon { material { Material.CHEST } }
             name {
                 localization(menu.viewer) {
@@ -45,7 +135,7 @@ fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
                 localization(
                     player = menu.viewer,
                     tags = {
-                        parsedPlaceholder("amount", ThirdPartys.vaultApi.getBalance(menu.viewer).toString())
+                        parsedPlaceholder("amount", ThirdPartys.vaultApi.getBalance(menu.viewer).format(2))
                     }
                 ) {
                     this.guild.menu.menuGuild_bankButtonStoreDescription
@@ -74,7 +164,7 @@ fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
             }
         }
 
-        3 to 7 eq {
+        withdrawButtonPosition eq {
             icon { material { Material.ENDER_CHEST } }
             name {
                 localization(menu.viewer) {
@@ -85,7 +175,7 @@ fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
                 localization(
                     player = menu.viewer,
                     tags = {
-                        parsedPlaceholder("amount", guild.bankBalance.toString())
+                        parsedPlaceholder("amount", guild.bankBalance.format(2))
                     }
                 ) {
                     this.guild.menu.menuGuild_bankButtonWithdrawDescription

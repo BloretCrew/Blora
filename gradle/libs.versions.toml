@@ -1,6 +1,7 @@
 [versions]
 kotlin = '2.1.20'
 kotlinx = '1.10.2'
+datetime = '0.7.1-0.6.x-compat'
 serialization = '1.8.1'
 tomlkt = '0.4.0'
 advkt = '2.1.2'
@@ -19,12 +20,14 @@ craft-engine = "0.0.59"
 adventure = "4.23.0"
 playerpoints = "3.3.3-SNAPSHOT"
 postgresql = "42.7.7"
+krontab = "2.7.2"
 
 [libraries]
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = 'velocity' }
 velocity-proxy = { module = "com.velocitypowered:velocity-proxy", version.ref = 'velocity' }
 paper-api = { module = 'io.papermc.paper:paper-api', version.ref = 'paper' }
 kotlinx-coroutines = { group = 'org.jetbrains.kotlinx', name = 'kotlinx-coroutines-core-jvm', version.ref = 'kotlinx' }
+kotlinx-datetime = { group = 'org.jetbrains.kotlinx', name = 'kotlinx-datetime-jvm', version.ref = 'datetime' }
 kotlinx-serialization-core = { group = 'org.jetbrains.kotlinx', name = 'kotlinx-serialization-core', version.ref = 'serialization' }
 kotlinx-serialization-json = { group = 'org.jetbrains.kotlinx', name = 'kotlinx-serialization-json', version.ref = 'serialization' }
 tomlkt = { group = 'net.peanuuutz.tomlkt', name = 'tomlkt', version.ref = 'tomlkt' }
@@ -46,6 +49,7 @@ craftengine-bukkit = { module = "net.momirealms:craft-engine-bukkit", version.re
 adventure-nbt = { module = "net.kyori:adventure-nbt", version.ref = "adventure" }
 playerpoints = { module = "org.black_ixx:playerpoints", version.ref = "playerpoints" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+krontab = { module = "dev.inmo:krontab", version.ref = "krontab" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "9.0.0-beta16" }

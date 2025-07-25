@@ -1,6 +1,7 @@
 package blora.guild.menu.guildlist
 
 import blora.database.guild.dao.GuildDao
+import blora.extension.format
 import blora.extension.localization
 import blora.guild.GuildJoinStrategy
 import blora.guild.dataprovider.GuildDaoDataProvider
@@ -82,7 +83,7 @@ fun guildListMenu(
                 localization(
                     player = menu.viewer,
                     tags = {
-                        parsedPlaceholder("guild_vitality", guild.vitality.toString())
+                        parsedPlaceholder("guild_vitality", guild.vitality.format(2))
                     }
                 ) {
                     "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionVitality

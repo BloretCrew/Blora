@@ -16,6 +16,7 @@ public class BloraLibraryLoader implements PluginLoader {
     private final static List<String> LIBRARIES = List.of(
             "org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.20",
             "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2",
+            "org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.7.1-0.6.x-compat",
             "org.jetbrains.kotlinx:kotlinx-serialization-core:1.8.1",
             "org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1",
             "net.peanuuutz.tomlkt:tomlkt-jvm:0.4.0",
@@ -28,7 +29,8 @@ public class BloraLibraryLoader implements PluginLoader {
             "org.jetbrains.exposed:exposed-json:0.61.0",
             "com.zaxxer:HikariCP:6.3.0",
             "net.kyori:adventure-nbt:4.23.0",
-            "org.postgresql:postgresql:42.7.7"
+            "org.postgresql:postgresql:42.7.7",
+            "dev.inmo:krontab-jvm:2.7.2"
     );
 
     @Override

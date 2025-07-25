@@ -26,7 +26,7 @@ object GuildTable : IntIdTable("blora_guilds") {
     val bankBalance = double("bank_balance").default(0.0)
     val bankBalanceMax = double("bank_balance_max").default(0.0)
 
-    val vitality = long("vitality").default(0L)
+    val vitality = double("vitality").default(0.0)
 
     val createdAt = datetime("created_at")
     val lastOwnerTransferDate = date("last_owner_transfer_date")

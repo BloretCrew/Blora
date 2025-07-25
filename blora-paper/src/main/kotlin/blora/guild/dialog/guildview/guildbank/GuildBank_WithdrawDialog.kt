@@ -3,6 +3,8 @@ package blora.guild.dialog.guildview.guildbank
 import blora.database.DB
 import blora.database.guild.dao.GuildBankLogDao
 import blora.database.guild.dao.GuildDao
+import blora.database.guild.dao.GuildPlayerBalanceDao
+import blora.database.guild.table.GuildPlayerBalanceTable
 import blora.dialog.ConfirmationDialog
 import blora.dialog.Dialog
 import blora.dialog.action.ClickAction
@@ -17,6 +19,7 @@ import net.benwoodworth.knbt.NbtFloat
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import org.jetbrains.exposed.sql.and
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
@@ -88,6 +91,18 @@ fun guildBank_withdrawDialog(
                         return@DynamicCustomClickTypeInjected
                     }
                     DB.trans {
+                        val playerBalance = GuildPlayerBalanceDao.find {
+                            GuildPlayerBalanceTable.gid eq guild.gid and
+                                    (GuildPlayerBalanceTable.player eq viewer.uniqueId)
+                        }.firstOrNull() ?: GuildPlayerBalanceDao.new {
+                            this.guildId = guild.gid
+                            this.player = viewer.uniqueId
+                            this.contribution = 0.0
+                        }
+
+                        playerBalance.contribution -= amount * 2
+                        playerBalance.flush()
+
                         GuildBankLogDao.new {
                             this.guildId = guild.gid
                             this.store = false

@@ -298,8 +298,3 @@ internal fun registerIntoDispatcher(commandNode: NMSLiteralCommandNode<net.minec
     }
     minecraftDispatcher().root.addChild(commandNode)
 }
-
-fun updateCommandList(player: Player) {
-    // TODO
-    (player as org.bukkit.craftbukkit.entity.CraftPlayer)
-}

@@ -3,6 +3,7 @@ package blora.guild.menu.guildview
 import blora.configuration.CONF
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
+import blora.extension.format
 import blora.extension.localization
 import blora.guild.*
 import blora.guild.menu.guildview.guildbank.guildBankMenu
@@ -147,7 +148,7 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                 localization(
                     player = menu.viewer,
                     tags = {
-                        parsedPlaceholder("guild_vitality", guild.vitality.toString())
+                        parsedPlaceholder("guild_vitality", guild.vitality.format(2))
                     }
                 ) {
                     "<italic:false><white>" + this.guild.menu.menuGuild_listGuildDescriptionVitality

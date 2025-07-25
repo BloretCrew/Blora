@@ -1,5 +1,6 @@
 package blora.converter
 
+import io.papermc.paper.datacomponent.DataComponentTypes
 import net.benwoodworth.knbt.*
 import net.kyori.adventure.text.*
 import net.kyori.adventure.text.event.ClickEvent

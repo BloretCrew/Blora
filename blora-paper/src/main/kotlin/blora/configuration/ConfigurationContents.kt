@@ -18,6 +18,7 @@ data class ConfigurationContents(
 @Serializable
 data class Guild(
     val level: GuildLevel = GuildLevel(),
+    val vitality: GuildVitality = GuildVitality(),
     val notifyDelaySeconds: Int = 2,
     val ownerTransferCooldownDays: Int = 30,
     val playerMaxJoin: Int = 3,
@@ -25,6 +26,20 @@ data class Guild(
     val minIdLength: Int = 2,
     val maxIdLength: Int = 5,
     val createCost: Int = 500
+)
+
+@Serializable
+data class GuildVitality(
+    val bloriusExchangeMaxTimes: Int = 6,
+    val bloriusExchangePrice: Int = 100,
+    val bloriusExchangeValue: Double = 20.0,
+    val guildVitalityFrequency: Int = 30, // unit: minutes
+    val guildVitalityFormula: String = "guild:balance * 0.05 + guild:members * 10 + guild:level * 10",
+    val playerOnlineDuration: Int = 4, // unit: hours
+    val playerOnlineVitalityFormula: String = "50 + papi:player_level * 2",
+    val newPlayerJoinVitalityFormula: String = "100",
+    val bankBalanceNewMaxVitalityFormula: String = "delta * 0.05",
+    val playerContributionVitalityFormula: String = "delta * 0.05",
 )
 
 @Serializable
