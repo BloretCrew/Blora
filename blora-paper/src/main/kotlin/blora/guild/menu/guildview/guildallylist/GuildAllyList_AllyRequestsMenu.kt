@@ -32,7 +32,7 @@ fun guildAllyList_allyRequestsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> 
     val guildId = guild.id
     return pageableMenuPage(menu, GuildAllyRequestDaoProvider(guild)) {
         pageId {
-            "guild_${guildId}_allyList"
+            "guild_${guildId}_allyList_allyRequests"
         }
         title {
             localization(

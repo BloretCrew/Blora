@@ -35,7 +35,7 @@ import java.time.LocalDateTime
 fun guildAllyList_requestAllyMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
     val guildId = guild.id
     return pageableMenuPage(menu, GuildDaoDataProvider {
-        !it.allys.contains(guild.gid) && (DB.trans {
+        it.gid != guild.gid && !it.allys.contains(guild.gid) && (DB.trans {
             GuildAllyInfoDao.find {
                 (
                         (GuildAllyInfoTable.requestGid eq guild.gid) and

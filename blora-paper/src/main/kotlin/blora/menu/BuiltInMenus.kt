@@ -32,8 +32,8 @@ fun line5_confirmrationMenu(
                 }
             }
             clickEvent {
-                it.stack.pop()
                 confirmCallback()
+                it.stack.pop() // pop after confirm finish to prevent database issue
             }
         }
         3 to 7 eq {

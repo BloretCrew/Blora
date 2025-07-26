@@ -40,6 +40,8 @@ class GuildDao(id: EntityID<Int>) : IntEntity(id) {
     var createAt: LocalDateTime by GuildTable.createdAt
     var lastOwnerTransferDate: LocalDate by GuildTable.lastOwnerTransferDate
 
+    var enderChest by GuildTable.enderChest
+
     val maxMembers: Int
         get() {
             val guildLevelConfiguration = BloraPlugin.configuration.guild.level

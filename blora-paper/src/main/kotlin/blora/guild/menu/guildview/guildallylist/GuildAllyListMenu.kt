@@ -64,7 +64,7 @@ fun guildAllyListMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
             }
         }
         if (permissions.reviewAlly) {
-            val requests = DB.listValidJoinRequestsForGuild(guild.gid).filter { !it.finished }.toMutableList()
+            val requests = DB.listValidAllyRequestsForGuild(guild.gid).toMutableList()
             5 to 5 eq {
                 icon { material { Material.COMPASS } }
                 name {

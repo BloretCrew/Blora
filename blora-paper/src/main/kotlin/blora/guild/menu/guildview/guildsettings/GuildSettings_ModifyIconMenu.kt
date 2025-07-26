@@ -38,7 +38,7 @@ fun guildSettings_modifyIconMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
             }
         }
         inventoryClick { item, clickContext ->
-            cachedIcon = item
+            cachedIcon = item.clone().apply { this.amount = 1}
             clickContext.menu.rerender()
             return@inventoryClick true
         }

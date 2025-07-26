@@ -26,6 +26,7 @@ import blora.menu.MenuApi
 import blora.messaging.BloraClient
 import blora.permission.Permissions
 import blora.scheduler.QuickSchedulerLibWrapper
+import blora.scheduler.ShutdownHook
 import dev.inmo.krontab.KronScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +48,8 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
         get() = File(this.dataFolder, "locales")
     val scheduler = KronScheduler
     val scope = CoroutineScope(Dispatchers.BukkitMain)
+
+    private val shutdownHooks = mutableListOf<ShutdownHook>()
 
     override fun onEnable() {
         ThirdPartys.init()
@@ -78,6 +81,7 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
     }
 
     override fun onDisable() {
+        this.shutdownHooks.forEach { it.hook() }
         PlayerInventoryView.stopJob()
         GuildVitalityManager.stopJob()
         BloraInjector.close()
@@ -95,6 +99,14 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
 
     override fun getEntityLib(): QuickEntityLib {
         return QuickEntityLibWrapper
+    }
+
+    fun hookShutdown(hook: ShutdownHook) {
+        this.shutdownHooks.add(hook)
+    }
+
+    fun removeShutdownHook(hook: ShutdownHook) {
+        this.shutdownHooks.remove(hook)
     }
 
     fun reloadConfiguration() {

@@ -12,6 +12,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import me.clip.placeholderapi.PlaceholderAPI
 import net.kyori.adventure.text.Component
+import net.momirealms.craftengine.bukkit.api.CraftEngineItems
+import net.momirealms.craftengine.core.plugin.CraftEngine
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -144,17 +146,15 @@ data class Attachment(
                 for ((item, amount) in items) {
                     itemsAdded += 1
 
-                    mini(
-                        PlaceholderAPI.setPlaceholders(
-                            null, "%image_mm_items:${
-                                item.type.key().value()
-                            }%"
+                    val customId = CraftEngineItems.getCustomItemId(item)
+                    if (CraftEngineItems.isCustomItem(item) && customId != null) {
+                        mini(
+                            PlaceholderAPI.setPlaceholders(
+                                null, "%image_mm_items:${
+                                    customId.value()
+                                }%"
+                            )
                         )
-                    )
-                    /*
-                    if (item.type.isBlock) {
-                        // TODO: block types support
-                        mini(PlaceholderAPI.setPlaceholders(null, "%image_mm_items:craft_table%"))
                     } else {
                         mini(
                             PlaceholderAPI.setPlaceholders(
@@ -163,7 +163,7 @@ data class Attachment(
                                 }%"
                             )
                         )
-                    }*/
+                    }
                     space()
                     text {
                         "x${amount}"

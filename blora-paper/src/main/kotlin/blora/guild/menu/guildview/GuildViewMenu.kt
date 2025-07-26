@@ -261,7 +261,9 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                                 this.guild.menu.menuGuild_viewButtonEnder_chest
                             }
                         }
-                        clickEvent {
+                        clickEvent { clickContext ->
+                            clickContext.menu.destroy()
+                            GuildEnderChestManager.open(guild, clickContext.viewer)
                         }
                     }
 

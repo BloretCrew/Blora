@@ -34,7 +34,7 @@ class Menu(
     private val inventory: Inventory
     private val closers: MutableList<(Menu) -> Unit> = mutableListOf()
     private var snapshot: MenuPageSnapshot<*, *> =
-        StaticMenuPage(Component.empty(), emptyMap(), { _, _ -> false }, {}, {})
+        StaticMenuPage("*_placeholder", Component.empty(), emptyMap(), { _, _ -> false }, {}, {})
 
     init {
         require(lines >= 1 && lines <= 6)
@@ -70,7 +70,7 @@ class Menu(
         if (current != null) {
             this.snapshot = current.render(this, this.inventory)
         } else {
-            this.snapshot = StaticMenuPage(Component.empty(), emptyMap(), { _, _ -> false }, {}, {})
+            this.snapshot = StaticMenuPage("*_placeholder", Component.empty(), emptyMap(), { _, _ -> false }, {}, {})
         }
         return this
     }

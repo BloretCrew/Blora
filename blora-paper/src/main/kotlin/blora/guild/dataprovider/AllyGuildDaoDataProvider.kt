@@ -16,7 +16,8 @@ import org.jetbrains.exposed.sql.or
 
 class AllyGuildDaoDataProvider(val guild: GuildDao) : PageableDataProvider<Pair<GuildDao, GuildAllyInfoDao>> {
 
-    private val removedFilter: MutableList<GuildDao> = mutableListOf()
+    private val guildRemovedFilter: MutableList<GuildDao> = mutableListOf()
+    private val allyRemovedFilter: MutableList<GuildAllyInfoDao> = mutableListOf()
     private var loadedData = listOf<Pair<GuildDao, GuildAllyInfoDao>>()
 
     private var hookedMenu: Menu? = null
@@ -25,7 +26,7 @@ class AllyGuildDaoDataProvider(val guild: GuildDao) : PageableDataProvider<Pair<
         if (change.entityClass == GuildDao) {
             val entity = change.toEntity(GuildDao)
             if (change.changeType == EntityChangeType.Removed && entity != null) {
-                this.removedFilter.add(entity)
+                this.guildRemovedFilter.add(entity)
             }
             if (entity != null) {
                 if (entity == this.guild || this.guild.allys.contains(entity.gid))
@@ -34,6 +35,9 @@ class AllyGuildDaoDataProvider(val guild: GuildDao) : PageableDataProvider<Pair<
         }
         if (change.entityClass == GuildAllyInfoDao::class) {
             val entity = change.toEntity(GuildAllyInfoDao)
+            if (change.changeType == EntityChangeType.Removed && entity != null) {
+                this.allyRemovedFilter.add(entity)
+            }
             if (entity != null && (entity.requestGuildId == this.guild.gid || entity.receiveGuildId == this.guild.gid))
                 this.hookedMenu?.rerender()
         }
@@ -51,7 +55,10 @@ class AllyGuildDaoDataProvider(val guild: GuildDao) : PageableDataProvider<Pair<
             this@AllyGuildDaoDataProvider.guild.refresh()
             this@AllyGuildDaoDataProvider.loadedData = guild.allys
                 .mapNotNull { gid -> GuildDao.find { GuildTable.gid eq gid }.firstOrNull() }
-                .filter { !removedFilter.contains(it) }
+                .filter { !guildRemovedFilter.contains(it) }
+                .filter { !allyRemovedFilter.any {
+                    info -> info.requestGuildId == it.gid || info.receiveGuildId == it.gid
+                } }
                 .map { it to GuildAllyInfoDao.find {
                     (
                             (GuildAllyInfoTable.requestGid eq this@AllyGuildDaoDataProvider.guild.gid) and

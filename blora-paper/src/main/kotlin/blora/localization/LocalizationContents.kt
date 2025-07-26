@@ -199,6 +199,7 @@ data class GuildMenuLocalizationContents(
     val menuGuild_viewButtonVitality_shop: String = "活跃点商店",
     val menuGuild_viewButtonJoin_guild: String = "申请加入",
     val menuGuild_viewInviteTitle: String = "<guild> | 邀请玩家",
+    val menuGuild_ender_chestTitle: String = "<guild> | 公会末影箱",
     val menuGuild_member_listTitle: String = "<guild> | 成员列表",
     val menuGuild_member_listMember_managementTitle: String = "<guild> | 成员列表 | <player>",
     val menuGuild_member_listMember_managementRole_managementTitle: String = "<guild> | 成员列表 | <player> | 角色管理",
