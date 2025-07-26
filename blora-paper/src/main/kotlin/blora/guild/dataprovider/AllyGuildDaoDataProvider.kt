@@ -56,18 +56,22 @@ class AllyGuildDaoDataProvider(val guild: GuildDao) : PageableDataProvider<Pair<
             this@AllyGuildDaoDataProvider.loadedData = guild.allys
                 .mapNotNull { gid -> GuildDao.find { GuildTable.gid eq gid }.firstOrNull() }
                 .filter { !guildRemovedFilter.contains(it) }
-                .filter { !allyRemovedFilter.any {
-                    info -> info.requestGuildId == it.gid || info.receiveGuildId == it.gid
-                } }
-                .map { it to GuildAllyInfoDao.find {
-                    (
-                            (GuildAllyInfoTable.requestGid eq this@AllyGuildDaoDataProvider.guild.gid) and
-                            (GuildAllyInfoTable.receiveGid eq it.gid)
-                    ) or (
-                            (GuildAllyInfoTable.requestGid eq it.gid) and
-                                    (GuildAllyInfoTable.receiveGid eq this@AllyGuildDaoDataProvider.guild.gid)
-                    )
-                }.first() }
+                .filter {
+                    !allyRemovedFilter.any { info ->
+                        info.requestGuildId == it.gid || info.receiveGuildId == it.gid
+                    }
+                }
+                .map {
+                    it to GuildAllyInfoDao.find {
+                        (
+                                (GuildAllyInfoTable.requestGid eq this@AllyGuildDaoDataProvider.guild.gid) and
+                                        (GuildAllyInfoTable.receiveGid eq it.gid)
+                                ) or (
+                                (GuildAllyInfoTable.requestGid eq it.gid) and
+                                        (GuildAllyInfoTable.receiveGid eq this@AllyGuildDaoDataProvider.guild.gid)
+                                )
+                    }.first()
+                }
         }
     }
 

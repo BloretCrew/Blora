@@ -283,6 +283,8 @@ data class GuildMenuLocalizationContents(
     val menuGuild_ally_listAlly_requestsTitle: String = "<guild> | 结盟列表 | 结盟申请",
     val menuGuild_ally_listAlly_requestsItemDescriptionLeft: String = "<green>左键点击同意",
     val menuGuild_ally_listAlly_requestsItemDescriptionRight: String = "<red>右键点击拒绝",
+    val menuGuild_vitality_shopTitle: String = "<guild> | 结盟列表",
+    val menuGuild_vitality_shopItemDescriptionPrice: String = "价格：<price> 活跃点",
 )
 
 @Serializable
@@ -328,6 +330,8 @@ data class GuildDialogLocalizationContents(
 data class GuildLocalizationContents(
     val menu: GuildMenuLocalizationContents = GuildMenuLocalizationContents(),
     val dialog: GuildDialogLocalizationContents = GuildDialogLocalizationContents(),
+    val guildVitality_shopVitality_not_enough: String = "活跃点不足",
+    val guildVitality_shopSuccess: String = "成功花费 <vitality> 活跃点兑换了 <goods>",
     val guildAllyRequest: String = "已向 <guild> 发送结盟申请",
     val guildAllyAccept: String = "已同意 <guild> 的结盟申请",
     val guildAllyReject: String = "已拒绝 <guild> 的结盟申请",
@@ -340,6 +344,7 @@ data class GuildLocalizationContents(
     val guildVitalityAddReasonScheduled_task: String = "定时增加",
     val guildVitalityAddReasonPlayer_online: String = "玩家 <player> 在线时长奖励",
     val guildVitalityAddReasonBank_new_max_balance: String = "公会银行最大存储量达到新的最大值",
+    val guildVitalityAddReasonBank_new_max_balance_from_vitality_shop: String = "玩家 <player> 兑换活跃点商店商品时，公会银行最大存储量达到新的最大值",
     val guildVitalityAddReasonBank_player_contribution: String = "来自玩家 <player> 存储银行时的贡献",
     val guildTransfer_ownerAnnouncement: String = "公会 <guild> 的会长已由 <old_owner> 转让给 <new_owner>",
     val guildKick: String = "您已被玩家 <player> 踢出公会 <guild>",

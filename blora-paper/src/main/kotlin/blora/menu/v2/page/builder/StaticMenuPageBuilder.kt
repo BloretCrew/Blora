@@ -3,7 +3,7 @@
 package blora.menu.v2.page.builder
 
 import blora.item.clone
-import blora.item.itemStack
+import blora.item.itemStackOrNull
 import blora.menu.v2.Menu
 import blora.menu.v2.context.StaticMenuClickContext
 import blora.menu.v2.context.StaticMenuViewContext
@@ -32,10 +32,10 @@ class StaticMenuPageBuilder : MenuPageBuilder<StaticMenuClickContext, StaticMenu
                 val menuItem = MenuItemBuilder<StaticMenuClickContext>()
                 menuItem.menuItemBuilder(context)
                 finalItems[rowIndex * 9 + columnIndex] = MenuItemSnapshot(
-                    itemStack {
+                    itemStackOrNull {
                         clone { menuItem.icon }
                         if (menuItem.icon == null || menuItem.icon!!.isEmpty || menuItem.icon!!.type.isAir || !menuItem.icon!!.type.isItem) {
-                            return@itemStack
+                            return@itemStackOrNull
                         }
                         if (!menuItem.useItemInfoAsHover) {
                             DataComponentTypes.CUSTOM_NAME eq (menuItem.name ?: Component.text(" "))
@@ -52,10 +52,10 @@ class StaticMenuPageBuilder : MenuPageBuilder<StaticMenuClickContext, StaticMenu
             val menuItem = MenuItemBuilder<StaticMenuClickContext>()
             menuItem.itemBuilder(context)
             finalItems[index] = MenuItemSnapshot(
-                itemStack {
+                itemStackOrNull {
                     clone { menuItem.icon }
                     if (menuItem.icon == null || menuItem.icon!!.isEmpty || menuItem.icon!!.type.isAir || !menuItem.icon!!.type.isItem) {
-                        return@itemStack
+                        return@itemStackOrNull
                     }
                     if (!menuItem.useItemInfoAsHover) {
                         DataComponentTypes.CUSTOM_NAME eq (menuItem.name ?: Component.text(" "))
@@ -74,10 +74,10 @@ class StaticMenuPageBuilder : MenuPageBuilder<StaticMenuClickContext, StaticMenu
                 val menuItem = MenuItemBuilder<StaticMenuClickContext>()
                 menuItem.itemBuilder(context)
                 finalItems[i] = MenuItemSnapshot(
-                    itemStack {
+                    itemStackOrNull {
                         clone { menuItem.icon }
                         if (menuItem.icon == null || menuItem.icon!!.isEmpty || menuItem.icon!!.type.isAir || !menuItem.icon!!.type.isItem) {
-                            return@itemStack
+                            return@itemStackOrNull
                         }
                         if (!menuItem.useItemInfoAsHover) {
                             DataComponentTypes.CUSTOM_NAME eq (menuItem.name ?: Component.text(" "))

@@ -56,7 +56,9 @@ interface PageableDataProvider<D> {
 
     operator fun get(index: Int): D
     fun refresh()
-    fun hook(menu: Menu)
-    fun unhook()
+
+    // not force to implement hook
+    fun hook(menu: Menu) {}
+    fun unhook() {}
 
 }

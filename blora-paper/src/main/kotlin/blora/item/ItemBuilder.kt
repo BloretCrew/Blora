@@ -15,8 +15,13 @@ class ItemBuilder {
         this@ItemBuilder.itemStack?.setData(this, value)
     }
 
-    fun build(): ItemStack? {
+    fun buildOrNull(): ItemStack? {
         return itemStack
+    }
+
+    fun build(): ItemStack {
+        require(itemStack != null) { "Item type can not be null." }
+        return itemStack!!
     }
 
 }
@@ -37,6 +42,14 @@ fun ItemBuilder.amount(value: () -> Int) {
     this.itemStack?.amount = value()
 }
 
-fun itemStack(builder: ItemBuilder.() -> Unit): ItemStack? {
+fun ItemBuilder.withData(value: () -> DataComponentType.NonValued) {
+    this.itemStack?.setData(value())
+}
+
+fun itemStackOrNull(builder: ItemBuilder.() -> Unit): ItemStack? {
+    return ItemBuilder().apply(builder).buildOrNull()
+}
+
+fun itemStack(builder: ItemBuilder.() -> Unit): ItemStack {
     return ItemBuilder().apply(builder).build()
 }

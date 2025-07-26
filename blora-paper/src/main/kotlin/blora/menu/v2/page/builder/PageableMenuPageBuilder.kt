@@ -4,7 +4,7 @@ package blora.menu.v2.page.builder
 
 import blora.extension.localization
 import blora.item.clone
-import blora.item.itemStack
+import blora.item.itemStackOrNull
 import blora.item.material
 import blora.menu.v2.Menu
 import blora.menu.v2.context.PageableMenuClickContext
@@ -59,7 +59,7 @@ class PageableMenuPageBuilder<D>(
             }.toMutableMap()
             if (this.showBackButton) {
                 finalItems[0] = MenuItemSnapshot(
-                    itemStack {
+                    itemStackOrNull {
                         material { Material.ARROW }
                         DataComponentTypes.CUSTOM_NAME eq component {
                             localization(menu.viewer) {
@@ -232,10 +232,10 @@ class PageableMenuPageBuilder<D>(
         for ((index, builder) in finalItems) {
             val menuItemBuilder = MenuItemBuilder<PageableMenuClickContext<D>>().apply { builder(viewContext) }
             val menuItem = MenuItemSnapshot(
-                itemStack {
+                itemStackOrNull {
                     clone { menuItemBuilder.icon }
                     if (menuItemBuilder.icon == null || menuItemBuilder.icon!!.isEmpty || menuItemBuilder.icon!!.type.isAir || !menuItemBuilder.icon!!.type.isItem) {
-                        return@itemStack
+                        return@itemStackOrNull
                     }
                     if (!menuItemBuilder.useItemInfoAsHover) {
                         DataComponentTypes.CUSTOM_NAME eq (menuItemBuilder.name ?: Component.text(" "))

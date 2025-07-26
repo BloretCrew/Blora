@@ -2,7 +2,7 @@
 
 package blora.menu.v2.item
 
-import blora.item.itemStack
+import blora.item.itemStackOrNull
 import blora.item.material
 import blora.menu.v2.context.MenuClickContext
 import io.papermc.paper.datacomponent.DataComponentTypes
@@ -18,7 +18,7 @@ class MenuItemSnapshot<C : MenuClickContext>(
 
     companion object {
 
-        val PLACEHOLDER = itemStack {
+        val PLACEHOLDER = itemStackOrNull {
             material { Material.BLACK_STAINED_GLASS_PANE }
             DataComponentTypes.CUSTOM_NAME eq component {
                 space()

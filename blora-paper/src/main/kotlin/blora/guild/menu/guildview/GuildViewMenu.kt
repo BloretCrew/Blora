@@ -12,6 +12,7 @@ import blora.guild.menu.guildview.guildinvitationcode.guildInvitationCodeMenu
 import blora.guild.menu.guildview.guildmemberlist.guildMemberListMenu
 import blora.guild.menu.guildview.guildrolemanagement.guildRoleManagementMenu
 import blora.guild.menu.guildview.guildsettings.guildSettingsMenu
+import blora.guild.menu.guildview.guildvitalityshop.guildVitalityShopMenu
 import blora.item.clone
 import blora.item.material
 import blora.menu.v2.Menu
@@ -289,6 +290,9 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                             }
                         }
                         clickEvent {
+                            it.stack.push {
+                                guildVitalityShopMenu(menu, guild)
+                            }
                         }
                     }
 

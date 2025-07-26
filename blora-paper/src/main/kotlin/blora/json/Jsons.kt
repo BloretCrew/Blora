@@ -18,4 +18,18 @@ val MINECRAFT_DATA_JSON = Json {
         contextual(Component::class, ComponentJsonSerializer)
         contextual(ItemStack::class, ItemStackJsonSerializer)
     }
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+    coerceInputValues = true
+}
+
+val MINECRAFT_PRETTY_DATA_JSON = Json {
+    serializersModule = SerializersModule {
+        contextual(Component::class, ComponentJsonSerializer)
+        contextual(ItemStack::class, ItemStackJsonSerializer)
+    }
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+    coerceInputValues = true
+    prettyPrint = true
 }

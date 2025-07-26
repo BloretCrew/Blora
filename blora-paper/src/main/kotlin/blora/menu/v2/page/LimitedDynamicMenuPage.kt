@@ -3,7 +3,7 @@
 package blora.menu.v2.page
 
 import blora.item.clone
-import blora.item.itemStack
+import blora.item.itemStackOrNull
 import blora.menu.v2.Menu
 import blora.menu.v2.context.LimitedDynamicMenuClickContext
 import blora.menu.v2.context.LimitedDynamicMenuViewContext
@@ -56,10 +56,10 @@ class LimitedDynamicMenuPage(
         for ((index, builder) in this.items) {
             val menuItemBuilder = MenuItemBuilder<LimitedDynamicMenuClickContext>().apply { builder(viewContext) }
             val menuItem = MenuItemSnapshot(
-                itemStack {
+                itemStackOrNull {
                     clone { menuItemBuilder.icon }
                     if (menuItemBuilder.icon == null || menuItemBuilder.icon!!.isEmpty || menuItemBuilder.icon!!.type.isAir || !menuItemBuilder.icon!!.type.isItem) {
-                        return@itemStack
+                        return@itemStackOrNull
                     }
                     if (!menuItemBuilder.useItemInfoAsHover) {
                         DataComponentTypes.CUSTOM_NAME eq (menuItemBuilder.name ?: Component.text(" "))

@@ -9,6 +9,7 @@ import blora.command.defaults.RedeemCommand
 import blora.command.hook.VanillaCommandHooker
 import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
+import blora.configuration.GuildVitalityShopConfiguration
 import blora.database.BloraDatabase
 import blora.entity.QuickEntityLibWrapper
 import blora.guild.GuildVitalityManager
@@ -78,6 +79,8 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
 
         registerCommands()
         registerListeners()
+
+        GuildVitalityShopConfiguration.loadOrCreate()
     }
 
     override fun onDisable() {

@@ -3,8 +3,6 @@ package blora.guild.dataprovider
 import blora.database.DB
 import blora.database.guild.dao.GuildAllyRequestDao
 import blora.database.guild.dao.GuildDao
-import blora.database.guild.table.GuildAllyRequestTable
-import blora.database.guild.table.GuildTable
 import blora.menu.v2.Menu
 import blora.menu.v2.page.PageableDataProvider
 import org.jetbrains.exposed.dao.EntityChange

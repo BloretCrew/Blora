@@ -16,17 +16,17 @@ fun <T> internalGetArgumentValue(
     context: CommandContext,
     name: String
 ): T {
-    if (valueType == String::class.java) {
+    if (argumentType == ArgumentString || argumentType == ArgumentWord || argumentType == ArgumentGreedyString) {
         return StringArgumentType.getString(context.nms(), name) as T
-    } else if (valueType == Int::class.java) {
+    } else if (argumentType is ArgumentInt) {
         return IntegerArgumentType.getInteger(context.nms(), name) as T
-    } else if (valueType == Long::class.java) {
+    } else if (argumentType is ArgumentLong) {
         return LongArgumentType.getLong(context.nms(), name) as T
-    } else if (valueType == Float::class.java) {
+    } else if (argumentType is ArgumentFloat) {
         return FloatArgumentType.getFloat(context.nms(), name) as T
-    } else if (valueType == Double::class.java) {
+    } else if (argumentType is ArgumentDouble) {
         return DoubleArgumentType.getDouble(context.nms(), name) as T
-    } else if (valueType == Boolean::class.java) {
+    } else if (argumentType == ArgumentBoolean) {
         return BoolArgumentType.getBool(context.nms(), name) as T
     } else if (argumentType == ArgumentAngle) {
         return AngleArgument.getAngle(context.nms(), name) as T
@@ -65,8 +65,16 @@ fun ArgumentType<*>.nms(): NMSArgumentType<*> {
         StringArgumentType.word()
     } else if (this == ArgumentGreedyString) {
         StringArgumentType.greedyString()
+    } else if (this == ArgumentBoolean) {
+        BoolArgumentType.bool()
     } else if (this is ArgumentInt) {
         IntegerArgumentType.integer(this.min, this.max)
+    } else if (this is ArgumentLong) {
+        LongArgumentType.longArg(this.min, this.max)
+    } else if (this is ArgumentFloat) {
+        FloatArgumentType.floatArg(this.min, this.max)
+    } else if (this is ArgumentDouble) {
+        DoubleArgumentType.doubleArg(this.min, this.max)
     } else if (this is ArgumentAngle) {
         AngleArgument.angle()
     } else if (this is ArgumentColor) {
