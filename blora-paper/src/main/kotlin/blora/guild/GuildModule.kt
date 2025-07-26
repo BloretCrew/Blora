@@ -36,13 +36,6 @@ object GuildModule {
                 this.player = owner.uniqueId
                 this.lastCalculate = LocalDateTime.now()
             }
-            GuildMemberInfoDao.new {
-                this.guildId = context.id
-                this.player = owner.uniqueId
-                this.joinAt = LocalDateTime.now()
-
-                this.parsedJoinSource = GuildJoinSource.Creator
-            }
             GuildDao.new {
                 this.gid = context.id
                 this.owner = owner.uniqueId
