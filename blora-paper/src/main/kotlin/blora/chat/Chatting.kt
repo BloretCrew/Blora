@@ -24,7 +24,7 @@ object Chatting {
             player = viewer,
             tags = {
                 if (rawMessage.contains("<item>")) { // only add placeholder when need to reduce memory usage
-                    val itemInMainHand = sender.inventory.itemInMainHand
+                    val itemInMainHand = sender.inventory.itemInMainHand.clone()
                     if (!itemInMainHand.type.isAir) {
                         componentPlaceholder("item") {
                             localization(
@@ -136,7 +136,7 @@ object Chatting {
                 match("<((?:[^'\"<>]|'[^']*'|\"[^\"]*\")*)>")
                 replacement { matchResult, builder ->
                     val content = matchResult.group(1)
-                    val itemInMainHand = sender.inventory.itemInMainHand
+                    val itemInMainHand = sender.inventory.itemInMainHand.clone()
 
                     if (content == "item" && !itemInMainHand.isEmpty) {
                         component {
