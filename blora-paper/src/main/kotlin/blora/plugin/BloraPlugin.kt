@@ -151,8 +151,8 @@ internal fun registerListeners() {
         UnauthorizedListener.register()
     }
     BasicListener.register()
-    SystemMailListener.register()
-    GuildListener.register()
     ChatListener.register()
+    GuildListener.register()
+    SystemMailListener.register()
     VanillaCommandsRemoverListener.register()
 }

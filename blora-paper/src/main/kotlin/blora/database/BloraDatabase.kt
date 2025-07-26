@@ -87,6 +87,8 @@ class BloraDatabase(
             SchemaUtils.create(GuildPlayerOnlineTable)
             SchemaUtils.create(GuildJoinLogTable)
             SchemaUtils.create(GuildBloriusToVitalityTimesTable)
+            SchemaUtils.create(GuildAllyInfoTable)
+            SchemaUtils.create(GuildAllyRequestTable)
         }
     }
 
@@ -173,6 +175,15 @@ class BloraDatabase(
         return trans {
             GuildInvitationDao.find {
                 GuildInvitationTable.invitee eq player
+            }.toList()
+        }
+    }
+
+    fun listValidAllyRequestsForGuild(guild: String): List<GuildAllyRequestDao> {
+        return trans {
+            GuildAllyRequestDao.find {
+                GuildAllyRequestTable.receiveGid eq guild and
+                        (GuildAllyRequestTable.finished eq false)
             }.toList()
         }
     }
@@ -452,6 +463,14 @@ class BloraDatabase(
             }
             GuildRoleTable.deleteWhere {
                 GuildRoleTable.gid eq guild.gid
+            }
+            GuildAllyRequestTable.deleteWhere {
+                GuildAllyRequestTable.requestGid eq guild.gid or
+                        (GuildAllyRequestTable.receiveGid eq guild.gid)
+            }
+            GuildAllyInfoTable.deleteWhere {
+                GuildAllyInfoTable.requestGid eq guild.gid or
+                        (GuildAllyInfoTable.receiveGid eq guild.gid)
             }
             for (ally in listAllys(guild)) {
                 ally.allys = ally.allys.toMutableList().apply { this.remove(guild.gid) }.toList()

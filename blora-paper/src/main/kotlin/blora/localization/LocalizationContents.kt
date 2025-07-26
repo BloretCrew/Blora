@@ -245,6 +245,9 @@ data class GuildMenuLocalizationContents(
     val menuGuild_listGuildDescriptionMembers: String = "成员：<guild_members>",
     val menuGuild_listGuildDescriptionVitality: String = "活跃点：<guild_vitality>",
     val menuGuild_listGuildDescriptionJoin_strategy: String = "加入策略：<guild_join_strategy>",
+    val menuGuild_listGuildDescriptionAlly_at: String = "结盟于：<guild_ally_date>",
+    val menuGuild_listGuildDescriptionAlly_request_at: String = "申请于：<guild_ally_request_date>",
+    val menuGuild_listGuildDescriptionAlly_requester: String = "申请者：<guild_ally_requester>",
     val menuMy_guildTitle: String = "我的公会",
     val menuCreate_guildTitle: String = "创建公会",
     val menuGuild_settingsButtonModify_id: String = "编辑 ID",
@@ -269,6 +272,16 @@ data class GuildMenuLocalizationContents(
     val menuCreate_guildButtonModify_icon: String = "编辑图标",
     val menuCreate_guildButtonModify_iconTooltip: String = "在物品栏中点击物品设置图标",
     val menuCreate_guildButtonCreate: String = "创建公会",
+    val menuGuild_ally_listTitle: String = "<guild> | 结盟列表",
+    val menuGuild_ally_listItemDescriptionRight: String = "<red>右键解除结盟",
+    val menuGuild_ally_listStop_allyTitle: String = "确认解除与 <guild> 的结盟吗？",
+    val menuGuild_ally_listButtonAlly_requests: String = "结盟申请",
+    val menuGuild_ally_listButtonAlly_requestsDescription: String = "<white>当前有 <requests> 个申请待处理",
+    val menuGuild_ally_listButtonRequest_ally: String = "申请与其他公会结盟",
+    val menuGuild_ally_listRequest_allyTitle: String = "<guild> | 结盟列表 | 申请与其他公会结盟",
+    val menuGuild_ally_listAlly_requestsTitle: String = "<guild> | 结盟列表 | 结盟申请",
+    val menuGuild_ally_listAlly_requestsItemDescriptionLeft: String = "<green>左键点击同意",
+    val menuGuild_ally_listAlly_requestsItemDescriptionRight: String = "<red>右键点击拒绝",
 )
 
 @Serializable
@@ -314,6 +327,10 @@ data class GuildDialogLocalizationContents(
 data class GuildLocalizationContents(
     val menu: GuildMenuLocalizationContents = GuildMenuLocalizationContents(),
     val dialog: GuildDialogLocalizationContents = GuildDialogLocalizationContents(),
+    val guildAllyRequest: String = "已向 <guild> 发送结盟申请",
+    val guildAllyAccept: String = "已同意 <guild> 的结盟申请",
+    val guildAllyReject: String = "已拒绝 <guild> 的结盟申请",
+    val guildAllyStop: String = "已终止 <guild> 的结盟",
     val guildVitalityExchangeSuccess: String = "成功兑换 <value> 活跃点",
     val guildVitalityExchangeNot_enough_money: String = "您的络琅不足以支付",
     val guildVitalityExchangeLimit: String = "今日公会兑换已达上限",

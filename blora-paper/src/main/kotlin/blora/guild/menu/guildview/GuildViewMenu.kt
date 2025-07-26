@@ -6,6 +6,7 @@ import blora.database.guild.dao.GuildDao
 import blora.extension.format
 import blora.extension.localization
 import blora.guild.*
+import blora.guild.menu.guildview.guildallylist.guildAllyListMenu
 import blora.guild.menu.guildview.guildbank.guildBankMenu
 import blora.guild.menu.guildview.guildinvitationcode.guildInvitationCodeMenu
 import blora.guild.menu.guildview.guildmemberlist.guildMemberListMenu
@@ -233,6 +234,9 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                             }
                         }
                         clickEvent {
+                            it.stack.push {
+                                guildAllyListMenu(menu, guild)
+                            }
                         }
                     }
 
