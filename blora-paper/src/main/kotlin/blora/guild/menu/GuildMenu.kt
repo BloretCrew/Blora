@@ -48,7 +48,7 @@ fun guildMenu(viewer: Player): Menu {
                     }
                 }
                 2 to 2 eq {
-                    icon { material { Material.PAPER } }
+                    icon { material { Material.ITEM_FRAME } }
                     name {
                         localization(viewer) {
                             this.guild.menu.menuGuildButtonPublic_guilds
@@ -74,7 +74,7 @@ fun guildMenu(viewer: Player): Menu {
                     }
                 }
                 2 to 5 eq {
-                    icon { material { Material.PAPER } }
+                    icon { material { Material.KELP } }
                     name {
                         localization(viewer) {
                             this.guild.menu.menuGuildButtonMy_guilds
@@ -115,7 +115,7 @@ fun guildMenu(viewer: Player): Menu {
                     }
                 }
                 2 to 8 eq {
-                    icon { material { Material.PAPER } }
+                    icon { material { Material.GLOW_BERRIES } }
                     name {
                         localization(viewer) {
                             this.guild.menu.menuGuildButtonInvitation
@@ -128,7 +128,7 @@ fun guildMenu(viewer: Player): Menu {
                     }
                 }
                 4 to 2 eq {
-                    icon { material { Material.PAPER } }
+                    icon { material { Material.WHEAT_SEEDS } }
                     name {
                         localization(viewer) {
                             this.guild.menu.menuGuildButtonJoin
@@ -141,7 +141,7 @@ fun guildMenu(viewer: Player): Menu {
                     }
                 }
                 4 to 5 eq {
-                    icon { material { Material.PAPER } }
+                    icon { material { Material.END_CRYSTAL } }
                     name {
                         localization(viewer) {
                             this.guild.menu.menuGuildButtonCreate

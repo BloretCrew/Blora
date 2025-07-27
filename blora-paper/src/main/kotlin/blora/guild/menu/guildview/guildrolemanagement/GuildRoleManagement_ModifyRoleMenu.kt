@@ -52,7 +52,28 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
             }
         }
         3 to 2 eq {
-            icon { material { Material.PAPER } }
+            icon { material { Material.TRIPWIRE_HOOK } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionModify_guild_id
+                }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.modifyGuildId) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
+                    }
+                }
+            }
+            clickEvent {
+                cachedPermissions.modifyGuildId = !cachedPermissions.modifyGuildId
+                it.menu.rerender()
+            }
+        }
+        3 to 3 eq {
+            icon { material { Material.NAME_TAG } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionModify_guild_name
@@ -72,8 +93,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        3 to 3 eq {
-            icon { material { Material.PAPER } }
+        3 to 4 eq {
+            icon { material { Material.CLOCK } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionModify_guild_icon
@@ -93,8 +114,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        3 to 4 eq {
-            icon { material { Material.PAPER } }
+        3 to 5 eq {
+            icon { material { Material.POTION } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionModify_guild_visibility
@@ -114,8 +135,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        3 to 5 eq {
-            icon { material { Material.PAPER } }
+        3 to 6 eq {
+            icon { material { Material.BEACON } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionModify_guild_join_strategy
@@ -135,8 +156,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        3 to 6 eq {
-            icon { material { Material.PAPER } }
+        3 to 7 eq {
+            icon { material { Material.CARROT } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionKick_player
@@ -156,8 +177,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        3 to 7 eq {
-            icon { material { Material.PAPER } }
+        3 to 8 eq {
+            icon { material { Material.STICK } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionReview_player
@@ -177,8 +198,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        3 to 8 eq {
-            icon { material { Material.PAPER } }
+        4 to 2 eq {
+            icon { material { Material.PISTON } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionInvite_player
@@ -198,8 +219,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        4 to 2 eq {
-            icon { material { Material.PAPER } }
+        4 to 3 eq {
+            icon { material { Material.ALLAY_SPAWN_EGG } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionRequest_ally
@@ -219,8 +240,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        4 to 3 eq {
-            icon { material { Material.PAPER } }
+        4 to 4 eq {
+            icon { material { Material.AMETHYST_SHARD } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionReview_ally
@@ -240,8 +261,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        4 to 4 eq {
-            icon { material { Material.PAPER } }
+        4 to 5 eq {
+            icon { material { Material.SADDLE } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionStop_ally
@@ -261,8 +282,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        4 to 5 eq {
-            icon { material { Material.PAPER } }
+        4 to 6 eq {
+            icon { material { Material.PAINTING } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionManage_invitation_code
@@ -282,8 +303,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        4 to 6 eq {
-            icon { material { Material.PAPER } }
+        4 to 7 eq {
+            icon { material { Material.TRAPPED_CHEST } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionStore_bank
@@ -303,8 +324,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        4 to 7 eq {
-            icon { material { Material.PAPER } }
+        4 to 8 eq {
+            icon { material { Material.BUNDLE } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionWithdraw_bank
@@ -324,8 +345,8 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
-        4 to 8 eq {
-            icon { material { Material.PAPER } }
+        5 to 2 eq {
+            icon { material { Material.VINE } }
             name {
                 localization(menu.viewer) {
                     this.guild.guildRole_permissionUse_vitality
@@ -342,6 +363,48 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
             }
             clickEvent {
                 cachedPermissions.useVitality = !cachedPermissions.useVitality
+                it.menu.rerender()
+            }
+        }
+        5 to 3 eq {
+            icon { material { Material.ENDER_CHEST } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionEnder_chest
+                }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.enderChest) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
+                    }
+                }
+            }
+            clickEvent {
+                cachedPermissions.enderChest = !cachedPermissions.enderChest
+                it.menu.rerender()
+            }
+        }
+        5 to 4 eq {
+            icon { material { Material.BLACK_DYE } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionBlocklist
+                }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.blocklist) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
+                    }
+                }
+            }
+            clickEvent {
+                cachedPermissions.blocklist = !cachedPermissions.blocklist
                 it.menu.rerender()
             }
         }

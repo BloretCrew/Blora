@@ -186,7 +186,7 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
             guildButtonPositions[index] eq {
                 when (button) {
                     GuildViewButtons.GUILD_SETTINGS -> {
-                        icon { material { Material.PAPER } }
+                        icon { material { Material.MINECART } }
                         name {
                             localization(menu.viewer) {
                                 this.guild.menu.menuGuild_viewButtonGuild_settings
@@ -200,7 +200,7 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                     }
 
                     GuildViewButtons.ROLE_MANAGEMENT -> {
-                        icon { material { Material.PAPER } }
+                        icon { material { Material.REDSTONE } }
                         name {
                             localization(menu.viewer) {
                                 this.guild.menu.menuGuild_viewButtonRole_management
@@ -214,7 +214,7 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                     }
 
                     GuildViewButtons.MEMBER_LIST -> {
-                        icon { material { Material.PAPER } }
+                        icon { material { Material.ARMOR_STAND } }
                         name {
                             localization(menu.viewer) {
                                 this.guild.menu.menuGuild_viewButtonMember_list
@@ -283,7 +283,7 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                     }
 
                     GuildViewButtons.VITALITY_SHOP -> {
-                        icon { material { Material.BEEHIVE } }
+                        icon { material { Material.HONEYCOMB } }
                         name {
                             localization(menu.viewer) {
                                 this.guild.menu.menuGuild_viewButtonVitality_shop

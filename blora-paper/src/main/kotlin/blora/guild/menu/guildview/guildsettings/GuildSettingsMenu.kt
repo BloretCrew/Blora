@@ -67,7 +67,7 @@ fun guildSettingsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
 
         if (permissions.contains(GuildPermissions.MODIFY_GUILD_ID)) {
             buttons[buttonIndex] eq {
-                icon { material { Material.PAPER } }
+                icon { material { Material.TRIPWIRE_HOOK } }
                 name {
                     localization(menu.viewer) {
                         this.guild.menu.menuGuild_settingsButtonModify_id
@@ -92,7 +92,7 @@ fun guildSettingsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
 
         if (permissions.contains(GuildPermissions.MODIFY_GUILD_NAME)) {
             buttons[buttonIndex] eq {
-                icon { material { Material.PAPER } }
+                icon { material { Material.NAME_TAG } }
                 name {
                     localization(menu.viewer) {
                         this.guild.menu.menuGuild_settingsButtonModify_display_name
@@ -117,7 +117,7 @@ fun guildSettingsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
 
         if (permissions.contains(GuildPermissions.MODIFY_GUILD_ICON)) {
             buttons[buttonIndex] eq {
-                icon { material { Material.PAPER } }
+                icon { material { Material.CLOCK } }
                 name {
                     localization(menu.viewer) {
                         this.guild.menu.menuGuild_settingsButtonModify_icon
@@ -134,7 +134,7 @@ fun guildSettingsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
 
         if (permissions.contains(GuildPermissions.MODIFY_GUILD_VISIBILITY)) {
             buttons[buttonIndex] eq {
-                icon { material { Material.PAPER } }
+                icon { material { Material.POTION } }
                 name {
                     localization(menu.viewer) {
                         this.guild.menu.menuGuild_settingsButtonModify_visibility
@@ -179,7 +179,7 @@ fun guildSettingsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
 
         if (permissions.contains(GuildPermissions.MODIFY_GUILD_JOIN_STRATEGY)) {
             buttons[buttonIndex] eq {
-                icon { material { Material.PAPER } }
+                icon { material { Material.BEACON } }
                 name {
                     localization(menu.viewer) {
                         this.guild.menu.menuGuild_settingsButtonModify_join_strategy
