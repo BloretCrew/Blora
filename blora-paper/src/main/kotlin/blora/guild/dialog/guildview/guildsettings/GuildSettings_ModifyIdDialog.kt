@@ -1,5 +1,6 @@
 package blora.guild.dialog.guildview.guildsettings
 
+import blora.configuration.CONF
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.dialog.ConfirmationDialog
@@ -19,6 +20,7 @@ import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
+import plutoproject.adventurekt.text.parsedPlaceholder
 
 fun guildSettings_modifyIdDialog(
     viewer: Player,
@@ -84,6 +86,27 @@ fun guildSettings_modifyIdDialog(
                         )
                         return@DynamicCustomClickTypeInjected
                     }
+                    if (guildId.length < CONF.guild.minIdLength || guildId.length > CONF.guild.maxIdLength) {
+                        viewer.openDialog(
+                            guildSettings_modifyIdDialog(
+                                viewer,
+                                guild,
+                                rerenderCallback,
+                                component {
+                                    localization(
+                                        player = viewer,
+                                        tags = {
+                                            parsedPlaceholder("min", CONF.guild.minIdLength.toString())
+                                            parsedPlaceholder("max", CONF.guild.maxIdLength.toString())
+                                        }
+                                    ) {
+                                        this.guild.dialog.dialogCreate_guildSet_idWarningLength
+                                    }
+                                }
+                            )
+                        )
+                        return@DynamicCustomClickTypeInjected
+                    }
                     if (BloraPlugin.database.getGuildByGid(guildId) != null) {
                         viewer.openDialog(
                             guildSettings_modifyIdDialog(
@@ -92,7 +115,7 @@ fun guildSettings_modifyIdDialog(
                                 rerenderCallback,
                                 component {
                                     localization(viewer) {
-                                        this.guild.dialog.dialogGuild_settingsSet_idWarningId_exists
+                                        this.guild.dialog.dialogGuild_settingsSet_idWarningLength
                                     }
                                 }
                             )

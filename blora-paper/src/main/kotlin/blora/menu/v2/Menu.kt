@@ -19,8 +19,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
-import plutoproject.adventurekt.audience.send
-import plutoproject.adventurekt.text.text
 
 class Menu(
     val viewer: Player,

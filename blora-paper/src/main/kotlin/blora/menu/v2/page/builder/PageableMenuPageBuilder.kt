@@ -26,8 +26,8 @@ class PageableMenuPageBuilder<D>(
 ) : MenuPageBuilder<PageableMenuClickContext<D>, PageableMenuViewContext<D>, PageableMenuPage<D>>() {
 
     internal var showBackButton = false
-    internal var dataItemBuilder: MenuItemBuilder<PageableMenuClickContext<D>>.(PageableMenuViewContext<D>, D) -> Unit =
-        { _, _ -> }
+    internal var dataItemBuilder: MenuItemBuilder<PageableMenuClickContext<D>>.(PageableMenuViewContext<D>, D, Int) -> Unit =
+        { _, _, _ -> }
     internal var builder: PageableMenuPageBuilder<D>.() -> Unit = {}
 
     private var previousRecordedPageId: String? = null
@@ -211,7 +211,7 @@ class PageableMenuPageBuilder<D>(
             val counterIndex = index - (currentPage - 1) * ((menu.lines - 2) * 7)
             val pair = ((counterIndex / 7) + 2) to (counterIndex - ((counterIndex / 7) * 7) + 2)
             val realIndex = (pair.second - 1) + ((pair.first - 1) * 9)
-            finalItems[realIndex] = { dataItemBuilder(it, it.dataProvider[index]) }
+            finalItems[realIndex] = { dataItemBuilder(it, it.dataProvider[index], index) }
         }
 
         val realTitle = if (this.title != null) {
@@ -313,6 +313,6 @@ fun <D> PageableMenuPageBuilder<D>.showBackButton() {
     this.showBackButton = true
 }
 
-fun <D> PageableMenuPageBuilder<D>.dataItem(builder: MenuItemBuilder<PageableMenuClickContext<D>>.(PageableMenuViewContext<D>, D) -> Unit) {
+fun <D> PageableMenuPageBuilder<D>.dataItem(builder: MenuItemBuilder<PageableMenuClickContext<D>>.(viewContext: PageableMenuViewContext<D>, data: D, index: Int) -> Unit) {
     this.dataItemBuilder = builder
 }

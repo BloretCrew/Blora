@@ -13,7 +13,6 @@ import kotlinx.serialization.json.*
 import me.clip.placeholderapi.PlaceholderAPI
 import net.kyori.adventure.text.Component
 import net.momirealms.craftengine.bukkit.api.CraftEngineItems
-import net.momirealms.craftengine.core.plugin.CraftEngine
 import org.bukkit.craftbukkit.inventory.CraftItemStack
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -27,16 +26,15 @@ import net.minecraft.world.item.ItemStack as NMSItemStack
 data class Attachment(
     var coins: UInt = 0u,
     var blorius: UInt = 0u,
-    val items: MutableMap<ItemStack, UInt> = mutableMapOf()
+    val items: MutableList<Pair<ItemStack, UInt>> = mutableListOf()
 ) {
 
     fun clone(): Attachment {
         return Attachment(
             coins,
             blorius,
-            items.map { it.key.clone() to it.value }
-                .associate { it }
-                .toMutableMap()
+            items.map { it.first.clone() to it.second }
+                .toMutableList()
         )
     }
 
@@ -115,7 +113,7 @@ data class Attachment(
 
     fun itemsContainsLike(item: ItemStack): Boolean {
         val itemCopy = item.clone().apply { amount = 1 }
-        return this.items.containsKey(itemCopy)
+        return this.items.any { it.first == itemCopy }
     }
 
     fun buildMailComponent(): Component {
@@ -193,12 +191,12 @@ data class Attachment(
                                     NMSItemStack.CODEC
                                         .encodeStart(
                                             JsonOps.INSTANCE,
-                                            CraftItemStack.asNMSCopy(it.key)
+                                            CraftItemStack.asNMSCopy(it.first)
                                         )
                                         .result()
                                         .get()
                                 ),
-                                "amount" to JsonPrimitive(it.value)
+                                "amount" to JsonPrimitive(it.second)
                             )
                         )
                     }
@@ -232,7 +230,7 @@ data class Attachment(
             return Attachment(
                 coins,
                 blorius,
-                items.associate { it }.toMutableMap()
+                items.toMutableList()
             )
         }
 

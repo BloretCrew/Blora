@@ -408,6 +408,27 @@ fun guildRoleManagement_modifyRoleMenu(menu: Menu, guild: GuildDao, role: GuildR
                 it.menu.rerender()
             }
         }
+        5 to 5 eq {
+            icon { material { Material.DIRT } }
+            name {
+                localization(menu.viewer) {
+                    this.guild.guildRole_permissionTown_management
+                }
+            }
+            description {
+                localization(menu.viewer) {
+                    if (cachedPermissions.townManagement) {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemAllow
+                    } else {
+                        this.guild.menu.menuGuild_role_managementModify_roleItemDeny
+                    }
+                }
+            }
+            clickEvent {
+                cachedPermissions.townManagement = !cachedPermissions.townManagement
+                it.menu.rerender()
+            }
+        }
 
         5 to 9 eq {
             icon { material { Material.EMERALD } }

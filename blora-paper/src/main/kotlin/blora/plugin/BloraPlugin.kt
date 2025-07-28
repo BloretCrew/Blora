@@ -16,12 +16,7 @@ import blora.guild.GuildVitalityManager
 import blora.injector.BloraInjector
 import blora.internal.api.QuickEntityLib
 import blora.internal.api.scheduler.BukkitMain
-import blora.listener.BasicListener
-import blora.listener.ChatListener
-import blora.listener.GuildListener
-import blora.listener.SystemMailListener
-import blora.listener.UnauthorizedListener
-import blora.listener.VanillaCommandsRemoverListener
+import blora.listener.*
 import blora.localization.BloraLocalization
 import blora.menu.MenuApi
 import blora.messaging.BloraClient
@@ -168,6 +163,7 @@ internal fun registerListeners() {
     BasicListener.register()
     ChatListener.register()
     GuildListener.register()
+    TownListener.register()
     SystemMailListener.register()
     VanillaCommandsRemoverListener.register()
 }

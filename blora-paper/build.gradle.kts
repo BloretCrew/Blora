@@ -10,6 +10,7 @@ dependencies {
     compileOnly(libs.craftengine.core)
     compileOnly(libs.craftengine.bukkit)
     compileOnly(files("libs/Vault-1.7.3.jar"))
+    compileOnly(files("libs/Residence5.1.7.6.jar"))
 
     compileOnly(libs.kotlinx.coroutines)
     compileOnly(libs.krontab)

@@ -4,7 +4,6 @@ import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.extension.localization
 import blora.menu.storage.StorageMenu
-import blora.menu.v2.page.builder.title
 import org.bukkit.entity.Player
 import org.jetbrains.exposed.dao.id.EntityID
 import plutoproject.adventurekt.component

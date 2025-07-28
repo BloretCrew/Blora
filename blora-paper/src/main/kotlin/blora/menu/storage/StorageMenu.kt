@@ -3,15 +3,11 @@ package blora.menu.storage
 import blora.plugin.BloraPlugin
 import blora.scheduler.ShutdownHook
 import io.papermc.paper.adventure.PaperAdventure
-import kotlinx.coroutines.Runnable
-import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket
 import org.bukkit.Bukkit
-import org.bukkit.Registry
 import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.craftbukkit.inventory.CraftContainer
-import org.bukkit.craftbukkit.util.ServerShutdownThread
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
@@ -20,7 +16,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.ItemType
 import org.bukkit.scheduler.BukkitTask
 
 class StorageMenu(
@@ -29,7 +24,7 @@ class StorageMenu(
     val updateFrequency: Long,
     private val removal: (StorageMenu) -> Unit,
     private val updater: (Map<Int, ItemStack>) -> Unit
-): InventoryHolder, Listener {
+) : InventoryHolder, Listener {
 
     private val inventory: Inventory
     private val updateJob: BukkitTask
@@ -117,5 +112,5 @@ class StorageMenu(
     override fun getInventory(): Inventory {
         return this.inventory
     }
-    
+
 }

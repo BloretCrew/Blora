@@ -15,11 +15,7 @@ import blora.menu.v2.item.clickEvent
 import blora.menu.v2.item.description
 import blora.menu.v2.item.icon
 import blora.menu.v2.page.MenuPage
-import blora.menu.v2.page.builder.dataItem
-import blora.menu.v2.page.builder.pageId
-import blora.menu.v2.page.builder.pageableMenuPage
-import blora.menu.v2.page.builder.showBackButton
-import blora.menu.v2.page.builder.title
+import blora.menu.v2.page.builder.*
 import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -46,7 +42,7 @@ fun guildMemberList_joinRequestsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *
             }
         }
         showBackButton()
-        dataItem { viewContext, request ->
+        dataItem { viewContext, request, dataIndex ->
             icon {
                 material { Material.PLAYER_HEAD }
                 DataComponentTypes.PROFILE eq request.player.resolvableProfile()
@@ -65,6 +61,14 @@ fun guildMemberList_joinRequestsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *
                 }
             }
             clickEvent { clickContext ->
+                if (clickContext.click.isLeftClick && guild.members.size >= guild.maxMembers) {
+                    clickContext.viewer.send {
+                        localization(clickContext.viewer) {
+                            this.guild.guildJoin_invite_reviewMembers_limit
+                        }
+                    }
+                    return@clickEvent
+                }
                 if (!clickContext.click.isLeftClick && !clickContext.click.isRightClick)
                     return@clickEvent
                 if (!DB.getRolePermissions(viewContext.viewer.uniqueId, guild.gid).reviewPlayer) {

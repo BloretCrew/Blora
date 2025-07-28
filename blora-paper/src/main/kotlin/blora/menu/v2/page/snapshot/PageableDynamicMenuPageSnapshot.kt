@@ -26,6 +26,7 @@ class PageableDynamicMenuPageSnapshot<D>(
             menu,
             event.click,
             event.action,
+            this.menuPage.builder.dataProvider,
             this.menuPage,
             this.currentPage,
             this.maxPage

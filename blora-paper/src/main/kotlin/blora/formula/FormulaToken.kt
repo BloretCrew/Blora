@@ -33,7 +33,11 @@ sealed class FormulaToken {
                         val value = variableProvider.parse(args)
                         if (value == null)
                             return null
-                        return if (this.opposite) { -value } else { value }
+                        return if (this.opposite) {
+                            -value
+                        } else {
+                            value
+                        }
                     }
                 }
                 return null
@@ -61,30 +65,35 @@ sealed class FormulaToken {
                 return left + right
             }
         }
+
         object Minus : OperatorToken() {
             override val priority: Int = 1
             override fun operate(left: Double, right: Double): Double {
                 return left - right
             }
         }
+
         object Remainder : OperatorToken() {
             override val priority: Int = 2
             override fun operate(left: Double, right: Double): Double {
                 return left % right
             }
         }
+
         object Times : OperatorToken() {
             override val priority: Int = 2
             override fun operate(left: Double, right: Double): Double {
                 return left * right
             }
         }
+
         object Division : OperatorToken() {
             override val priority: Int = 2
             override fun operate(left: Double, right: Double): Double {
                 return left / right
             }
         }
+
         object Power : OperatorToken() {
             override val priority: Int = 3
             override fun operate(left: Double, right: Double): Double {

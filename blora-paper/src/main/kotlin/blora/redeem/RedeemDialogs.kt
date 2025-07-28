@@ -1,5 +1,6 @@
 package blora.redeem
 
+import blora.database.DB
 import blora.database.redeem.dao.RedeemDao
 import blora.dialog.ConfirmationDialog
 import blora.dialog.Dialog
@@ -12,7 +13,6 @@ import blora.extension.containsLetterAndNumberOnly
 import blora.extension.localization
 import blora.extension.openDialog
 import blora.mail.Attachment
-import blora.plugin.BloraPlugin
 import net.benwoodworth.knbt.NbtByte
 import net.benwoodworth.knbt.NbtCompound
 import net.benwoodworth.knbt.NbtString
@@ -26,7 +26,7 @@ import java.time.LocalDateTime
 fun createRedeemDialog(
     player: Player,
     warningMessage: Component? = null,
-    createCallback: (RedeemDao) -> Unit
+    rerenderCallback: () -> Unit
 ): Dialog {
     return ConfirmationDialog(
         title = component {
@@ -80,12 +80,12 @@ fun createRedeemDialog(
                                         this.redeem.dialogCreate_redeemWarningName_illegal
                                     }
                                 },
-                                createCallback
+                                rerenderCallback
                             )
                         )
                         return@DynamicCustomClickTypeInjected
                     }
-                    if (BloraPlugin.database.isRedeemCodeExists(code)) {
+                    if (DB.isRedeemCodeExists(code)) {
                         player.openDialog(
                             createRedeemDialog(
                                 player,
@@ -94,22 +94,34 @@ fun createRedeemDialog(
                                         this.redeem.dialogCreate_redeemWarningExists
                                     }
                                 },
-                                createCallback
+                                rerenderCallback
                             )
                         )
                         return@DynamicCustomClickTypeInjected
                     }
 
-                    BloraPlugin.database.trans {
-                        val redeem = RedeemDao.new {
+                    val redeem = DB.trans {
+                        RedeemDao.new {
                             this.code = code.lowercase()
                             this.parseAttachment = Attachment()
                             this.creator = player.uniqueId
                             this.createdAt = LocalDateTime.now()
                             this.oneUse = oneUse
                         }
-                        createCallback(redeem)
                     }
+
+                    player.send {
+                        localization(
+                            player = player,
+                            tags = {
+                                parsedPlaceholder("redeem", redeem.code)
+                            }
+                        ) {
+                            this.redeem.redeemCreate
+                        }
+                    }
+
+                    rerenderCallback()
                 }
             )
         ),
@@ -161,7 +173,7 @@ fun redeemDialog(
                 callback = {
                     val compound = it as NbtCompound
                     val code = (compound["redeem_code"] as NbtString).value.lowercase()
-                    if (!BloraPlugin.database.isRedeemCodeExists(code)) {
+                    if (!DB.isRedeemCodeExists(code)) {
                         player.openDialog(
                             redeemDialog(
                                 player,
@@ -174,7 +186,7 @@ fun redeemDialog(
                         )
                         return@DynamicCustomClickTypeInjected
                     }
-                    if (BloraPlugin.database.isRedeemOneUseAndUsed(code)) {
+                    if (DB.isRedeemOneUseAndUsed(code)) {
                         player.openDialog(
                             redeemDialog(
                                 player,
@@ -187,7 +199,7 @@ fun redeemDialog(
                         )
                         return@DynamicCustomClickTypeInjected
                     }
-                    if (BloraPlugin.database.isRedeemCodeUsedForPlayer(player.uniqueId, code)) {
+                    if (DB.isRedeemCodeUsedForPlayer(player.uniqueId, code)) {
                         player.openDialog(
                             redeemDialog(
                                 player,

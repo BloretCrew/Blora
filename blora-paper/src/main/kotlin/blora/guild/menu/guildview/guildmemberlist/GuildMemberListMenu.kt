@@ -8,6 +8,7 @@ import blora.extension.localization
 import blora.extension.resolvableProfile
 import blora.guild.GuildPermissions
 import blora.guild.dataprovider.GuildMemberDaoWithRolePriorityDataProvider
+import blora.guild.menu.guildview.guildinvitationcode.guildInvitationCodeMenu
 import blora.item.material
 import blora.menu.v2.Menu
 import blora.menu.v2.item.clickEvent
@@ -15,14 +16,11 @@ import blora.menu.v2.item.description
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
-import blora.menu.v2.page.builder.dataItem
-import blora.menu.v2.page.builder.pageId
-import blora.menu.v2.page.builder.pageableMenuPage
-import blora.menu.v2.page.builder.showBackButton
-import blora.menu.v2.page.builder.title
+import blora.menu.v2.page.builder.*
 import blora.util.castString
 import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Material
+import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
@@ -51,6 +49,22 @@ fun guildMemberListMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
         }
         showBackButton()
 
+        if (permissions.contains(GuildPermissions.MANAGE_INVITATION_CODE)) {
+            5 to 3 eq {
+                icon { material { Material.NAME_TAG } }
+                name {
+                    localization(menu.viewer) {
+                        this.guild.menu.menuGuild_viewButtonInvitation_codes
+                    }
+                }
+                clickEvent {
+                    it.stack.push {
+                        guildInvitationCodeMenu(menu, guild)
+                    }
+                }
+            }
+        }
+
         if (permissions.contains(GuildPermissions.INVITE_PLAYER)) {
             5 to 4 eq {
                 icon { material { Material.PAPER } }
@@ -60,6 +74,14 @@ fun guildMemberListMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                     }
                 }
                 clickEvent { clickContext ->
+                    if (guild.members.size >= guild.maxMembers) {
+                        clickContext.viewer.send {
+                            localization(clickContext.viewer) {
+                                this.guild.guildJoin_invite_reviewMembers_limit
+                            }
+                        }
+                        return@clickEvent
+                    }
                     clickContext.stack.push {
                         guildMemberList_inviteMenu(menu, guild)
                     }
@@ -112,7 +134,7 @@ fun guildMemberListMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
 
         val viewerPriority = DB.getMaxRolePriority(menu.viewer.uniqueId, guild)
 
-        dataItem { viewContext, (memberInfo, playerPriority) ->
+        dataItem { viewContext, (memberInfo, playerPriority), dataIndex ->
             val cachedPlayerName = DB.getPlayerDisplayName(memberInfo.player)
             val roles = DB.listRolesForPlayer(memberInfo.player, guild.gid)
             icon {

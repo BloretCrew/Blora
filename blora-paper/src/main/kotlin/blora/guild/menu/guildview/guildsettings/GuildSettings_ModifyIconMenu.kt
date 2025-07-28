@@ -11,11 +11,7 @@ import blora.menu.v2.item.clickEvent
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
-import blora.menu.v2.page.builder.backButton
-import blora.menu.v2.page.builder.inventoryClick
-import blora.menu.v2.page.builder.limitedDynamicMenuPage
-import blora.menu.v2.page.builder.pageId
-import blora.menu.v2.page.builder.title
+import blora.menu.v2.page.builder.*
 import org.bukkit.Material
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.parsedPlaceholder
@@ -38,7 +34,7 @@ fun guildSettings_modifyIconMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
             }
         }
         inventoryClick { item, clickContext ->
-            cachedIcon = item.clone().apply { this.amount = 1}
+            cachedIcon = item.clone().apply { this.amount = 1 }
             clickContext.menu.rerender()
             return@inventoryClick true
         }

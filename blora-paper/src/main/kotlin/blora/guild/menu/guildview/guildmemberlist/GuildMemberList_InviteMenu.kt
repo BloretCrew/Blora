@@ -14,11 +14,7 @@ import blora.menu.v2.item.clickEvent
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
-import blora.menu.v2.page.builder.backButton
-import blora.menu.v2.page.builder.dataItem
-import blora.menu.v2.page.builder.pageId
-import blora.menu.v2.page.builder.pageableMenuPage
-import blora.menu.v2.page.builder.title
+import blora.menu.v2.page.builder.*
 import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Material
 import plutoproject.adventurekt.audience.send
@@ -51,7 +47,7 @@ fun guildMemberList_inviteMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
         }
         backButton()
 
-        dataItem { viewContext, invitablePlayer ->
+        dataItem { viewContext, invitablePlayer, dataIndex ->
             icon {
                 material { Material.PLAYER_HEAD }
                 DataComponentTypes.PROFILE eq invitablePlayer.resolvableProfile()
@@ -62,6 +58,14 @@ fun guildMemberList_inviteMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
             clickEvent { clickContext ->
                 if (!DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).invitePlayer) {
                     clickContext.stack.pop()
+                    return@clickEvent
+                }
+                if (guild.members.size >= guild.maxMembers) {
+                    clickContext.viewer.send {
+                        localization(clickContext.viewer) {
+                            this.guild.guildJoin_invite_reviewMembers_limit
+                        }
+                    }
                     return@clickEvent
                 }
                 if (guild.blocklist.contains(invitablePlayer.uniqueId)) {

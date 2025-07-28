@@ -24,7 +24,7 @@ data class RolePermissions(
     var useVitality: Boolean = false,
     var blocklist: Boolean = false,
     var enderChest: Boolean = true,
-    // TODO: towns related permissions will be added after town was finished
+    var townManagement: Boolean = false,
 ) {
 
     fun merge(another: RolePermissions): RolePermissions {
@@ -49,6 +49,7 @@ data class RolePermissions(
             useVitality = this.useVitality || another.useVitality,
             blocklist = this.blocklist || another.blocklist,
             enderChest = this.enderChest || another.enderChest,
+            townManagement = this.townManagement || another.townManagement,
         )
     }
 
@@ -74,6 +75,7 @@ data class RolePermissions(
             useVitality = useVitality,
             blocklist = blocklist,
             enderChest = enderChest,
+            townManagement = townManagement,
         )
     }
 
@@ -101,6 +103,7 @@ data class RolePermissions(
                 useVitality = true,
                 blocklist = true,
                 enderChest = true,
+                townManagement = true,
             )
         }
 
@@ -126,6 +129,7 @@ data class RolePermissions(
                 useVitality = false,
                 blocklist = false,
                 enderChest = false,
+                townManagement = false,
             )
         }
 

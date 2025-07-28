@@ -21,7 +21,8 @@ enum class GuildPermissions {
     WITHDRAW_BANK,
     USE_VITALITY,
     BLOCKLIST,
-    ENDER_CHEST;
+    ENDER_CHEST,
+    TOWN_MANAGEMENT;
 
 }
 

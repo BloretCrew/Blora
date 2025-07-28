@@ -11,6 +11,7 @@ val STORE_DATA_JSON = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
     coerceInputValues = true
+    allowStructuredMapKeys = true
 }
 
 val MINECRAFT_DATA_JSON = Json {
@@ -21,6 +22,7 @@ val MINECRAFT_DATA_JSON = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
     coerceInputValues = true
+    allowStructuredMapKeys = true
 }
 
 val MINECRAFT_PRETTY_DATA_JSON = Json {
@@ -31,5 +33,6 @@ val MINECRAFT_PRETTY_DATA_JSON = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
     coerceInputValues = true
+    allowStructuredMapKeys = true
     prettyPrint = true
 }

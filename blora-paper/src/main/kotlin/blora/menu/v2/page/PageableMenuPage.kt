@@ -9,7 +9,7 @@ import org.bukkit.inventory.Inventory
 
 class PageableMenuPage<D>(
     override val pageId: String,
-    private val builder: PageableMenuPageBuilder<D>,
+    internal val builder: PageableMenuPageBuilder<D>,
     private val launchEffect: (PageableMenuViewContext<D>) -> Unit,
     private val disposeEffect: (PageableMenuViewContext<D>) -> Unit,
 ) : MenuPage<PageableMenuClickContext<D>, PageableMenuViewContext<D>> {

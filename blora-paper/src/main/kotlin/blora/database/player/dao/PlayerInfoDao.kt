@@ -1,5 +1,6 @@
 package blora.database.player.dao
 
+import blora.database.DB
 import blora.database.player.table.PlayerInfoTable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
@@ -8,7 +9,15 @@ import java.util.*
 
 class PlayerInfoDao(id: EntityID<Int>) : IntEntity(id) {
 
-    companion object : IntEntityClass<PlayerInfoDao>(PlayerInfoTable)
+    companion object : IntEntityClass<PlayerInfoDao>(PlayerInfoTable) {
+
+        fun listAll(): List<PlayerInfoDao> {
+            return DB.trans {
+                all().toList()
+            }
+        }
+
+    }
 
     var playerUuid: UUID by PlayerInfoTable.uuid
     var username: String by PlayerInfoTable.name

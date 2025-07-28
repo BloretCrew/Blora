@@ -6,8 +6,8 @@ import blora.internal.api.command.literal
 import blora.internal.api.command.playerExecutor
 import blora.internal.api.command.requires
 import blora.permission.Permissions
+import blora.redeem.menu.redeemManagementMenu
 import blora.redeem.redeemDialog
-import blora.redeem.redeemManagementMenu
 
 object RedeemCommand {
 

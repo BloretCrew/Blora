@@ -3,9 +3,9 @@
 package blora.configuration
 
 import blora.adventure.itemLore
+import blora.item.amount
 import blora.item.itemStack
 import blora.item.material
-import blora.item.amount
 import blora.item.withData
 import blora.json.MINECRAFT_PRETTY_DATA_JSON
 import blora.plugin.BloraPlugin
@@ -15,9 +15,9 @@ import kotlinx.serialization.Serializable
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.component
+import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.style.red
 import plutoproject.adventurekt.text.style.text
-import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.text
 import plutoproject.adventurekt.text.with
 import java.io.File
@@ -72,9 +72,11 @@ data class GuildVitalityShopConfiguration(
         fun loadOrCreate(): GuildVitalityShopConfiguration {
             val configurationFile = File(BloraPlugin.dataFolder, "guild_vitality_shop.json")
             if (!configurationFile.exists()) {
-                configurationFile.writeText(MINECRAFT_PRETTY_DATA_JSON.encodeToString(
-                    GuildVitalityShopConfiguration()
-                ))
+                configurationFile.writeText(
+                    MINECRAFT_PRETTY_DATA_JSON.encodeToString(
+                        GuildVitalityShopConfiguration()
+                    )
+                )
             }
             return MINECRAFT_PRETTY_DATA_JSON.decodeFromString(configurationFile.readText())
         }

@@ -4,19 +4,60 @@ import blora.converter.jsonToItemStack
 import blora.converter.toJson
 import blora.database.DB
 import blora.database.guild.table.GuildTable
+import blora.database.town.dao.TownDao
 import blora.guild.GuildPermissions
 import blora.plugin.BloraPlugin
 import org.bukkit.inventory.ItemStack
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.QueryParameter
+import org.jetbrains.exposed.sql.UUIDColumnType
+import org.jetbrains.exposed.sql.anyFrom
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 class GuildDao(id: EntityID<Int>) : IntEntity(id) {
 
-    companion object : IntEntityClass<GuildDao>(GuildTable)
+    companion object : IntEntityClass<GuildDao>(GuildTable) {
+
+        fun getByTownId(townId: String): GuildDao? {
+            val town = TownDao.getByTownId(townId)
+            if (town == null)
+                return null
+            return DB.trans {
+                find {
+                    GuildTable.gid eq town.guildId
+                }.firstOrNull()
+            }
+        }
+
+        fun getByGuildId(guildId: String): GuildDao? {
+            return DB.trans {
+                find {
+                    GuildTable.gid eq guildId
+                }.firstOrNull()
+            }
+        }
+
+        // if not provide guildIds or null, means fetching in all guilds
+        fun isPlayerInAnyGuild(player: UUID, guildIds: List<String>? = null): Boolean {
+            return DB.trans {
+                if (guildIds == null) {
+                    !find {
+                        QueryParameter(player, UUIDColumnType()) eq anyFrom(GuildTable.members)
+                    }.empty()
+                } else {
+                    !find {
+                        GuildTable.gid eq anyFrom(guildIds)
+                        QueryParameter(player, UUIDColumnType()) eq anyFrom(GuildTable.members)
+                    }.empty()
+                }
+            }
+        }
+
+    }
 
     var gid: String by GuildTable.gid
     var owner: UUID by GuildTable.owner
@@ -185,6 +226,9 @@ class GuildDao(id: EntityID<Int>) : IntEntity(id) {
             }
             if (permission.enderChest) {
                 permissions.add(GuildPermissions.ENDER_CHEST)
+            }
+            if (permission.townManagement) {
+                permissions.add(GuildPermissions.TOWN_MANAGEMENT)
             }
         }
         return permissions

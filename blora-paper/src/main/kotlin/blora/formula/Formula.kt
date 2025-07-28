@@ -8,7 +8,8 @@ class Formula(
         val copiedTokens = this.tokens.toMutableList()
         for (priority in 4 downTo 1) {
             while (copiedTokens.any { it is FormulaToken.OperatorToken && it.priority == priority }) {
-                val tokenIndex = copiedTokens.indexOfFirst { it is FormulaToken.OperatorToken && it.priority == priority }
+                val tokenIndex =
+                    copiedTokens.indexOfFirst { it is FormulaToken.OperatorToken && it.priority == priority }
                 val operatorToken = copiedTokens[tokenIndex] as FormulaToken.OperatorToken
                 val previous = copiedTokens[tokenIndex - 1] as FormulaToken.ValueToken
                 val next = copiedTokens[tokenIndex + 1] as FormulaToken.ValueToken

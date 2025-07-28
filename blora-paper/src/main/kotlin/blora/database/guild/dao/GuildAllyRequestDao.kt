@@ -1,7 +1,6 @@
 package blora.database.guild.dao
 
 import blora.database.guild.table.GuildAllyRequestTable
-import blora.database.guild.table.GuildBankLogTable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID

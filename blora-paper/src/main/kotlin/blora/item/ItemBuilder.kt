@@ -3,7 +3,10 @@
 package blora.item
 
 import io.papermc.paper.datacomponent.DataComponentType
+import net.momirealms.craftengine.bukkit.api.CraftEngineItems
+import net.momirealms.craftengine.core.util.Key
 import org.bukkit.Material
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.ItemType
 
@@ -34,12 +37,20 @@ fun ItemBuilder.type(value: () -> ItemType) {
     this.itemStack = value().createItemStack()
 }
 
+fun ItemBuilder.momi(value: () -> Key) {
+    this.itemStack = CraftEngineItems.byId(value())?.buildItemStack()
+}
+
 fun ItemBuilder.material(material: () -> Material) {
     this.itemStack = ItemStack(material())
 }
 
 fun ItemBuilder.amount(value: () -> Int) {
     this.itemStack?.amount = value()
+}
+
+fun ItemBuilder.itemFlag(value: () -> ItemFlag) {
+    this.itemStack?.addItemFlags(value())
 }
 
 fun ItemBuilder.withData(value: () -> DataComponentType.NonValued) {

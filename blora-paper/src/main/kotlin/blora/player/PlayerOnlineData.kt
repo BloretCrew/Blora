@@ -12,7 +12,11 @@ data class PlayerOnlineData(
     val onlineData: List<Pair<LocalDateTime, LocalDateTime>>
 ) {
 
-    fun hasTimesOfHoursAfter(after: jtLocalDateTime, hours: Int, playerJoinAt: jtLocalDateTime): Pair<jtLocalDateTime, Int> {
+    fun hasTimesOfHoursAfter(
+        after: jtLocalDateTime,
+        hours: Int,
+        playerJoinAt: jtLocalDateTime
+    ): Pair<jtLocalDateTime, Int> {
         var times = 0
         var tempSeconds = 0L
         var maybeDateTime = after
@@ -47,7 +51,11 @@ data class PlayerOnlineData(
         return maybeDateTime to times
     }
 
-    fun hasTimesOfMinutesAfter(after: jtLocalDateTime, minutes: Int, playerJoinAt: jtLocalDateTime): Pair<jtLocalDateTime, Int> {
+    fun hasTimesOfMinutesAfter(
+        after: jtLocalDateTime,
+        minutes: Int,
+        playerJoinAt: jtLocalDateTime
+    ): Pair<jtLocalDateTime, Int> {
         var times = 0
         var tempSeconds = 0L
         var maybeDateTime = after

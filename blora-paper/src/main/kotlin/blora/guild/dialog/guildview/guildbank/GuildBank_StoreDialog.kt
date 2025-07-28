@@ -169,7 +169,11 @@ fun guildBank_storeDialog(
                                 BloraPlugin.slF4JLogger.error("玩家银行贡献计算公式无法正常解析(1)，请调整后重启服务器")
                             } else {
                                 val papiVariable = PapiFormulaVariable(viewer)
-                                val value = formula.calculate(guildVariable, papiVariable, FormulaVariable.simple("delta", delta))
+                                val value = formula.calculate(
+                                    guildVariable,
+                                    papiVariable,
+                                    FormulaVariable.simple("delta", delta)
+                                )
                                 if (value == null) {
                                     BloraPlugin.slF4JLogger.error("玩家银行贡献更新计算公式无法正常解析(2)，请调整后重启服务器")
                                 } else {

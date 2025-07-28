@@ -88,7 +88,7 @@ fun createGuild_setIdDialog(
                                             parsedPlaceholder("max", CONF.guild.maxIdLength.toString())
                                         }
                                     ) {
-                                        this.guild.dialog.dialogCreate_guildSet_idWarningId_exists
+                                        this.guild.dialog.dialogCreate_guildSet_idWarningLength
                                     }
                                 }
                             )

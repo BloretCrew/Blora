@@ -8,7 +8,6 @@ import blora.extension.localization
 import blora.guild.*
 import blora.guild.menu.guildview.guildallylist.guildAllyListMenu
 import blora.guild.menu.guildview.guildbank.guildBankMenu
-import blora.guild.menu.guildview.guildinvitationcode.guildInvitationCodeMenu
 import blora.guild.menu.guildview.guildmemberlist.guildMemberListMenu
 import blora.guild.menu.guildview.guildrolemanagement.guildRoleManagementMenu
 import blora.guild.menu.guildview.guildsettings.guildSettingsMenu
@@ -26,6 +25,7 @@ import blora.menu.v2.page.builder.completeDynamicMenuPage
 import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
 import blora.plugin.BloraPlugin
+import blora.town.menu.townMenu
 import blora.util.castString
 import org.bukkit.Material
 import plutoproject.adventurekt.audience.send
@@ -40,7 +40,7 @@ private enum class GuildViewButtons {
     ROLE_MANAGEMENT,
     MEMBER_LIST,
     ALLY_LIST,
-    INVITATION_CODES,
+    TOWN_LIST,
     ENDER_CHEST,
     BANK,
     VITALITY_SHOP,
@@ -57,8 +57,7 @@ private fun EnumSet<GuildPermissions>.toButtons(guild: GuildDao, isMember: Boole
             this.add(GuildViewButtons.ROLE_MANAGEMENT)
         this.add(GuildViewButtons.MEMBER_LIST)
         this.add(GuildViewButtons.ALLY_LIST)
-        if (permissions.contains(GuildPermissions.MANAGE_INVITATION_CODE))
-            this.add(GuildViewButtons.INVITATION_CODES)
+        this.add(GuildViewButtons.TOWN_LIST)
         if (permissions.contains(GuildPermissions.ENDER_CHEST))
             this.add(GuildViewButtons.ENDER_CHEST)
         if (isMember)
@@ -241,16 +240,16 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                         }
                     }
 
-                    GuildViewButtons.INVITATION_CODES -> {
-                        icon { material { Material.NAME_TAG } }
+                    GuildViewButtons.TOWN_LIST -> {
+                        icon { material { Material.OAK_STAIRS } }
                         name {
                             localization(menu.viewer) {
-                                this.guild.menu.menuGuild_viewButtonInvitation_codes
+                                this.guild.menu.menuGuild_viewButtonTown_list
                             }
                         }
                         clickEvent {
                             it.stack.push {
-                                guildInvitationCodeMenu(menu, guild)
+                                townMenu(menu, guild)
                             }
                         }
                     }
@@ -304,6 +303,14 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                             }
                         }
                         clickEvent { clickContext ->
+                            if (guild.members.size >= guild.maxMembers) {
+                                clickContext.viewer.send {
+                                    localization(clickContext.viewer) {
+                                        this.guild.guildJoin_invite_reviewMembers_limit
+                                    }
+                                }
+                                return@clickEvent
+                            }
                             if (DB.listGuildForPlayer(clickContext.viewer.uniqueId).size >= CONF.guild.playerMaxJoin) {
                                 clickContext.viewer.send {
                                     localization(

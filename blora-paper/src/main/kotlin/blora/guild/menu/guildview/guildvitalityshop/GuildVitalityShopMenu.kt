@@ -18,11 +18,7 @@ import blora.menu.v2.item.description
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
-import blora.menu.v2.page.builder.dataItem
-import blora.menu.v2.page.builder.pageId
-import blora.menu.v2.page.builder.pageableMenuPage
-import blora.menu.v2.page.builder.showBackButton
-import blora.menu.v2.page.builder.title
+import blora.menu.v2.page.builder.*
 import blora.plugin.BloraPlugin
 import blora.plugin.ThirdPartys
 import net.kyori.adventure.key.Key
@@ -51,7 +47,7 @@ fun guildVitalityShopMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
             }
         }
         showBackButton()
-        dataItem { viewContext, goods ->
+        dataItem { viewContext, goods, dataIndex ->
             icon {
                 type {
                     Registry.ITEM.get(Key.key(goods.icon)) ?: ItemType.STONE
@@ -124,8 +120,11 @@ fun guildVitalityShopMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                                                         componentPlaceholder("reason") {
                                                             localization(
                                                                 player,
-                                                                tags ={
-                                                                    parsedPlaceholder("player", clickContext.viewer.name)
+                                                                tags = {
+                                                                    parsedPlaceholder(
+                                                                        "player",
+                                                                        clickContext.viewer.name
+                                                                    )
                                                                 }
                                                             ) {
                                                                 this.guild.guildVitalityAddReasonBank_new_max_balance_from_vitality_shop

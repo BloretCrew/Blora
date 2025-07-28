@@ -55,7 +55,9 @@ fun <C : MenuClickContext, V : MenuViewContext, P : MenuPage<out C, out V>> Menu
     }
 }
 
-fun <C : MenuClickContext, V : MenuViewContext, P : MenuPage<out C, out V>> MenuPageBuilder<out C, out V, out P>.pageId(provider: () -> String) {
+fun <C : MenuClickContext, V : MenuViewContext, P : MenuPage<out C, out V>> MenuPageBuilder<out C, out V, out P>.pageId(
+    provider: () -> String
+) {
     this.pageId = provider.invoke()
 }
 

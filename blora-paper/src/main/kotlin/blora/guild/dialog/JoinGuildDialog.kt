@@ -121,6 +121,15 @@ fun joinGuildDialog(viewer: Player, warningMessage: Component? = null): Dialog {
                         return@DynamicCustomClickTypeInjected
                     }
 
+                    if (guild.members.size >= guild.maxMembers) {
+                        viewer.send {
+                            localization(viewer) {
+                                this.guild.guildJoin_invite_reviewMembers_limit
+                            }
+                        }
+                        return@DynamicCustomClickTypeInjected
+                    }
+
                     if (guild.blocklist.contains(viewer.uniqueId)) {
                         viewer.openDialog(
                             joinGuildDialog(

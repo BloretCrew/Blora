@@ -1,6 +1,5 @@
 package blora.database.guild.dao
 
-import blora.database.guild.table.GuildJoinLogTable
 import blora.database.guild.table.GuildPlayerOnlineTable
 import org.jetbrains.exposed.dao.IntEntity
 import org.jetbrains.exposed.dao.IntEntityClass

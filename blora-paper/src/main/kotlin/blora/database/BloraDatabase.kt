@@ -19,6 +19,9 @@ import blora.database.redeem.dao.PlayerRedeemDao
 import blora.database.redeem.dao.RedeemDao
 import blora.database.redeem.table.PlayerRedeemTable
 import blora.database.redeem.table.RedeemTable
+import blora.database.town.dao.TownDao
+import blora.database.town.table.TownChunkTable
+import blora.database.town.table.TownTable
 import blora.extension.format
 import blora.extension.localization
 import blora.formula.FormulaTokenizer
@@ -36,6 +39,7 @@ import blora.plugin.BloraPlugin
 import com.zaxxer.hikari.HikariDataSource
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import org.bukkit.scheduler.BukkitTask
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -49,10 +53,28 @@ val DB: BloraDatabase
     get() = BloraPlugin.database
 
 class BloraDatabase(
-    private val dataSource: HikariDataSource,
+    private var dataSource: HikariDataSource,
 ) {
 
-    val database = Database.connect(dataSource)
+    var database = Database.connect(dataSource)
+
+    private val keepAliveJob: BukkitTask
+
+    init {
+        this.keepAliveJob = Bukkit.getScheduler()
+            .runTaskTimer(
+                BloraPlugin,
+                Runnable {
+                    if (this.dataSource.isClosed) {
+                        this.dataSource.close() // ensure close again
+                        this.dataSource = CONF.database.buildDataSource()
+                        this.database = Database.connect(this.dataSource)
+                    }
+                },
+                10 * 20L,
+                10 * 20L // every 10 seconds check once
+            )
+    }
 
     fun <T> trans(statement: Transaction.() -> T): T {
         return transaction(database, statement)
@@ -89,6 +111,9 @@ class BloraDatabase(
             SchemaUtils.create(GuildBloriusToVitalityTimesTable)
             SchemaUtils.create(GuildAllyInfoTable)
             SchemaUtils.create(GuildAllyRequestTable)
+            // Town
+            SchemaUtils.create(TownTable)
+            SchemaUtils.create(TownChunkTable)
         }
     }
 
@@ -210,6 +235,8 @@ class BloraDatabase(
     fun getMaxRolePriority(player: UUID, guild: GuildDao): Int {
         if (guild.owner == player)
             return 4
+        if (!guild.members.contains(player))
+            return -1
         return listRolesForPlayer(player, guild.gid).maxOf { it.priority }
     }
 
@@ -476,6 +503,14 @@ class BloraDatabase(
                 ally.allys = ally.allys.toMutableList().apply { this.remove(guild.gid) }.toList()
                 ally.flush()
             }
+            TownDao.find {
+                TownTable.guildId eq guild.gid
+            }.forEach { town ->
+                TownChunkTable.deleteWhere {
+                    TownChunkTable.townId eq town.townId
+                }
+                town.delete()
+            }
             GuildDisbandNotifyDao.new {
                 this.guildId = guild.gid
                 this.guildName = guild.displayName
@@ -565,6 +600,11 @@ class BloraDatabase(
                 GuildRoleTable.gid eq guild.gid
             }) {
                 it.update(GuildRoleTable.gid, stringParam(newId))
+            }
+            TownTable.update({
+                TownTable.guildId eq guild.gid
+            }) {
+                it.update(TownTable.guildId, stringParam(newId))
             }
             guild.gid = newId
             guild.flush()

@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ConfigurationContents(
+    val town: Town = Town(),
     val guild: Guild = Guild(),
     val chat: Chat = Chat(),
     val mail: Mail = Mail(),
@@ -13,6 +14,17 @@ data class ConfigurationContents(
     val security: Security = Security(),
     val modules: Modules = Modules(),
     val database: Database = Database(),
+)
+
+@Serializable
+data class Town(
+    val townsPerGuild: Int = 1,
+    val minIdLength: Int = 2,
+    val maxIdLength: Int = 5,
+    val firstChunkPrice: Double = 1000.0,
+    val pricePerChunk: Double = 200.0,
+    val giveBackFirstChunk: Double = 800.0,
+    val giveBackPerChunk: Double = 150.0
 )
 
 @Serializable

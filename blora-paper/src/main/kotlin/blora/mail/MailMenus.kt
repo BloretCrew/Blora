@@ -1212,7 +1212,7 @@ fun modifyAttachmentMenuPage(
             if (creatingContext.attachment.itemsContainsLike(item)) {
                 return@inventoryClick true
             }
-            creatingContext.attachment.items[item.clone().apply { this.amount = 1 }] = 1u
+            creatingContext.attachment.items.add(item to 1u)
 
             // rerender cannot solve the add item problem, recreate current page to modify
             context.stack.pop()
@@ -1455,7 +1455,9 @@ fun modifyAttachmentMenuPage(
                                 }
                             },
                             yesCallback = { amount ->
-                                creatingContext.attachment.items[item.first] = amount
+                                creatingContext.attachment.items[
+                                    creatingContext.attachment.items.indexOf(item)
+                                ] = item.first to amount
                                 clickContext.stack.pop()
                                 clickContext.stack.push(modifyAttachmentMenuPage(creatingContext, player, currentPage))
                                 creatingContext.modifying = false
@@ -1468,7 +1470,7 @@ fun modifyAttachmentMenuPage(
                         )
                     )
                 } else if (clickContext.clickType.isRightClick) {
-                    creatingContext.attachment.items.remove(item.first)
+                    creatingContext.attachment.items.remove(item)
                     clickContext.stack.pop()
                     if (creatingContext.attachment.items.size <= (currentPage - 1) * 21 - 1) { // this page does no longer exist
                         clickContext.stack.push(modifyAttachmentMenuPage(creatingContext, player, currentPage - 1))

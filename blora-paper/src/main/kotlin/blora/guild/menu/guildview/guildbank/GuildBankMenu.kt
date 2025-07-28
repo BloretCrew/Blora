@@ -43,7 +43,8 @@ fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
         }
         backButton()
 
-        val canExchangeBlorius = CONF.guild.vitality.bloriusExchangeValue > 0 && CONF.guild.vitality.bloriusExchangePrice > 0 && CONF.guild.vitality.bloriusExchangeMaxTimes > 0
+        val canExchangeBlorius =
+            CONF.guild.vitality.bloriusExchangeValue > 0 && CONF.guild.vitality.bloriusExchangePrice > 0 && CONF.guild.vitality.bloriusExchangeMaxTimes > 0
 
         val storeButtonPosition = if (canExchangeBlorius) {
             3 to 2
@@ -80,7 +81,7 @@ fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
                         this.guild.menu.menuGuild_bankButtonExchange_vitalityDescription
                     }
                 }
-                clickEvent {  clickContext ->
+                clickEvent { clickContext ->
                     val dao = DB.getBloriusToVitalityTimes(guild.gid)
                     if (dao != null && dao.times >= CONF.guild.vitality.bloriusExchangeMaxTimes) {
                         clickContext.viewer.send {
@@ -99,7 +100,10 @@ fun guildBankMenu(menu: Menu, guild: GuildDao): LimitedDynamicMenuPage {
                         return@clickEvent
                     }
 
-                    ThirdPartys.playerPoints.take(clickContext.viewer.uniqueId, CONF.guild.vitality.bloriusExchangePrice)
+                    ThirdPartys.playerPoints.take(
+                        clickContext.viewer.uniqueId,
+                        CONF.guild.vitality.bloriusExchangePrice
+                    )
 
                     val finalDao = dao ?: DB.trans {
                         GuildBloriusToVitalityTimesDao.new {

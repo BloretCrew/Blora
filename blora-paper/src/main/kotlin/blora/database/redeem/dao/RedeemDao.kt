@@ -1,5 +1,6 @@
 package blora.database.redeem.dao
 
+import blora.database.DB
 import blora.database.redeem.table.RedeemTable
 import blora.mail.Attachment
 import org.jetbrains.exposed.dao.IntEntity
@@ -8,7 +9,15 @@ import org.jetbrains.exposed.dao.id.EntityID
 
 class RedeemDao(id: EntityID<Int>) : IntEntity(id) {
 
-    companion object : IntEntityClass<RedeemDao>(RedeemTable)
+    companion object : IntEntityClass<RedeemDao>(RedeemTable) {
+
+        fun list(): List<RedeemDao> {
+            return DB.trans {
+                all().toList()
+            }
+        }
+
+    }
 
     var code by RedeemTable.code
     var attachment by RedeemTable.attachment

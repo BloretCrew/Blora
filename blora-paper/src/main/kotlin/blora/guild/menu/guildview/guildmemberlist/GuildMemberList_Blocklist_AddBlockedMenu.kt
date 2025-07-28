@@ -18,11 +18,7 @@ import blora.menu.v2.item.clickEvent
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
-import blora.menu.v2.page.builder.dataItem
-import blora.menu.v2.page.builder.pageId
-import blora.menu.v2.page.builder.pageableMenuPage
-import blora.menu.v2.page.builder.showBackButton
-import blora.menu.v2.page.builder.title
+import blora.menu.v2.page.builder.*
 import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Material
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -59,7 +55,7 @@ fun guildMemberList_blocklist_addBlockedMenu(menu: Menu, guild: GuildDao): MenuP
             }
         }
         showBackButton()
-        dataItem { viewContext, blockablePlayer ->
+        dataItem { viewContext, blockablePlayer, dataIndex ->
             icon {
                 material { Material.PLAYER_HEAD }
                 DataComponentTypes.PROFILE eq blockablePlayer.resolvableProfile()

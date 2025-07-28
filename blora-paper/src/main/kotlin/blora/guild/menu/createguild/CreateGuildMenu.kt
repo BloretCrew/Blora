@@ -17,11 +17,7 @@ import blora.menu.v2.item.description
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
-import blora.menu.v2.page.builder.backButton
-import blora.menu.v2.page.builder.inventoryClick
-import blora.menu.v2.page.builder.limitedDynamicMenuPage
-import blora.menu.v2.page.builder.pageId
-import blora.menu.v2.page.builder.title
+import blora.menu.v2.page.builder.*
 import blora.permission.Permissions
 import blora.plugin.BloraPlugin
 import org.black_ixx.playerpoints.PlayerPoints

@@ -13,11 +13,7 @@ import blora.menu.v2.item.description
 import blora.menu.v2.item.icon
 import blora.menu.v2.item.name
 import blora.menu.v2.page.MenuPage
-import blora.menu.v2.page.builder.dataItem
-import blora.menu.v2.page.builder.pageId
-import blora.menu.v2.page.builder.pageableMenuPage
-import blora.menu.v2.page.builder.showBackButton
-import blora.menu.v2.page.builder.title
+import blora.menu.v2.page.builder.*
 import blora.plugin.BloraPlugin
 import blora.util.castString
 import net.kyori.adventure.text.Component
@@ -47,7 +43,7 @@ fun guildListMenu(
             raw { title }
         }
         showBackButton()
-        dataItem { viewContext, guild ->
+        dataItem { viewContext, guild, dataIndex ->
             icon { clone { guild.parsedIcon } }
             name {
                 localization(menu.viewer) {
