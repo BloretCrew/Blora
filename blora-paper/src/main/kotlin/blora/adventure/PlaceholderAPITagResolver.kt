@@ -28,7 +28,7 @@ class PlaceholderAPITagResolver(val player: Player) : TagResolver {
             }
         val parsedPlaceholder = PlaceholderAPI.setPlaceholders(player, "%$placeholder%")
 
-        return Tag.selfClosingInserting(LegacyComponentSerializer.legacySection().deserialize(parsedPlaceholder))
+        return Tag.selfClosingInserting(ctx.deserialize(parsedPlaceholder))
     }
 
     override fun has(name: String): Boolean {

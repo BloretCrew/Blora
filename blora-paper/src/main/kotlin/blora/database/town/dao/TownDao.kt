@@ -10,6 +10,7 @@ import blora.database.guild.dao.GuildRoleDao
 import blora.database.town.table.TownTable
 import blora.permission.Permissions
 import blora.town.TownPermission
+import blora.town.TownPermissionContainer
 import blora.town.TownPermissionStatus
 import blora.town.TownTarget
 import org.bukkit.Bukkit
@@ -24,6 +25,14 @@ import kotlin.uuid.toJavaUuid
 class TownDao(id: EntityID<Int>) : IntEntity(id) {
 
     companion object : IntEntityClass<TownDao>(TownTable) {
+
+        fun listManageable(player: UUID): List<TownDao> {
+            return DB.listGuildForPlayer(player)
+                .filter { DB.getRolePermissions(player, it.gid).townManagement }
+                .map { it.towns }
+                .flatten()
+                .mapNotNull { getByTownId(it) }
+        }
 
         fun listAll(): List<TownDao> {
             return DB.trans {
@@ -101,7 +110,8 @@ class TownDao(id: EntityID<Int>) : IntEntity(id) {
             }
         }
         if (guild.blocklist.contains(player)) {
-            for ((permission, status) in this.permissionContainers.find { it == TownTarget.Blocked }!!.permissions) {
+            for ((permission, status) in (this.permissionContainers.find { it == TownTarget.Blocked }
+                ?: TownPermissionContainer.defaultBlockedPermissionContainer()).permissions) {
                 if (status == TownPermissionStatus.NOT_SET)
                     continue
                 permissions[permission] = status
@@ -127,20 +137,23 @@ class TownDao(id: EntityID<Int>) : IntEntity(id) {
                     }
                 }
             }
-            for ((permission, status) in this.permissionContainers.find { it == TownTarget.Member }!!.permissions) {
+            for ((permission, status) in (this.permissionContainers.find { it == TownTarget.Member }
+                ?: TownPermissionContainer.defaultMemberPermissionContainer()).permissions) {
                 if (status == TownPermissionStatus.NOT_SET)
                     continue
                 permissions[permission] = status
             }
         }
         if (GuildDao.isPlayerInAnyGuild(player, guild.allys)) {
-            for ((permission, status) in this.permissionContainers.find { it == TownTarget.Ally }!!.permissions) {
+            for ((permission, status) in (this.permissionContainers.find { it == TownTarget.Ally }
+                ?: TownPermissionContainer.defaultAllyPermissionContainer()).permissions) {
                 if (status == TownPermissionStatus.NOT_SET)
                     continue
                 permissions[permission] = status
             }
         }
-        for ((permission, status) in this.permissionContainers.find { it == TownTarget.Public }!!.permissions) {
+        for ((permission, status) in (this.permissionContainers.find { it == TownTarget.Public }
+            ?: TownPermissionContainer.defaultPublicPermissionContainer()).permissions) {
             if (status == TownPermissionStatus.NOT_SET)
                 continue
             permissions[permission] = status

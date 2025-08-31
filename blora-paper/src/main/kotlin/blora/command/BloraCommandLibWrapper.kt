@@ -2,9 +2,11 @@ package blora.command
 
 import blora.command.argument.QuickArgumentLibWrapper
 import blora.extension.localization
+import blora.internal.api.command.CommandContext
 import blora.internal.api.command.CommandExecutor
 import blora.internal.api.command.CommandMeta
 import blora.internal.api.scheduler.BukkitAsync
+import blora.internal.api.scheduler.BukkitMain
 import blora.nms.nms
 import blora.nms.nmsServer
 import blora.player.QuickPlayerWrapper
@@ -13,8 +15,10 @@ import com.mojang.brigadier.CommandDispatcher
 import com.mojang.brigadier.arguments.ArgumentType
 import com.mojang.brigadier.builder.ArgumentBuilder
 import io.papermc.paper.command.brigadier.APICommandMeta
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.asCompletableFuture
+import kotlinx.coroutines.launch
 import org.bukkit.command.BlockCommandSender
 import org.bukkit.entity.Player
 import plutoproject.adventurekt.audience.send
@@ -22,14 +26,16 @@ import java.util.function.Predicate
 import com.mojang.brigadier.tree.ArgumentCommandNode as NMSArgumentCommandNode
 import com.mojang.brigadier.tree.LiteralCommandNode as NMSLiteralCommandNode
 
+private val commandExecutionScope = CoroutineScope(Dispatchers.BukkitMain)
+
 object BloraCommandLibWrapper : blora.internal.api.command.BloraCommandLib {
     override fun createCommand(
         meta: CommandMeta,
         name: String,
         requirement: Predicate<blora.internal.api.command.CommandInvoker>,
-        executor: CommandExecutor?,
-        playerExecutor: CommandExecutor?,
-        blockExecutor: CommandExecutor?,
+        executor: (suspend CommandContext.() -> Unit)?,
+        playerExecutor: (suspend CommandContext.() -> Unit)?,
+        blockExecutor: (suspend CommandContext.() -> Unit)?,
         children: List<blora.internal.api.command.CommandNode>
     ): blora.internal.api.command.Command {
         return CommandWrapper(
@@ -46,9 +52,9 @@ object BloraCommandLibWrapper : blora.internal.api.command.BloraCommandLib {
     override fun createLiteralCommandNode(
         name: String,
         requirement: Predicate<blora.internal.api.command.CommandInvoker>,
-        executor: (blora.internal.api.command.CommandContext.() -> Unit)?,
-        playerExecutor: (blora.internal.api.command.CommandContext.() -> Unit)?,
-        blockExecutor: (blora.internal.api.command.CommandContext.() -> Unit)?,
+        executor: (suspend CommandContext.() -> Unit)?,
+        playerExecutor: (suspend CommandContext.() -> Unit)?,
+        blockExecutor: (suspend CommandContext.() -> Unit)?,
         children: List<blora.internal.api.command.CommandNode>
     ): blora.internal.api.command.LiteralCommandNode {
         return LiteralCommandNodeWrapper(
@@ -66,9 +72,9 @@ object BloraCommandLibWrapper : blora.internal.api.command.BloraCommandLib {
         suggestions: blora.internal.api.command.Suggestions?,
         name: String,
         requirement: Predicate<blora.internal.api.command.CommandInvoker>,
-        executor: (blora.internal.api.command.CommandContext.() -> Unit)?,
-        playerExecutor: (blora.internal.api.command.CommandContext.() -> Unit)?,
-        blockExecutor: (blora.internal.api.command.CommandContext.() -> Unit)?,
+        executor: (suspend CommandContext.() -> Unit)?,
+        playerExecutor: (suspend CommandContext.() -> Unit)?,
+        blockExecutor: (suspend CommandContext.() -> Unit)?,
         children: List<blora.internal.api.command.CommandNode>
     ): blora.internal.api.command.ArgumentCommandNode<T> {
         return ArgumentCommandNodeWrapper(
@@ -145,7 +151,9 @@ private fun tryExecutePlayer(
     command: blora.internal.api.command.CommandNode
 ) {
     if (source.isPlayer && command.playerExecutor != null) {
-        context.apply(command.playerExecutor!!)
+        commandExecutionScope.launch {
+            command.playerExecutor!!.invoke(context)
+        }
         return
     }
     tryExecuteBlock(source, context, command)
@@ -158,10 +166,14 @@ private fun tryExecuteBlock(
 ) {
     if (source.bukkitSender is BlockCommandSender) {
         if (command.blockExecutor != null) {
-            context.apply(command.blockExecutor!!)
+            commandExecutionScope.launch {
+                command.blockExecutor!!.invoke(context)
+            }
         } else {
             if (command.executor != null) {
-                context.apply(command.executor!!)
+                commandExecutionScope.launch {
+                    command.executor!!.invoke(context)
+                }
             } else {
                 if (command.playerExecutor != null) {
                     source.bukkitSender.send {
@@ -180,7 +192,9 @@ private fun tryExecuteBlock(
         }
     } else {
         if (command.executor != null) {
-            context.apply(command.executor!!)
+            commandExecutionScope.launch {
+                command.executor!!.invoke(context)
+            }
         } else {
             if (command.playerExecutor != null) {
                 source.bukkitSender.send {

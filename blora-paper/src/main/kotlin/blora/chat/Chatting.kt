@@ -10,6 +10,7 @@ import org.bukkit.entity.Player
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.*
 import plutoproject.adventurekt.text.style.*
+import java.net.URLDecoder
 
 object Chatting {
 
@@ -238,7 +239,7 @@ object Chatting {
                         val link = content.substring(5)
                         component {
                             mini(BloraPlugin.configuration.chat.linkPlaceholderFormat) {
-                                parsedPlaceholder("link", link)
+                                parsedPlaceholder("link", URLDecoder.decode(link, "UTF-8"))
                             } with openUrl(link)
                         }
                     } else if (content.startsWith("copy:")) {

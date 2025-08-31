@@ -4,8 +4,10 @@ import blora.chat.PlayerInventoryView
 import blora.command.BloraCommandLibWrapper
 import blora.command.defaults.BloraCommand
 import blora.command.defaults.GuildCommand
+import blora.command.defaults.LeadCommand
 import blora.command.defaults.MailCommand
 import blora.command.defaults.RedeemCommand
+import blora.command.defaults.TownCommand
 import blora.command.hook.VanillaCommandHooker
 import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
@@ -154,6 +156,8 @@ internal fun registerCommands() {
     MailCommand.register()
     RedeemCommand.register()
     GuildCommand.register()
+    TownCommand.register()
+    LeadCommand.register()
 }
 
 internal fun registerListeners() {

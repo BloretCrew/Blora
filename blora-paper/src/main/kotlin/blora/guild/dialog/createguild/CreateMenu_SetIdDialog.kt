@@ -47,8 +47,8 @@ fun createGuild_setIdDialog(
                         this.guild.dialog.dialogCreate_guildSet_idInputPlaceholderId
                     }
                 },
-
-                )
+                initial = context.id
+            )
         ),
         yes = ClickAction(
             label = component {
@@ -58,7 +58,7 @@ fun createGuild_setIdDialog(
             },
             action = DynamicCustomClickTypeInjected(
                 callback = {
-                    val guildId = ((it as NbtCompound)["guild_id"] as NbtString).value
+                    val guildId = ((it as NbtCompound)["guild_id"] as NbtString).value.uppercase()
                     if (!guildId.containsLetterAndNumberOnly()) {
                         viewer.openDialog(
                             createGuild_setIdDialog(

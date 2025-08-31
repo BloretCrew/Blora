@@ -12,6 +12,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
@@ -100,6 +101,14 @@ class StorageMenu(
             items[index] = item.clone()
         }
         this.updater(items)
+    }
+
+    @EventHandler
+    fun onInventoryClick(event: InventoryClickEvent) {
+        if (event.inventory.holder != this)
+            return
+        event.isCancelled = true
+        // TODO: fix enderchest problem
     }
 
     @EventHandler

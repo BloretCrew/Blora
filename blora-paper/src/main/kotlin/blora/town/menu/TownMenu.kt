@@ -105,7 +105,7 @@ fun townMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                         return@clickEvent
                     }
                     val chunk = clickContext.viewer.chunk
-                    if (chunk.containsPlayerResidence() || chunk.isClaimedByAnyTown()) {
+                    if (chunk.isClaimedByAnyTown()) {
                         clickContext.viewer.send {
                             localization(clickContext.viewer) {
                                 this.town.createWarningChunks_occupied

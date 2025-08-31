@@ -210,7 +210,7 @@ fun createTownDialog(
                         return@DynamicCustomClickTypeInjected
                     }
                     val chunk = viewer.chunk
-                    if (chunk.containsPlayerResidence() || chunk.isClaimedByAnyTown()) {
+                    if (chunk.isClaimedByAnyTown()) {
                         viewer.send {
                             localization(viewer) {
                                 this.town.createWarningChunks_occupied

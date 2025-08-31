@@ -11,10 +11,11 @@ import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.style.openUrl
 import plutoproject.adventurekt.text.unparsedPlaceholder
 import plutoproject.adventurekt.text.with
+import java.net.URLDecoder
 
 object LinkTagResolver : TagResolver {
 
-    val URL_REGEX = "^(https?://)?([\\w-]+\\.)+[\\w-]+(:\\d+)?(/[\\w\\-.~!*'();:@&=+$,?#/]*)?$".toRegex()
+    val URL_REGEX = "^(https?://)?([\\w-]+\\.)+[\\w-]+(:\\d+)?(/[\\w\\-.~!*'();:@%&=+$,?#/]*)?$".toRegex()
 
     override fun resolve(
         name: String,
@@ -41,7 +42,7 @@ object LinkTagResolver : TagResolver {
                 localization(
                     player = player,
                     tags = {
-                        unparsedPlaceholder("link", url)
+                        unparsedPlaceholder("link", URLDecoder.decode(url, "UTF-8"))
                     }
                 ) {
                     BloraPlugin.configuration.chat.linkPlaceholderFormat

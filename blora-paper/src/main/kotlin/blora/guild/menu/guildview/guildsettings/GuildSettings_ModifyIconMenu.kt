@@ -1,5 +1,6 @@
 package blora.guild.menu.guildview.guildsettings
 
+import blora.converter.toJson
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
 import blora.extension.localization
@@ -34,8 +35,19 @@ fun guildSettings_modifyIconMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
             }
         }
         inventoryClick { item, clickContext ->
-            cachedIcon = item.clone().apply { this.amount = 1 }
-            clickContext.menu.rerender()
+            try {
+                item.toJson()
+                cachedIcon = item.clone().apply { this.amount = 1 }
+                clickContext.menu.rerender()
+            } catch (e: NoSuchElementException) {
+                clickContext.viewer.send {
+                    localization(
+                        player = clickContext.viewer
+                    ) {
+                        this.guild.iconNotUsable
+                    }
+                }
+            }
             return@inventoryClick true
         }
 

@@ -122,6 +122,14 @@ fun guildMenu(viewer: Player): Menu {
                         }
                     }
                     clickEvent { clickContext ->
+                        if (!clickContext.viewer.hasPermission(Permissions.Guild.Join)) {
+                            clickContext.viewer.send {
+                                localization(clickContext.viewer) {
+                                    this.guild.guildJoinNo_permission
+                                }
+                            }
+                            return@clickEvent
+                        }
                         clickContext.stack.push {
                             guildInviteMenu(clickContext.menu)
                         }
@@ -135,6 +143,14 @@ fun guildMenu(viewer: Player): Menu {
                         }
                     }
                     clickEvent { clickContext ->
+                        if (!clickContext.viewer.hasPermission(Permissions.Guild.Join)) {
+                            clickContext.viewer.send {
+                                localization(clickContext.viewer) {
+                                    this.guild.guildJoinNo_permission
+                                }
+                            }
+                            return@clickEvent
+                        }
                         clickContext.viewer.openDialog(
                             joinGuildDialog(viewer)
                         )
@@ -152,6 +168,14 @@ fun guildMenu(viewer: Player): Menu {
                             viewer.send {
                                 localization(viewer) {
                                     this.guild.guildWarningNo_permission_to_create
+                                }
+                            }
+                            return@clickEvent
+                        }
+                        if (!clickContext.viewer.hasPermission(Permissions.Guild.Join)) {
+                            clickContext.viewer.send {
+                                localization(clickContext.viewer) {
+                                    this.guild.guildJoinNo_permission
                                 }
                             }
                             return@clickEvent

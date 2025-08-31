@@ -23,3 +23,15 @@ dependencies:
       load: BEFORE
       join-classpath: true
       required: false
+    XConomy:
+      load: BEFORE
+      join-classpath: true
+      required: false
+    Aurora:
+      load: BEFORE
+      join-classpath: true
+      required: false
+    AuroraLevels:
+      load: BEFORE
+      join-classpath: true
+      required: false

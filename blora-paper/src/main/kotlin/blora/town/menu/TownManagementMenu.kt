@@ -21,7 +21,7 @@ import blora.town.dialog.townManagement_modifyWelcomeMessageDialog
 import org.bukkit.Material
 import plutoproject.adventurekt.text.parsedPlaceholder
 
-fun townManagementMenu(menu: Menu, guild: GuildDao, town: TownDao): MenuPage<*, *> {
+fun townManagementMenu(menu: Menu, guild: GuildDao, town: TownDao, showBackButton: Boolean = true): MenuPage<*, *> {
     val townId = town.id
     return limitedDynamicMenuPage(menu) {
 
@@ -40,7 +40,9 @@ fun townManagementMenu(menu: Menu, guild: GuildDao, town: TownDao): MenuPage<*, 
             }
         }
 
-        backButton()
+        if (showBackButton) {
+            backButton()
+        }
 
         1 to 5 eq {
             icon { clone { town.parsedIcon } }

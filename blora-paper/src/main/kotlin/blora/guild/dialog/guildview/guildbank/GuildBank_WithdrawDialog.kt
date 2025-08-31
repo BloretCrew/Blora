@@ -57,7 +57,7 @@ fun guildBank_withdrawDialog(
                 start = 0f,
                 end = guild.bankBalance.toFloat(),
                 initial = 0f,
-                step = 0.1f
+                step = 1f
             )
         ),
         yes = ClickAction(
@@ -72,65 +72,70 @@ fun guildBank_withdrawDialog(
                     val amount = (compound["amount"] as NbtFloat).value
                     if (amount == 0f)
                         return@DynamicCustomClickTypeInjected
-                    DB.trans {
-                        guild.refresh()
-                    }
-                    if (amount > guild.bankBalance) {
-                        viewer.openDialog(
-                            guildBank_withdrawDialog(
-                                viewer,
-                                guild,
-                                callback,
-                                component {
-                                    localization(viewer) {
-                                        this.guild.dialog.dialogGuild_bankWithdrawWarning
-                                    }
-                                }
-                            )
-                        )
-                        return@DynamicCustomClickTypeInjected
-                    }
-                    DB.trans {
-                        val playerBalance = GuildPlayerBalanceDao.find {
-                            GuildPlayerBalanceTable.gid eq guild.gid and
-                                    (GuildPlayerBalanceTable.player eq viewer.uniqueId)
-                        }.firstOrNull() ?: GuildPlayerBalanceDao.new {
-                            this.guildId = guild.gid
-                            this.player = viewer.uniqueId
-                            this.contribution = 0.0
-                        }
+                    guild.withLock {
+                        DB.trans {
+                            guild.refresh()
 
-                        playerBalance.contribution -= amount * 2
-                        playerBalance.flush()
-
-                        GuildBankLogDao.new {
-                            this.guildId = guild.gid
-                            this.store = false
-                            this.value = amount.toDouble()
-                            this.timestamp = LocalDateTime.now()
-                            this.operator = viewer.uniqueId
-                        }
-                        guild.bankBalance -= amount
-                        guild.flush()
-                    }
-                    ThirdPartys.vaultApi.depositPlayer(viewer, amount.toDouble())
-                    Bukkit.getOnlinePlayers()
-                        .filter { player -> guild.members.contains(player.uniqueId) }
-                        .forEach { player ->
-                            player.send {
-                                localization(
-                                    player,
-                                    tags = {
-                                        parsedPlaceholder("player", viewer.name)
-                                        parsedPlaceholder("guild", guild.displayName)
-                                        parsedPlaceholder("amount", amount.toString())
-                                    }
-                                ) {
-                                    this.guild.guildBankWithdraw
-                                }
+                            if (amount > guild.bankBalance) {
+                                viewer.openDialog(
+                                    guildBank_withdrawDialog(
+                                        viewer,
+                                        guild,
+                                        callback,
+                                        component {
+                                            localization(viewer) {
+                                                this.guild.dialog.dialogGuild_bankWithdrawWarning
+                                            }
+                                        }
+                                    )
+                                )
+                                return@trans
                             }
+
+                            val playerBalance = GuildPlayerBalanceDao.find {
+                                GuildPlayerBalanceTable.gid eq guild.gid and
+                                        (GuildPlayerBalanceTable.player eq viewer.uniqueId)
+                            }.firstOrNull() ?: GuildPlayerBalanceDao.new {
+                                this.guildId = guild.gid
+                                this.player = viewer.uniqueId
+                                this.contribution = 0.0
+                            }
+
+                            playerBalance.contribution -= amount * 2
+                            playerBalance.flush()
+
+                            GuildBankLogDao.new {
+                                this.guildId = guild.gid
+                                this.store = false
+                                this.value = amount.toDouble()
+                                this.timestamp = LocalDateTime.now()
+                                this.operator = viewer.uniqueId
+                            }
+                            guild.bankBalance -= amount
+                            guild.flush()
+
+                            guild.refresh()
+
+                            ThirdPartys.vaultApi.depositPlayer(viewer, amount.toDouble())
+                            Bukkit.getOnlinePlayers()
+                                .filter { player -> guild.members.contains(player.uniqueId) }
+                                .forEach { player ->
+                                    player.send {
+                                        localization(
+                                            player,
+                                            tags = {
+                                                parsedPlaceholder("player", viewer.name)
+                                                parsedPlaceholder("guild", guild.displayName)
+                                                parsedPlaceholder("amount", amount.toString())
+                                            }
+                                        ) {
+                                            this.guild.guildBankWithdraw
+                                        }
+                                    }
+                                }
+                            callback()
                         }
-                    callback()
+                    }
                 }
             )
         ),

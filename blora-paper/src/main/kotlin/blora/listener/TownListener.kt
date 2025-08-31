@@ -7,6 +7,7 @@ import blora.extension.getClaimedTown
 import blora.extension.localization
 import blora.localization.LocalizationContents
 import blora.location.Aabb
+import blora.location.ChunkLocation
 import blora.plugin.BloraPlugin
 import blora.town.TownPermission
 import blora.town.TownPermissionStatus
@@ -225,6 +226,7 @@ object TownListener : Listener {
         val town = TownDao.getByTownId(townChunk.townId)
         if (town == null)
             return false
+
         if (town.getPlayerPermission(player.uniqueId).getOrElse(permission) {
                 TownPermissionStatus.DENY
             } == TownPermissionStatus.ALLOW)
@@ -313,7 +315,7 @@ object TownListener : Listener {
         return towns.toList()
     }
 
-    private fun handleResidenceAreaCreationAllow(event: CancellableResidencePlayerEvent, list: List<Chunk>): Boolean {
+    private fun handleResidenceAreaCreationAllow(event: CancellableResidencePlayerEvent, list: List<ChunkLocation>): Boolean {
         val towns = mutableListOf<TownDao>()
         for (chunk in list) {
             val townChunk = chunk.getClaimedTown()

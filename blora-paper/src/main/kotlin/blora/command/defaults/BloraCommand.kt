@@ -4,8 +4,28 @@ import blora.internal.api.command.*
 import blora.internal.api.command.argument.Arguments
 import blora.messaging.packet.common.DebugMessagePacket
 import blora.messaging.packet.common.ReloadConfigurationPacket
+import blora.nms.toNMS
 import blora.permission.Permissions
 import blora.plugin.BloraPlugin
+import blora.serialization.nbt.compound
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.mojang.serialization.JsonOps
+import net.benwoodworth.knbt.NbtByte
+import net.benwoodworth.knbt.NbtByteArray
+import net.benwoodworth.knbt.NbtCompound
+import net.benwoodworth.knbt.NbtDouble
+import net.benwoodworth.knbt.NbtFloat
+import net.benwoodworth.knbt.NbtInt
+import net.benwoodworth.knbt.NbtIntArray
+import net.benwoodworth.knbt.NbtList
+import net.benwoodworth.knbt.NbtLong
+import net.benwoodworth.knbt.NbtLongArray
+import net.benwoodworth.knbt.NbtShort
+import net.benwoodworth.knbt.NbtString
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.nbt.Tag
+import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.text
 
 object BloraCommand {
@@ -63,6 +83,61 @@ object BloraCommand {
                     // 只有 Rhedar 和 DeeChael 能使用调试用途的命令哦
                     return@requires (this.asBukkit.name.lowercase().contentEquals("deechael") ||
                             this.asBukkit.name.lowercase().contentEquals("rhedar") || this.isConsole)
+                }
+
+                literal("nbt") {
+                    executor {
+                        val knbt = compound {
+                            "nbt_string" eq NbtString("aaa")
+                            "nbt_byte" eq NbtByte(1)
+                            "nbt_short" eq NbtShort(1)
+                            "nbt_int" eq NbtInt(1)
+                            "nbt_long" eq NbtLong(1)
+                            "nbt_float" eq NbtFloat(1f)
+                            "nbt_double" eq NbtDouble(1.0)
+                            "nbt_compound" eq compound {
+                                "key" eq "value"
+                            }
+                            "nbt_list" eq NbtList(
+                                listOf(
+                                    compound {
+                                        "key" eq "value1"
+                                    },
+                                    compound {
+                                        "key" eq "value2"
+                                    }
+                                )
+                            )
+                            "nbt_byte_array" eq NbtByteArray(
+                                byteArrayOf(
+                                    0, 1, 2, 3
+                                )
+                            )
+                            "nbt_int_array" eq NbtIntArray(
+                                intArrayOf(
+                                    0, 1, 2, 3
+                                )
+                            )
+                            "nbt_long_array" eq NbtLongArray(
+                                longArrayOf(
+                                    0, 1, 2, 3
+                                )
+                            )
+                        }
+
+                        CompoundTag.CODEC.encodeStart(JsonOps.INSTANCE, knbt.toNMS() as CompoundTag)
+                            .result()
+                            .ifPresent { jsonElement ->
+                                this.invoker.sendMessage {
+                                    text {
+                                        GsonBuilder()
+                                            .setPrettyPrinting()
+                                            .create()
+                                            .toJson(jsonElement)
+                                    }
+                                }
+                            }
+                    }
                 }
             }
         }

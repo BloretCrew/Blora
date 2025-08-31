@@ -1,6 +1,7 @@
 package blora.guild.menu.createguild
 
 import blora.configuration.CONF
+import blora.converter.toJson
 import blora.database.DB
 import blora.extension.localization
 import blora.extension.openDialog
@@ -39,8 +40,19 @@ fun createMenuPage(menu: Menu): MenuPage<*, *> {
             }
         }
         inventoryClick { item, clickContext ->
-            context.icon = item
-            clickContext.menu.rerender()
+            try {
+                item.toJson()
+                context.icon = item
+                clickContext.menu.rerender()
+            } catch (e: NoSuchElementException) {
+                clickContext.viewer.send {
+                    localization(
+                        player = clickContext.viewer
+                    ) {
+                        this.guild.iconNotUsable
+                    }
+                }
+            }
             return@inventoryClick true
         }
         backButton()
@@ -64,7 +76,7 @@ fun createMenuPage(menu: Menu): MenuPage<*, *> {
             }
         }
         3 to 5 eq {
-            icon { material { Material.PAPER } }
+            icon { material { Material.NAME_TAG } }
             name {
                 localization(menu.viewer) {
                     this.guild.menu.menuCreate_guildButtonModify_display_name

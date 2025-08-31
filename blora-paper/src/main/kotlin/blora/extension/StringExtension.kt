@@ -25,9 +25,12 @@ fun String.convertCamelCase(
     }
 }
 
+private val ENGLISH_LETTERS = "abcdefghijklmnopqrstuvwxyz"
+private val DIGIT_LETTERS = "0123456789"
+
 fun String.containsLetterAndNumberOnly(): Boolean {
     for (char in this) {
-        if (!char.isLetterOrDigit()) {
+        if (!DIGIT_LETTERS.contains(char) && !ENGLISH_LETTERS.contains(char.lowercaseChar())) {
             return false
         }
     }
@@ -49,7 +52,7 @@ fun String.containsNumberOnly(): Boolean {
 
 fun String.containsLowercaseLetterOnly(): Boolean {
     for (char in this) {
-        if (!char.isLetter() || !char.isLowerCase()) {
+        if (!ENGLISH_LETTERS.contains(char)) {
             return false
         }
     }

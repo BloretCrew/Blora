@@ -29,6 +29,6 @@ object TownTable : IntIdTable("blora_towns") {
             { STORE_DATA_JSON.encodeToString(it) },
             { STORE_DATA_JSON.decodeFromString(it) },
         )
-    )
+    ).default(listOf())
 
 }

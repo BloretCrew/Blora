@@ -100,8 +100,13 @@ data class Attachment(
                     continue
                 for (i in 0 until times.toInt()) {
                     if (i == times.toInt() - 1) {
-                        player.give(item.clone().apply { this.amount = (amount % item.maxStackSize.toUInt()).toInt() })
+                        val currentAmount = (amount % item.maxStackSize.toUInt()).toInt()
+                        if (currentAmount <= 0)
+                            continue
+                        player.give(item.clone().apply { this.amount = currentAmount })
                     } else {
+                        if (item.maxStackSize <= 0)
+                            continue
                         player.give(item.clone().apply { this.amount = item.maxStackSize })
                     }
                 }

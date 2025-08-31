@@ -11,9 +11,11 @@ object Permissions {
     object Guild {
 
         val Create = "bloret.guild.create"
+        val Join = "bloret.guild.join"
 
         fun registerPermissions() {
             registerPermission(Create, 2)
+            registerPermission(Join, 2)
         }
 
     }
@@ -47,6 +49,11 @@ object Permissions {
         val Redeem = "bloret.command.redeem"
         val Tell = "bloret.command.tell"
         val Guild = "bloret.command.guild"
+        val Town = "bloret.command.town"
+        val Lead = "bloret.command.lead"
+        val LeadCoins = "bloret.command.lead.coins"
+        val LeadBlroius = "bloret.command.lead.blorius"
+        val LeadLevels = "bloret.command.lead.levels"
 
         fun registerPermissions() {
             registerPermission(Blora, 0)
@@ -54,6 +61,11 @@ object Permissions {
             registerPermission(Redeem, 1)
             registerPermission(Tell, 1)
             registerPermission(Guild, 1)
+            registerPermission(Town, 1)
+            registerPermission(Lead, 1)
+            registerPermission(LeadCoins, 1)
+            registerPermission(LeadBlroius, 1)
+            registerPermission(LeadLevels, 1)
         }
 
     }

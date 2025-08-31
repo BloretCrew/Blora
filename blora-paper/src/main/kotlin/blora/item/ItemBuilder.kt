@@ -30,7 +30,7 @@ class ItemBuilder {
 }
 
 fun ItemBuilder.clone(value: () -> ItemStack?) {
-    this.itemStack = value()
+    this.itemStack = value()?.clone()
 }
 
 fun ItemBuilder.type(value: () -> ItemType) {

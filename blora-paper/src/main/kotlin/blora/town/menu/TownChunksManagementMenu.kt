@@ -183,15 +183,23 @@ fun townChunksManagementMenu(menu: Menu, guild: GuildDao, town: TownDao): MenuPa
                         ) {
                             this.town.menu.town_managementTown_chunks_managementChunkDescriptionLine2
                         }
+                        val playerResidence = chunk.getPlayerResidence()
+                        if (playerResidence != null) {
+                            newline()
+                            localization(
+                                menu.viewer,
+                                tags = {
+                                    parsedPlaceholder("player", playerResidence.owner)
+                                }
+                            ) {
+                                this.town.menu.town_managementTown_chunks_managementChunkDescriptionLinePlayer_residence
+                            }
+                        }
                         newline()
                         newline()
                         localization(menu.viewer) {
                             if (townChunk == null) {
-                                if (chunk.containsPlayerResidence()) {
-                                    this.town.menu.town_managementTown_chunks_managementChunkDescriptionHas_player_residence
-                                } else {
-                                    this.town.menu.town_managementTown_chunks_managementChunkDescriptionClaimable
-                                }
+                                this.town.menu.town_managementTown_chunks_managementChunkDescriptionClaimable
                             } else {
                                 if (townChunk.townId == town.townId) {
                                     if (townChunk.chunkX == town.centerChunkX && townChunk.chunkZ == town.centerChunkZ) {
@@ -220,7 +228,7 @@ fun townChunksManagementMenu(menu: Menu, guild: GuildDao, town: TownDao): MenuPa
                     clickEvent { clickContext ->
                         val townChunk = TownChunkDao.find(world.name, requestChunkX, requestChunkZ)
                         if (clickContext.click.isLeftClick) {
-                            if (townChunk == null && !chunk.containsPlayerResidence()) {
+                            if (townChunk == null) {
                                 if (chunk.getSurroundingTownChunks().any { it.townId == town.townId }) {
                                     DB.trans {
                                         guild.refresh()

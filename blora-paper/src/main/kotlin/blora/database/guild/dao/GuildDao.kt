@@ -17,10 +17,14 @@ import org.jetbrains.exposed.sql.anyFrom
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.locks.ReentrantLock
 
 class GuildDao(id: EntityID<Int>) : IntEntity(id) {
 
     companion object : IntEntityClass<GuildDao>(GuildTable) {
+
+        private val locks = mutableMapOf<Int, ReentrantLock>()
+        private val globalLock = ReentrantLock()
 
         fun getByTownId(townId: String): GuildDao? {
             val town = TownDao.getByTownId(townId)
@@ -232,6 +236,23 @@ class GuildDao(id: EntityID<Int>) : IntEntity(id) {
             }
         }
         return permissions
+    }
+
+    fun <T> withLock(block: () -> T): T {
+        val lock = synchronized(globalLock) {
+            locks.getOrPut(this.id.value) { ReentrantLock() }
+        }
+        lock.lock()
+        try {
+            return block()
+        } finally {
+            lock.unlock()
+            synchronized(globalLock) {
+                if (!lock.hasQueuedThreads()) {
+                    locks.remove(this.id.value)
+                }
+            }
+        }
     }
 
 }

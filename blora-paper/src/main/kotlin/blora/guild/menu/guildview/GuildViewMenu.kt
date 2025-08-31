@@ -24,6 +24,7 @@ import blora.menu.v2.page.builder.backButton
 import blora.menu.v2.page.builder.completeDynamicMenuPage
 import blora.menu.v2.page.builder.pageId
 import blora.menu.v2.page.builder.title
+import blora.permission.Permissions
 import blora.plugin.BloraPlugin
 import blora.town.menu.townMenu
 import blora.util.castString
@@ -32,6 +33,10 @@ import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
+import plutoproject.adventurekt.text.style.red
+import plutoproject.adventurekt.text.style.text
+import plutoproject.adventurekt.text.text
+import plutoproject.adventurekt.text.with
 import java.util.*
 
 private enum class GuildViewButtons {
@@ -48,7 +53,7 @@ private enum class GuildViewButtons {
 
 }
 
-private fun EnumSet<GuildPermissions>.toButtons(guild: GuildDao, isMember: Boolean): List<GuildViewButtons> {
+private fun EnumSet<GuildPermissions>.toButtons(guild: GuildDao, isMember: Boolean, requested: Boolean): List<GuildViewButtons> {
     val permissions = this
     return buildList {
         if (permissions.anyGuildSettings())
@@ -64,7 +69,7 @@ private fun EnumSet<GuildPermissions>.toButtons(guild: GuildDao, isMember: Boole
             this.add(GuildViewButtons.BANK)
         if (permissions.contains(GuildPermissions.USE_VITALITY))
             this.add(GuildViewButtons.VITALITY_SHOP)
-        if (!isMember && guild.joinStrategy != GuildJoinStrategy.NOT_ALLOW)
+        if (!isMember && !requested && guild.joinStrategy != GuildJoinStrategy.NOT_ALLOW)
             this.add(GuildViewButtons.JOIN_GUILD)
     }
 }
@@ -87,8 +92,9 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
             guild.refresh()
         } // ensure data updated for security
         val isMember = guild.members.contains(menu.viewer.uniqueId)
+        val requested = DB.getValidJoinRequest(guild.gid, menu.viewer.uniqueId) != null
         val permissions = guild.getPlayerPermissions(menu.viewer.uniqueId, isMember)
-        val buttons = permissions.toButtons(guild, isMember)
+        val buttons = permissions.toButtons(guild, isMember, requested)
 
         pageId {
             "guild_$guildId"
@@ -262,8 +268,12 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                             }
                         }
                         clickEvent { clickContext ->
+                            clickContext.viewer.send {
+                                text { "当前功能由于 bug 暂时关闭使用。" } with red.text
+                            }
+                            /*
                             clickContext.menu.destroy()
-                            GuildEnderChestManager.open(guild, clickContext.viewer)
+                            GuildEnderChestManager.open(guild, clickContext.viewer)*/
                         }
                     }
 
@@ -303,6 +313,14 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                             }
                         }
                         clickEvent { clickContext ->
+                            if (!clickContext.viewer.hasPermission(Permissions.Guild.Join)) {
+                                clickContext.viewer.send {
+                                    localization(clickContext.viewer) {
+                                        this.guild.guildJoinNo_permission
+                                    }
+                                }
+                                return@clickEvent
+                            }
                             if (guild.members.size >= guild.maxMembers) {
                                 clickContext.viewer.send {
                                     localization(clickContext.viewer) {
@@ -320,6 +338,14 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                                         }
                                     ) {
                                         this.guild.guildJoinLimit
+                                    }
+                                }
+                                return@clickEvent
+                            }
+                            if (DB.getValidJoinRequest(guild.gid, clickContext.viewer.uniqueId) != null) {
+                                clickContext.viewer.send {
+                                    localization(clickContext.viewer) {
+                                        this.guild.guildJoinAlready_request
                                     }
                                 }
                                 return@clickEvent

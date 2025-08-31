@@ -332,6 +332,7 @@ data class GuildDialogLocalizationContents(
 data class GuildLocalizationContents(
     val menu: GuildMenuLocalizationContents = GuildMenuLocalizationContents(),
     val dialog: GuildDialogLocalizationContents = GuildDialogLocalizationContents(),
+    val guildJoinNo_permission: String = "你没有权限加入公会",
     val guildJoin_invite_reviewMembers_limit: String = "当前公会成员数已达上限",
     val guildVitality_shopVitality_not_enough: String = "活跃点不足",
     val guildVitality_shopSuccess: String = "成功花费 <vitality> 活跃点兑换了 <goods>",
@@ -383,6 +384,7 @@ data class GuildLocalizationContents(
     val guildCreateMoney_not_enough: String = "您的络琅不足，创建公会需要 <cost> 络琅",
     val guildJoinLimit: String = "您最多加入 <amount> 个公会",
     val guildCreateLimit: String = "您最多创建 <amount> 个公会",
+    val iconNotUsable: String = "无法使用该物品作为图标",
     val guildDisbandSuccess: String = "成功解散公会 <guild_name>(<guild_id>)",
     val guildDisbandNotify: String = "您所在的公会 <guild_name>(<guild_id>) 已被解散",
     val guildUpdateId: String = "成功更新公会 ID",
@@ -476,6 +478,7 @@ data class TownMenuLocalizationContents(
     val town_managementTown_chunks_managementChunkName: String = "X: <chunk_x>, Z: <chunk_z>",
     val town_managementTown_chunks_managementChunkDescriptionLine1: String = "最小点：<min_x>, <min_z>",
     val town_managementTown_chunks_managementChunkDescriptionLine2: String = "最大点：<max_x>, <max_z>",
+    val town_managementTown_chunks_managementChunkDescriptionLinePlayer_residence: String = "存在玩家 <player> 的领地",
     val town_managementTown_chunks_managementChunkDescriptionCenter: String = "<green><bold>城镇的中心区块",
     val town_managementTown_chunks_managementChunkDescriptionClaimable: String = "<green>可占领",
     val town_managementTown_chunks_managementChunkDescriptionClaimed: String = "<gold>已占领",
@@ -522,6 +525,7 @@ data class TownLocalizationContents(
     val remove_claimWarningSeparate_if_remove: String = "删除后将会有占领区块不相连，无法删除当前占领区块",
     val remove_claimSuccess: String = "已删除区块占领",
     val claimSuccess: String = "已占领新的区块",
+    val failedToClaim: String = "占领失败",
     val claimWarningClaimed: String = "当前区块已被占用",
     val claimWarningChunks_limit: String = "当前公会占地已达上限（<limit> 个区块），请升级后再创建城镇",
     val claimWarningMust_beside_claimed: String = "占领新的区块需要与已占领的区块相邻",
@@ -557,12 +561,26 @@ data class TownLocalizationContents(
 )
 
 @Serializable
+data class LeaderboardLocalizationContents(
+    val coinsPrefix: String = "========== 金币排行榜 ==========",
+    val coinsContent: String = "#<rank> <player> - <coins> 金币",
+    val coinsSuffix: String = "==============================",
+    val bloriusPrefix: String = "========== 络琅排行榜 ==========",
+    val bloriusContent: String = "#<rank> <player> - <blorius> 络琅",
+    val bloriusSuffix: String = "==============================",
+    val levelsPrefix: String = "========== 等级排行榜 ==========",
+    val levelsContent: String = "#<rank> <player> - <level> 级 (共 <exp> 经验)",
+    val levelsSuffix: String = "==============================",
+)
+
+@Serializable
 data class LocalizationContents(
     val command: CommandLocalizationContents = CommandLocalizationContents(),
     val mail: MailLocalizationContents = MailLocalizationContents(),
     val redeem: RedeemLocalizationContents = RedeemLocalizationContents(),
     val guild: GuildLocalizationContents = GuildLocalizationContents(),
     val town: TownLocalizationContents = TownLocalizationContents(),
+    val leaderboard: LeaderboardLocalizationContents = LeaderboardLocalizationContents(),
     val menuErrorTitle: String = "出现错误，请点击中间的按钮返回上一页",
     val chatMentionTitle: String = "有人在聊天中 @ 了您",
     val chatViewInventory: String = "<viewee> 的背包",

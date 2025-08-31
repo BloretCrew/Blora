@@ -2,6 +2,7 @@ package blora.extension
 
 import blora.database.town.dao.TownChunkDao
 import com.bekvon.bukkit.residence.Residence
+import com.bekvon.bukkit.residence.protection.ClaimedResidence
 import com.bekvon.bukkit.residence.protection.CuboidArea
 import org.bukkit.Chunk
 import org.bukkit.Location
@@ -37,6 +38,11 @@ fun Chunk.getSurroundingTownChunks(): List<TownChunkDao> {
 fun Chunk.containsPlayerResidence(): Boolean {
     val resAabb = CuboidArea(this.smallestPoint(), this.biggestPoint())
     return Residence.getInstance().residenceManager.collidesWithResidence(resAabb) != null
+}
+
+fun Chunk.getPlayerResidence(): ClaimedResidence? {
+    val resAabb = CuboidArea(this.smallestPoint(), this.biggestPoint())
+    return Residence.getInstance().residenceManager.collidesWithResidence(resAabb)
 }
 
 fun Chunk.isClaimedByAnyTown(): Boolean {

@@ -5,8 +5,11 @@ import blora.chat.*
 import blora.extension.asDisplayName
 import blora.extension.localization
 import blora.extension.sendPacket
+import blora.internal.api.scheduler.BukkitAsync
 import blora.permission.Permissions
 import blora.plugin.BloraPlugin
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
@@ -117,473 +120,476 @@ object ChatListener : Listener {
             return
         }
         val canMentionAll = event.player.hasPermission(Permissions.Chat.MentionAll)
-        for (viewer in Bukkit.getOnlinePlayers()) {
-            var rawMessage = event.message
-            val messageIsMentionOther: String? = Bukkit.getOnlinePlayers()
-                .filter { it != viewer }
-                .find { rawMessage == "@${it.name}" }
-                ?.name
-            if (rawMessage == "@${BloraPlugin.configuration.chat.mentionAllKeyword}" && event.player.hasPermission(
-                    Permissions.Chat.MentionAll
-                )
-            ) {
-                if (BloraPlugin.configuration.chat.titleWhenMentioned) {
-                    viewer.showTitle(
-                        Title.title(
-                            component {
-                                localization(viewer) {
-                                    this.chatMentionTitle
-                                }
-                            },
-                            component {
-                            }
+        Bukkit.getOnlinePlayers()
+            .forEach { viewer ->
+                BloraPlugin.scope.launch(Dispatchers.BukkitAsync) {
+                    var rawMessage = event.message
+                    val messageIsMentionOther: String? = Bukkit.getOnlinePlayers()
+                        .filter { it != viewer }
+                        .find { rawMessage == "@${it.name}" }
+                        ?.name
+                    if (rawMessage == "@${BloraPlugin.configuration.chat.mentionAllKeyword}" && event.player.hasPermission(
+                            Permissions.Chat.MentionAll
                         )
-                    )
-                }
-                if (BloraPlugin.configuration.chat.soundWhenMentioned) {
-                    viewer.playSound(
-                        Sound.sound(
-                            Key.key("minecraft", "entity.experience_orb.pickup"),
-                            Sound.Source.AMBIENT,
-                            1f,
-                            1f
-                        )
-                    )
-                }
-                viewer.send {
-                    localization(
-                        player = viewer,
-                        tags = {
-                            if (rawMessage.contains("<item>")) { // only add placeholder when need to reduce memory usage
-                                val itemInMainHand = event.player.inventory.itemInMainHand
-                                if (!itemInMainHand.type.isAir) {
-                                    componentPlaceholder("item") {
-                                        localization(
-                                            player = viewer,
-                                            tags = {
-                                                componentPlaceholder("item") {
-                                                    raw { itemInMainHand.asDisplayName() }
-                                                }
-                                                parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                            },
-                                            papi = false
-                                        ) {
-                                            BloraPlugin.configuration.chat.itemPlaceholderFormat
-                                        } with object : WithStyle {
-                                            override fun with(
-                                                holder: ComponentKt,
-                                                original: Component
-                                            ): Component {
-                                                return original.hoverEvent(itemInMainHand.asHoverEvent())
-                                            }
-                                        } with callback {
-                                            if (it != viewer)
-                                                return@callback
-                                            PlayerItemView.view(viewer, itemInMainHand)
-                                        }
-                                    }
-                                }
-                            }
-                            if (rawMessage.contains("<inv>")) {
-                                componentPlaceholder("inv") {
-                                    localization(
-                                        player = viewer,
-                                        tags = {
-                                            parsedPlaceholder("player", event.player.name)
-                                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                        },
-                                        papi = false
-                                    ) {
-                                        BloraPlugin.configuration.chat.inventoryPlaceholderFormat
-                                    } with callback {
-                                        if (it != viewer)
-                                            return@callback
-                                        PlayerInventoryView.view(viewer, event.player)
-                                    } with showText {
-                                        localization(viewer) {
-                                            this.chatViewInventoryTooltip
-                                        }
-                                    }
-                                }
-                            }
-                            if (rawMessage.contains("<enderchest>")) {
-                                componentPlaceholder("enderchest") {
-                                    localization(
-                                        player = viewer,
-                                        tags = {
-                                            parsedPlaceholder("player", event.player.name)
-                                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                        },
-                                        papi = false
-                                    ) {
-                                        BloraPlugin.configuration.chat.enderChestPlaceholderFormat
-                                    } with callback {
-                                        if (it != viewer)
-                                            return@callback
-                                        PlayerInventoryView.viewEnderChest(viewer, event.player)
-                                    } with showText {
-                                        localization(viewer) {
-                                            this.chatViewEnderChestTooltip
-                                        }
-                                    }
-                                }
-                            }
-                            parsedPlaceholder(CommandTagResolver)
-                            parsedPlaceholder(CopyTagResolver)
-                            parsedPlaceholder(LinkTagResolver)
-                            for ((key, value) in BloraPlugin.configuration.chat.placeholders) {
-                                if (rawMessage.contains("<$key>")) // for custom tags, do not parse them if not exists
-                                    parsedPlaceholder(key, value)
-                            }
-
-                            parsedPlaceholder("message", BloraPlugin.configuration.chat.mentionAllFormat)
-                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                        },
-                        papi = false
                     ) {
-                        BloraPlugin.configuration.chat.format
-                    }
-                }
-            } else if (rawMessage == "@${viewer.name}" && viewer != event.player) {
-                if (BloraPlugin.configuration.chat.titleWhenMentioned) {
-                    viewer.showTitle(
-                        Title.title(
-                            component {
-                                localization(viewer) {
-                                    this.chatMentionTitle
-                                }
-                            },
-                            component {
-                            }
-                        )
-                    )
-                }
-                if (BloraPlugin.configuration.chat.soundWhenMentioned) {
-                    viewer.playSound(
-                        Sound.sound(
-                            Key.key("minecraft", "entity.experience_orb.pickup"),
-                            Sound.Source.AMBIENT,
-                            1f,
-                            1f
-                        )
-                    )
-                }
-                viewer.send {
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder(
-                                "message",
-                                BloraPlugin.configuration.chat.mentionSelfFormat.replace("<mentioned>", viewer.name)
-                            )
-                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                        },
-                        papi = false
-                    ) {
-                        BloraPlugin.configuration.chat.format
-                    }
-                }
-            } else if (messageIsMentionOther != null) {
-                viewer.send {
-                    localization(
-                        player = viewer,
-                        tags = {
-                            parsedPlaceholder(
-                                "message",
-                                BloraPlugin.configuration.chat.mentionOtherFormat.replace(
-                                    "<mentioned>",
-                                    messageIsMentionOther
+                        if (BloraPlugin.configuration.chat.titleWhenMentioned) {
+                            viewer.showTitle(
+                                Title.title(
+                                    component {
+                                        localization(viewer) {
+                                            this.chatMentionTitle
+                                        }
+                                    },
+                                    component {
+                                    }
                                 )
                             )
-                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                        },
-                        papi = false
-                    ) {
-                        BloraPlugin.configuration.chat.format
-                    }
-                }
-            } else {
-                // mention self
-                // here add a check "viewer != event.player" so players cannot mention themselves
-                val mentionSelfAtStart = rawMessage.startsWith("@${viewer.name} ") && viewer != event.player
-                val mentionSelfAtEnd = rawMessage.endsWith(" @${viewer.name}") && viewer != event.player
-                val mentionSelfInMessage = rawMessage.contains(" @${viewer.name} ") && viewer != event.player
-
-                if (mentionSelfAtStart) {
-                    rawMessage = rawMessage.substring("@${viewer.name}".length)
-                }
-                if (mentionSelfAtEnd) {
-                    rawMessage = rawMessage.substring(0, rawMessage.length - "@${viewer.name}".length)
-                }
-
-                // mention all
-                val mentionAllKeyword = BloraPlugin.configuration.chat.mentionAllKeyword
-                val mentionAllAtStart =
-                    rawMessage.startsWith("@$mentionAllKeyword ") && mentionAllKeyword.isNotBlank() && mentionAllKeyword.isNotEmpty() && canMentionAll
-                val mentionAllAtEnd =
-                    rawMessage.endsWith(" @$mentionAllKeyword") && mentionAllKeyword.isNotBlank() && mentionAllKeyword.isNotEmpty() && canMentionAll
-                val mentionAllInMessage =
-                    rawMessage.contains(" @$mentionAllKeyword ") && mentionAllKeyword.isNotBlank() && mentionAllKeyword.isNotEmpty() && canMentionAll
-
-                if (mentionAllAtStart) {
-                    rawMessage = rawMessage.substring("@$mentionAllKeyword".length)
-                }
-                if (mentionAllAtEnd) {
-                    rawMessage = rawMessage.substring(0, rawMessage.length - "@$mentionAllKeyword".length)
-                }
-
-                // mention others
-                val mentionedOtherAtStart: String? = Bukkit.getOnlinePlayers()
-                    .filter { it != viewer }
-                    .find { rawMessage.startsWith("@${it.name} ") }?.name
-                val mentionedOtherAtEnd: String? = Bukkit.getOnlinePlayers()
-                    .filter { it != viewer }
-                    .find { rawMessage.endsWith(" @${it.name}") }?.name
-                val mentionedOtherInMessage: List<String> = Bukkit.getOnlinePlayers()
-                    .filter { it != viewer }
-                    .filter { rawMessage.contains(" @${it.name} ") }
-                    .map { it.name }
-                    .toList()
-
-                if (mentionedOtherAtStart != null) {
-                    rawMessage = rawMessage.substring("@$mentionedOtherAtStart".length)
-                }
-                if (mentionedOtherAtEnd != null) {
-                    rawMessage = rawMessage.substring(0, rawMessage.length - "@$mentionedOtherAtEnd".length)
-                }
-
-                val mentioned = mentionSelfAtStart || mentionSelfInMessage || mentionSelfAtEnd
-                        || mentionAllAtStart || mentionAllInMessage || mentionAllAtEnd
-
-                if (BloraPlugin.configuration.chat.titleWhenMentioned && mentioned) {
-                    viewer.showTitle(
-                        Title.title(
-                            component {
-                                localization(viewer) {
-                                    this.chatMentionTitle
-                                }
-                            },
-                            component {
-                            }
-                        )
-                    )
-                }
-                if (BloraPlugin.configuration.chat.soundWhenMentioned && mentioned) {
-                    viewer.playSound(
-                        Sound.sound(
-                            Key.key("minecraft", "entity.experience_orb.pickup"),
-                            Sound.Source.AMBIENT,
-                            1f,
-                            1f
-                        )
-                    )
-                }
-                viewer.send {
-                    localization(
-                        player = viewer,
-                        tags = {
-                            componentPlaceholder("message") {
-                                if (mentionSelfAtStart) {
-                                    localization(
-                                        player = viewer,
-                                        tags = {
-                                            parsedPlaceholder("mentioned", viewer.name)
-                                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                        },
-                                        papi = false
-                                    ) {
-                                        BloraPlugin.configuration.chat.mentionSelfFormat
-                                    }
-                                }
-                                if (mentionAllAtStart) {
-                                    localization(
-                                        player = viewer,
-                                        tags = {
-                                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                        },
-                                        papi = false
-                                    ) {
-                                        BloraPlugin.configuration.chat.mentionAllFormat
-                                    }
-                                }
-                                if (mentionedOtherAtStart != null) {
-                                    localization(
-                                        player = viewer,
-                                        tags = {
-                                            parsedPlaceholder("mentioned", mentionedOtherAtStart)
-                                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                        },
-                                        papi = false
-                                    ) {
-                                        BloraPlugin.configuration.chat.mentionOtherFormat
-                                    }
-                                }
-                                raw {
-                                    if (event.player.hasPermission(Permissions.Chat.MiniMessage)) {
-                                        Chatting.miniMessageSupport(event.player, viewer, rawMessage) {
-                                            if (mentionSelfInMessage) {
-                                                replacement {
-                                                    matchLiteral(" @${viewer.name} ")
-                                                    replace {
-                                                        space()
-                                                        localization(
-                                                            player = viewer,
-                                                            tags = {
-                                                                parsedPlaceholder("mentioned", viewer.name)
-                                                                parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                                            },
-                                                            papi = false
-                                                        ) {
-                                                            BloraPlugin.configuration.chat.mentionSelfFormat
+                        }
+                        if (BloraPlugin.configuration.chat.soundWhenMentioned) {
+                            viewer.playSound(
+                                Sound.sound(
+                                    Key.key("minecraft", "entity.experience_orb.pickup"),
+                                    Sound.Source.AMBIENT,
+                                    1f,
+                                    1f
+                                )
+                            )
+                        }
+                        viewer.send {
+                            localization(
+                                player = viewer,
+                                tags = {
+                                    if (rawMessage.contains("<item>")) { // only add placeholder when need to reduce memory usage
+                                        val itemInMainHand = event.player.inventory.itemInMainHand
+                                        if (!itemInMainHand.type.isAir) {
+                                            componentPlaceholder("item") {
+                                                localization(
+                                                    player = viewer,
+                                                    tags = {
+                                                        componentPlaceholder("item") {
+                                                            raw { itemInMainHand.asDisplayName() }
                                                         }
-                                                        space()
+                                                        parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                    },
+                                                    papi = false
+                                                ) {
+                                                    BloraPlugin.configuration.chat.itemPlaceholderFormat
+                                                } with object : WithStyle {
+                                                    override fun with(
+                                                        holder: ComponentKt,
+                                                        original: Component
+                                                    ): Component {
+                                                        return original.hoverEvent(itemInMainHand.asHoverEvent())
                                                     }
-                                                }
-                                            }
-                                            if (mentionAllInMessage) {
-                                                replacement {
-                                                    matchLiteral(" @$mentionAllKeyword ")
-                                                    replace {
-                                                        space()
-                                                        localization(
-                                                            player = viewer,
-                                                            tags = {
-                                                                parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                                            },
-                                                            papi = false
-                                                        ) {
-                                                            BloraPlugin.configuration.chat.mentionAllFormat
-                                                        }
-                                                        space()
-                                                    }
-                                                }
-                                            }
-                                            for (mentionedOther in mentionedOtherInMessage) {
-                                                replacement {
-                                                    matchLiteral(" @$mentionedOther ")
-                                                    replace {
-                                                        space()
-                                                        localization(
-                                                            player = viewer,
-                                                            tags = {
-                                                                parsedPlaceholder("mentioned", mentionedOther)
-                                                                parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                                            },
-                                                            papi = false
-                                                        ) {
-                                                            BloraPlugin.configuration.chat.mentionOtherFormat
-                                                        }
-                                                        space()
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        Chatting.noMiniMessageSupport(event.player, viewer, rawMessage) {
-                                            if (mentionSelfInMessage) {
-                                                replacement {
-                                                    matchLiteral(" @${viewer.name} ")
-                                                    replace {
-                                                        space()
-                                                        localization(
-                                                            player = viewer,
-                                                            tags = {
-                                                                parsedPlaceholder("mentioned", viewer.name)
-                                                                parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                                            },
-                                                            papi = false
-                                                        ) {
-                                                            BloraPlugin.configuration.chat.mentionSelfFormat
-                                                        }
-                                                        space()
-                                                    }
-                                                }
-                                            }
-                                            if (mentionAllInMessage) {
-                                                replacement {
-                                                    matchLiteral(" @$mentionAllKeyword ")
-                                                    replace {
-                                                        space()
-                                                        localization(
-                                                            player = viewer,
-                                                            tags = {
-                                                                parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                                            },
-                                                            papi = false
-                                                        ) {
-                                                            BloraPlugin.configuration.chat.mentionAllFormat
-                                                        }
-                                                        space()
-                                                    }
-                                                }
-                                            }
-                                            for (mentionedOther in mentionedOtherInMessage) {
-                                                replacement {
-                                                    matchLiteral(" @$mentionedOther ")
-                                                    replace {
-                                                        space()
-                                                        localization(
-                                                            player = viewer,
-                                                            tags = {
-                                                                parsedPlaceholder("mentioned", mentionedOther)
-                                                                parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                                            },
-                                                            papi = false
-                                                        ) {
-                                                            BloraPlugin.configuration.chat.mentionOtherFormat
-                                                        }
-                                                        space()
-                                                    }
+                                                } with callback {
+                                                    if (it != viewer)
+                                                        return@callback
+                                                    PlayerItemView.view(viewer, itemInMainHand)
                                                 }
                                             }
                                         }
                                     }
-                                }
-                                if (mentionSelfAtEnd) {
-                                    localization(
-                                        player = viewer,
-                                        tags = {
-                                            parsedPlaceholder("mentioned", viewer.name)
-                                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                        },
-                                        papi = false
-                                    ) {
-                                        BloraPlugin.configuration.chat.mentionSelfFormat
+                                    if (rawMessage.contains("<inv>")) {
+                                        componentPlaceholder("inv") {
+                                            localization(
+                                                player = viewer,
+                                                tags = {
+                                                    parsedPlaceholder("player", event.player.name)
+                                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                },
+                                                papi = false
+                                            ) {
+                                                BloraPlugin.configuration.chat.inventoryPlaceholderFormat
+                                            } with callback {
+                                                if (it != viewer)
+                                                    return@callback
+                                                PlayerInventoryView.view(viewer, event.player)
+                                            } with showText {
+                                                localization(viewer) {
+                                                    this.chatViewInventoryTooltip
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                                if (mentionAllAtEnd) {
-                                    localization(
-                                        player = viewer,
-                                        tags = {
-                                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                        },
-                                        papi = false
-                                    ) {
-                                        BloraPlugin.configuration.chat.mentionAllFormat
+                                    if (rawMessage.contains("<enderchest>")) {
+                                        componentPlaceholder("enderchest") {
+                                            localization(
+                                                player = viewer,
+                                                tags = {
+                                                    parsedPlaceholder("player", event.player.name)
+                                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                },
+                                                papi = false
+                                            ) {
+                                                BloraPlugin.configuration.chat.enderChestPlaceholderFormat
+                                            } with callback {
+                                                if (it != viewer)
+                                                    return@callback
+                                                PlayerInventoryView.viewEnderChest(viewer, event.player)
+                                            } with showText {
+                                                localization(viewer) {
+                                                    this.chatViewEnderChestTooltip
+                                                }
+                                            }
+                                        }
                                     }
-                                }
-                                if (mentionedOtherAtEnd != null) {
-                                    localization(
-                                        player = viewer,
-                                        tags = {
-                                            parsedPlaceholder("mentioned", mentionedOtherAtEnd)
-                                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                                        },
-                                        papi = false
-                                    ) {
-                                        BloraPlugin.configuration.chat.mentionOtherFormat
+                                    parsedPlaceholder(CommandTagResolver)
+                                    parsedPlaceholder(CopyTagResolver)
+                                    parsedPlaceholder(LinkTagResolver)
+                                    for ((key, value) in BloraPlugin.configuration.chat.placeholders) {
+                                        if (rawMessage.contains("<$key>")) // for custom tags, do not parse them if not exists
+                                            parsedPlaceholder(key, value)
                                     }
-                                }
+
+                                    parsedPlaceholder("message", BloraPlugin.configuration.chat.mentionAllFormat)
+                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                },
+                                papi = false
+                            ) {
+                                BloraPlugin.configuration.chat.format
                             }
-                            parsedPlaceholder(PlaceholderAPITagResolver(event.player))
-                        },
-                        papi = false
-                    ) {
-                        BloraPlugin.configuration.chat.format
+                        }
+                    } else if (rawMessage == "@${viewer.name}" && viewer != event.player) {
+                        if (BloraPlugin.configuration.chat.titleWhenMentioned) {
+                            viewer.showTitle(
+                                Title.title(
+                                    component {
+                                        localization(viewer) {
+                                            this.chatMentionTitle
+                                        }
+                                    },
+                                    component {
+                                    }
+                                )
+                            )
+                        }
+                        if (BloraPlugin.configuration.chat.soundWhenMentioned) {
+                            viewer.playSound(
+                                Sound.sound(
+                                    Key.key("minecraft", "entity.experience_orb.pickup"),
+                                    Sound.Source.AMBIENT,
+                                    1f,
+                                    1f
+                                )
+                            )
+                        }
+                        viewer.send {
+                            localization(
+                                player = viewer,
+                                tags = {
+                                    parsedPlaceholder(
+                                        "message",
+                                        BloraPlugin.configuration.chat.mentionSelfFormat.replace("<mentioned>", viewer.name)
+                                    )
+                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                },
+                                papi = false
+                            ) {
+                                BloraPlugin.configuration.chat.format
+                            }
+                        }
+                    } else if (messageIsMentionOther != null) {
+                        viewer.send {
+                            localization(
+                                player = viewer,
+                                tags = {
+                                    parsedPlaceholder(
+                                        "message",
+                                        BloraPlugin.configuration.chat.mentionOtherFormat.replace(
+                                            "<mentioned>",
+                                            messageIsMentionOther
+                                        )
+                                    )
+                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                },
+                                papi = false
+                            ) {
+                                BloraPlugin.configuration.chat.format
+                            }
+                        }
+                    } else {
+                        // mention self
+                        // here add a check "viewer != event.player" so players cannot mention themselves
+                        val mentionSelfAtStart = rawMessage.startsWith("@${viewer.name} ") && viewer != event.player
+                        val mentionSelfAtEnd = rawMessage.endsWith(" @${viewer.name}") && viewer != event.player
+                        val mentionSelfInMessage = rawMessage.contains(" @${viewer.name} ") && viewer != event.player
+
+                        if (mentionSelfAtStart) {
+                            rawMessage = rawMessage.substring("@${viewer.name}".length)
+                        }
+                        if (mentionSelfAtEnd) {
+                            rawMessage = rawMessage.substring(0, rawMessage.length - "@${viewer.name}".length)
+                        }
+
+                        // mention all
+                        val mentionAllKeyword = BloraPlugin.configuration.chat.mentionAllKeyword
+                        val mentionAllAtStart =
+                            rawMessage.startsWith("@$mentionAllKeyword ") && mentionAllKeyword.isNotBlank() && mentionAllKeyword.isNotEmpty() && canMentionAll
+                        val mentionAllAtEnd =
+                            rawMessage.endsWith(" @$mentionAllKeyword") && mentionAllKeyword.isNotBlank() && mentionAllKeyword.isNotEmpty() && canMentionAll
+                        val mentionAllInMessage =
+                            rawMessage.contains(" @$mentionAllKeyword ") && mentionAllKeyword.isNotBlank() && mentionAllKeyword.isNotEmpty() && canMentionAll
+
+                        if (mentionAllAtStart) {
+                            rawMessage = rawMessage.substring("@$mentionAllKeyword".length)
+                        }
+                        if (mentionAllAtEnd) {
+                            rawMessage = rawMessage.substring(0, rawMessage.length - "@$mentionAllKeyword".length)
+                        }
+
+                        // mention others
+                        val mentionedOtherAtStart: String? = Bukkit.getOnlinePlayers()
+                            .filter { it != viewer }
+                            .find { rawMessage.startsWith("@${it.name} ") }?.name
+                        val mentionedOtherAtEnd: String? = Bukkit.getOnlinePlayers()
+                            .filter { it != viewer }
+                            .find { rawMessage.endsWith(" @${it.name}") }?.name
+                        val mentionedOtherInMessage: List<String> = Bukkit.getOnlinePlayers()
+                            .filter { it != viewer }
+                            .filter { rawMessage.contains(" @${it.name} ") }
+                            .map { it.name }
+                            .toList()
+
+                        if (mentionedOtherAtStart != null) {
+                            rawMessage = rawMessage.substring("@$mentionedOtherAtStart".length)
+                        }
+                        if (mentionedOtherAtEnd != null) {
+                            rawMessage = rawMessage.substring(0, rawMessage.length - "@$mentionedOtherAtEnd".length)
+                        }
+
+                        val mentioned = mentionSelfAtStart || mentionSelfInMessage || mentionSelfAtEnd
+                                || mentionAllAtStart || mentionAllInMessage || mentionAllAtEnd
+
+                        if (BloraPlugin.configuration.chat.titleWhenMentioned && mentioned) {
+                            viewer.showTitle(
+                                Title.title(
+                                    component {
+                                        localization(viewer) {
+                                            this.chatMentionTitle
+                                        }
+                                    },
+                                    component {
+                                    }
+                                )
+                            )
+                        }
+                        if (BloraPlugin.configuration.chat.soundWhenMentioned && mentioned) {
+                            viewer.playSound(
+                                Sound.sound(
+                                    Key.key("minecraft", "entity.experience_orb.pickup"),
+                                    Sound.Source.AMBIENT,
+                                    1f,
+                                    1f
+                                )
+                            )
+                        }
+                        viewer.send {
+                            localization(
+                                player = viewer,
+                                tags = {
+                                    componentPlaceholder("message") {
+                                        if (mentionSelfAtStart) {
+                                            localization(
+                                                player = viewer,
+                                                tags = {
+                                                    parsedPlaceholder("mentioned", viewer.name)
+                                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                },
+                                                papi = false
+                                            ) {
+                                                BloraPlugin.configuration.chat.mentionSelfFormat
+                                            }
+                                        }
+                                        if (mentionAllAtStart) {
+                                            localization(
+                                                player = viewer,
+                                                tags = {
+                                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                },
+                                                papi = false
+                                            ) {
+                                                BloraPlugin.configuration.chat.mentionAllFormat
+                                            }
+                                        }
+                                        if (mentionedOtherAtStart != null) {
+                                            localization(
+                                                player = viewer,
+                                                tags = {
+                                                    parsedPlaceholder("mentioned", mentionedOtherAtStart)
+                                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                },
+                                                papi = false
+                                            ) {
+                                                BloraPlugin.configuration.chat.mentionOtherFormat
+                                            }
+                                        }
+                                        raw {
+                                            if (event.player.hasPermission(Permissions.Chat.MiniMessage)) {
+                                                Chatting.miniMessageSupport(event.player, viewer, rawMessage) {
+                                                    if (mentionSelfInMessage) {
+                                                        replacement {
+                                                            matchLiteral(" @${viewer.name} ")
+                                                            replace {
+                                                                space()
+                                                                localization(
+                                                                    player = viewer,
+                                                                    tags = {
+                                                                        parsedPlaceholder("mentioned", viewer.name)
+                                                                        parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                                    },
+                                                                    papi = false
+                                                                ) {
+                                                                    BloraPlugin.configuration.chat.mentionSelfFormat
+                                                                }
+                                                                space()
+                                                            }
+                                                        }
+                                                    }
+                                                    if (mentionAllInMessage) {
+                                                        replacement {
+                                                            matchLiteral(" @$mentionAllKeyword ")
+                                                            replace {
+                                                                space()
+                                                                localization(
+                                                                    player = viewer,
+                                                                    tags = {
+                                                                        parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                                    },
+                                                                    papi = false
+                                                                ) {
+                                                                    BloraPlugin.configuration.chat.mentionAllFormat
+                                                                }
+                                                                space()
+                                                            }
+                                                        }
+                                                    }
+                                                    for (mentionedOther in mentionedOtherInMessage) {
+                                                        replacement {
+                                                            matchLiteral(" @$mentionedOther ")
+                                                            replace {
+                                                                space()
+                                                                localization(
+                                                                    player = viewer,
+                                                                    tags = {
+                                                                        parsedPlaceholder("mentioned", mentionedOther)
+                                                                        parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                                    },
+                                                                    papi = false
+                                                                ) {
+                                                                    BloraPlugin.configuration.chat.mentionOtherFormat
+                                                                }
+                                                                space()
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                Chatting.noMiniMessageSupport(event.player, viewer, rawMessage) {
+                                                    if (mentionSelfInMessage) {
+                                                        replacement {
+                                                            matchLiteral(" @${viewer.name} ")
+                                                            replace {
+                                                                space()
+                                                                localization(
+                                                                    player = viewer,
+                                                                    tags = {
+                                                                        parsedPlaceholder("mentioned", viewer.name)
+                                                                        parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                                    },
+                                                                    papi = false
+                                                                ) {
+                                                                    BloraPlugin.configuration.chat.mentionSelfFormat
+                                                                }
+                                                                space()
+                                                            }
+                                                        }
+                                                    }
+                                                    if (mentionAllInMessage) {
+                                                        replacement {
+                                                            matchLiteral(" @$mentionAllKeyword ")
+                                                            replace {
+                                                                space()
+                                                                localization(
+                                                                    player = viewer,
+                                                                    tags = {
+                                                                        parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                                    },
+                                                                    papi = false
+                                                                ) {
+                                                                    BloraPlugin.configuration.chat.mentionAllFormat
+                                                                }
+                                                                space()
+                                                            }
+                                                        }
+                                                    }
+                                                    for (mentionedOther in mentionedOtherInMessage) {
+                                                        replacement {
+                                                            matchLiteral(" @$mentionedOther ")
+                                                            replace {
+                                                                space()
+                                                                localization(
+                                                                    player = viewer,
+                                                                    tags = {
+                                                                        parsedPlaceholder("mentioned", mentionedOther)
+                                                                        parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                                    },
+                                                                    papi = false
+                                                                ) {
+                                                                    BloraPlugin.configuration.chat.mentionOtherFormat
+                                                                }
+                                                                space()
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (mentionSelfAtEnd) {
+                                            localization(
+                                                player = viewer,
+                                                tags = {
+                                                    parsedPlaceholder("mentioned", viewer.name)
+                                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                },
+                                                papi = false
+                                            ) {
+                                                BloraPlugin.configuration.chat.mentionSelfFormat
+                                            }
+                                        }
+                                        if (mentionAllAtEnd) {
+                                            localization(
+                                                player = viewer,
+                                                tags = {
+                                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                },
+                                                papi = false
+                                            ) {
+                                                BloraPlugin.configuration.chat.mentionAllFormat
+                                            }
+                                        }
+                                        if (mentionedOtherAtEnd != null) {
+                                            localization(
+                                                player = viewer,
+                                                tags = {
+                                                    parsedPlaceholder("mentioned", mentionedOtherAtEnd)
+                                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                                },
+                                                papi = false
+                                            ) {
+                                                BloraPlugin.configuration.chat.mentionOtherFormat
+                                            }
+                                        }
+                                    }
+                                    parsedPlaceholder(PlaceholderAPITagResolver(event.player))
+                                },
+                                papi = false
+                            ) {
+                                BloraPlugin.configuration.chat.format
+                            }
+                        }
                     }
                 }
             }
-        }
 
         Bukkit.getConsoleSender().send {
             text { event.player.name }

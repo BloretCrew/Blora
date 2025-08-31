@@ -34,19 +34,27 @@ class Aabb(
         )
     }
 
-    fun getContainedChunks(): List<Chunk> {
-        val chunks = mutableSetOf<Chunk>()
-        for (x in floor(start.x).toInt()..ceil(end.x).toInt()) {
-            for (z in floor(start.z).toInt()..ceil(end.z).toInt()) {
-                chunks.add(this.world.getChunkAt(x, z))
+    fun getContainedChunks(): List<ChunkLocation> {
+        val chunks = mutableSetOf<ChunkLocation>()
+        for (x in floor(start.x).toInt()..ceil(end.x).toInt() step 16) {
+            for (z in floor(start.z).toInt()..ceil(end.z).toInt() step 16) {
+                val chunkX = if (x >= 0)
+                    x / 16
+                else
+                    ((x + 1) / 16) - 1
+                val chunkZ = if (z >= 0)
+                    z / 16
+                else
+                    ((z + 1) / 16) - 1
+                chunks.add(ChunkLocation(this.world.name, chunkX, chunkZ))
             }
         }
-        return chunks.toList()
+        return chunks.distinct()
     }
 
     fun containsTownChunk(): Boolean {
         for (chunk in this.getContainedChunks()) {
-            if (TownChunkDao.find(chunk.world.name, chunk.x, chunk.z) == null) {
+            if (TownChunkDao.find(chunk.world, chunk.x, chunk.z) == null) {
                 return true
             }
         }

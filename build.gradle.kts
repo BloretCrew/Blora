@@ -33,6 +33,7 @@ allprojects {
         maven("https://repo.minebench.de/")
         maven("https://repo.rosewooddev.io/repository/public/")
         maven("https://jitpack.io")
+        maven("https://repo.auroramc.gg/releases/")
     }
 
     dependencies {

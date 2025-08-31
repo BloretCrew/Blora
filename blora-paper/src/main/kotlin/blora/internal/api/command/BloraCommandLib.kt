@@ -11,18 +11,18 @@ interface BloraCommandLib {
         meta: CommandMeta,
         name: String,
         requirement: Predicate<CommandInvoker>,
-        executor: CommandExecutor?,
-        playerExecutor: CommandExecutor?,
-        blockExecutor: CommandExecutor?,
+        executor: (suspend CommandContext.() -> Unit)?,
+        playerExecutor: (suspend CommandContext.() -> Unit)?,
+        blockExecutor: (suspend CommandContext.() -> Unit)?,
         children: List<CommandNode>
     ): Command
 
     fun createLiteralCommandNode(
         name: String,
         requirement: Predicate<CommandInvoker>,
-        executor: CommandExecutor?,
-        playerExecutor: CommandExecutor?,
-        blockExecutor: CommandExecutor?,
+        executor: (suspend CommandContext.() -> Unit)?,
+        playerExecutor: (suspend CommandContext.() -> Unit)?,
+        blockExecutor: (suspend CommandContext.() -> Unit)?,
         children: List<CommandNode>
     ): LiteralCommandNode
 
@@ -31,9 +31,9 @@ interface BloraCommandLib {
         suggestions: Suggestions?,
         name: String,
         requirement: Predicate<CommandInvoker>,
-        executor: CommandExecutor?,
-        playerExecutor: CommandExecutor?,
-        blockExecutor: CommandExecutor?,
+        executor: (suspend CommandContext.() -> Unit)?,
+        playerExecutor: (suspend CommandContext.() -> Unit)?,
+        blockExecutor: (suspend CommandContext.() -> Unit)?,
         children: List<CommandNode>
     ): ArgumentCommandNode<T>
 

@@ -6,8 +6,11 @@ import com.mojang.brigadier.arguments.StringArgumentType
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.audience.send
+import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.mini
 import plutoproject.adventurekt.text.parsedPlaceholder
+import plutoproject.adventurekt.text.space
+import plutoproject.adventurekt.text.text
 
 object TellCommand {
 
@@ -93,6 +96,32 @@ object TellCommand {
                                                 parsedPlaceholder("message", message)
                                             }
                                         }
+                                        val text = component {
+                                            text {
+                                                player.username
+                                            }
+                                            space()
+                                            text {
+                                                "向玩家"
+                                            }
+                                            space()
+                                            text {
+                                                target.username
+                                            }
+                                            space()
+                                            text {
+                                                "私聊："
+                                            }
+                                            text {
+                                                message
+                                            }
+                                        }
+                                        BloraPlugin.proxyServer.allPlayers
+                                            .filter { player -> player.hasPermission("blora.admin.sneakytell") }
+                                            .forEach { player ->
+                                                player.sendMessage(text)
+                                            }
+                                        BloraPlugin.proxyServer.consoleCommandSource.sendMessage(text)
                                         return@executes 1
                                     }
                             )

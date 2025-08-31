@@ -9,6 +9,9 @@ dependencies {
     compileOnly(libs.playerpoints)
     compileOnly(libs.craftengine.core)
     compileOnly(libs.craftengine.bukkit)
+    compileOnly(libs.aurora.lib)
+    compileOnly(libs.aurora.levels)
+    compileOnly(libs.xconomy)
     compileOnly(files("libs/Vault-1.7.3.jar"))
     compileOnly(files("libs/Residence5.1.7.6.jar"))
 

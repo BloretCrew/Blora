@@ -19,7 +19,7 @@ interface Command : LiteralCommandNode {
 
 }
 
-typealias CommandExecutor = CommandContext.() -> Unit
+typealias CommandExecutor = (suspend CommandContext.() -> Unit)
 
 interface CommandNode {
 
@@ -174,28 +174,34 @@ open class ArgumentCommandBuilder<T>(
 
 internal fun buildChildren(children: List<QuickLibCommandBuilder>): List<CommandNode> {
     return children.map {
-        if (it is LiteralCommandBuilder) {
-            return@map BloraCommandLib.createLiteralCommandNode(
-                it.name,
-                it.requirement,
-                it.executor,
-                it.playerExecutor,
-                it.blockExecutor,
-                buildChildren(it.children.values.toList())
-            )
-        } else if (it is ArgumentCommandBuilder<*>) {
-            return@map BloraCommandLib.Companion.createArgumentCommandNode(
-                it.argumentType,
-                it.suggestions,
-                it.name,
-                it.requirement,
-                it.executor,
-                it.playerExecutor,
-                it.blockExecutor,
-                buildChildren(it.children.values.toList())
-            )
-        } else {
-            throw RuntimeException("尝试创建一个未知类型的命令结点")
+        when (it) {
+            is LiteralCommandBuilder -> {
+                return@map BloraCommandLib.createLiteralCommandNode(
+                    it.name,
+                    it.requirement,
+                    it.executor,
+                    it.playerExecutor,
+                    it.blockExecutor,
+                    buildChildren(it.children.values.toList())
+                )
+            }
+
+            is ArgumentCommandBuilder<*> -> {
+                return@map BloraCommandLib.Companion.createArgumentCommandNode(
+                    it.argumentType,
+                    it.suggestions,
+                    it.name,
+                    it.requirement,
+                    it.executor,
+                    it.playerExecutor,
+                    it.blockExecutor,
+                    buildChildren(it.children.values.toList())
+                )
+            }
+
+            else -> {
+                throw RuntimeException("尝试创建一个未知类型的命令结点")
+            }
         }
     }.toList()
 }

@@ -21,6 +21,9 @@ adventure = "4.23.0"
 playerpoints = "3.3.3-SNAPSHOT"
 postgresql = "42.7.7"
 krontab = "2.7.2"
+aurora-lib = "2.1.6"
+aurora-levels = "2.0.0"
+xconomy = "2.25.1"
 
 [libraries]
 velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = 'velocity' }
@@ -50,6 +53,9 @@ adventure-nbt = { module = "net.kyori:adventure-nbt", version.ref = "adventure" 
 playerpoints = { module = "org.black_ixx:playerpoints", version.ref = "playerpoints" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 krontab = { module = "dev.inmo:krontab", version.ref = "krontab" }
+aurora-lib = { module = "gg.auroramc:Aurora", version.ref = "aurora-lib" }
+aurora-levels = { module = "gg.auroramc:AuroraLevels", version.ref = "aurora-levels" }
+xconomy = { module = "com.github.YiC200333:XConomyAPI", version.ref = "xconomy" }
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version = "9.0.0-beta16" }
