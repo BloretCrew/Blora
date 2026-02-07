@@ -3,6 +3,11 @@ package blora.guild.menu.guildview
 import blora.configuration.CONF
 import blora.database.DB
 import blora.database.guild.dao.GuildDao
+import blora.database.guild.dao.GuildKickNotifyDao
+import blora.database.guild.table.GuildInvitationTable
+import blora.database.guild.table.GuildJoinNotifyTable
+import blora.database.guild.table.GuildJoinRequestTable
+import blora.database.guild.table.GuildMemberInfoTable
 import blora.extension.format
 import blora.extension.localization
 import blora.guild.*
@@ -14,6 +19,7 @@ import blora.guild.menu.guildview.guildsettings.guildSettingsMenu
 import blora.guild.menu.guildview.guildvitalityshop.guildVitalityShopMenu
 import blora.item.clone
 import blora.item.material
+import blora.menu.line5_confirmrationMenu
 import blora.menu.v2.Menu
 import blora.menu.v2.item.clickEvent
 import blora.menu.v2.item.description
@@ -28,8 +34,13 @@ import blora.permission.Permissions
 import blora.plugin.BloraPlugin
 import blora.town.menu.townMenu
 import blora.util.castString
+import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import plutoproject.adventurekt.audience.send
+import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.parsedPlaceholder
@@ -37,6 +48,7 @@ import plutoproject.adventurekt.text.style.red
 import plutoproject.adventurekt.text.style.text
 import plutoproject.adventurekt.text.text
 import plutoproject.adventurekt.text.with
+import java.time.LocalDateTime
 import java.util.*
 
 private enum class GuildViewButtons {
@@ -378,6 +390,76 @@ fun guildViewMenu(menu: Menu, guild: GuildDao): MenuPage<*, *> {
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        5 to 9 eq { viewContext ->
+            if (guild.owner != viewContext.viewer.uniqueId && guild.members.contains(viewContext.viewer.uniqueId)) {
+                icon { material { Material.BARRIER } }
+                name {
+                    localization(viewContext.viewer) {
+                        this.guild.menu.menuGuild_viewButtonExit
+                    }
+                }
+                clickEvent { clickContext ->
+                    clickContext.stack.push {
+                        line5_confirmrationMenu(
+                            menu,
+                            component {
+                                localization(
+                                    player = clickContext.viewer,
+                                    tags = {
+                                        parsedPlaceholder("guild", guild.displayName)
+                                    }
+                                ) {
+                                    this.guild.menu.menuGuild_viewExitTitle
+                                }
+                            }
+                        ) {
+                            if (!DB.getRolePermissions(clickContext.viewer.uniqueId, guild.gid).kickPlayer) {
+                                clickContext.menu.rerender()
+                                return@line5_confirmrationMenu
+                            }
+                            val roles = DB.listRolesForPlayer(clickContext.viewer.uniqueId, guild.gid)
+                            DB.trans {
+                                for (role in roles) {
+                                    role.ownedMembers =
+                                        role.ownedMembers.toMutableList().apply { remove(clickContext.viewer.uniqueId) }.toList()
+                                    role.flush()
+                                }
+                                GuildInvitationTable.deleteWhere {
+                                    GuildInvitationTable.invitee eq clickContext.viewer.uniqueId and
+                                            (GuildInvitationTable.gid eq guild.gid)
+                                }
+                                GuildJoinNotifyTable.deleteWhere {
+                                    GuildJoinNotifyTable.player eq clickContext.viewer.uniqueId and
+                                            (GuildJoinNotifyTable.gid eq guild.gid)
+                                }
+                                GuildMemberInfoTable.deleteWhere {
+                                    GuildMemberInfoTable.player eq clickContext.viewer.uniqueId and
+                                            (GuildMemberInfoTable.gid eq guild.gid)
+                                }
+                                GuildJoinRequestTable.deleteWhere {
+                                    GuildJoinRequestTable.player eq clickContext.viewer.uniqueId and
+                                            (GuildJoinRequestTable.gid eq guild.gid)
+                                }
+                                guild.members = guild.members.toMutableList().apply { remove(clickContext.viewer.uniqueId) }.toList()
+                                guild.flush()
+                            }
+                            clickContext.viewer.send {
+                                localization(
+                                    player = clickContext.viewer,
+                                    tags = {
+                                        parsedPlaceholder("guild", guild.displayName)
+                                    }
+                                ) {
+                                    this.guild.guildExit
+                                }
+                            }
+                            clickContext.menu.rerender()
                         }
                     }
                 }

@@ -158,6 +158,15 @@ fun joinGuildDialog(viewer: Player, warningMessage: Component? = null): Dialog {
                         return@DynamicCustomClickTypeInjected
                     }
 
+                    if (DB.getValidJoinRequest(guild.gid, viewer.uniqueId) != null) {
+                        viewer.send {
+                            localization(viewer) {
+                                this.guild.guildJoinAlready_request
+                            }
+                        }
+                        return@DynamicCustomClickTypeInjected
+                    }
+
                     if (guild.joinStrategy == GuildJoinStrategy.NOT_ALLOW) {
                         viewer.openDialog(
                             joinGuildDialog(

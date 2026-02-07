@@ -153,15 +153,19 @@ object BasicListener {
             null
         }
 
-        if (event.player.isOnlineMode) {
+        if (event.player.isOnlineMode && premiumPlayer != null
+            && if (databasePlayerByName != null)
+                databasePlayerByName.hashedPassword1 == "%unregistered%"
+            else
+                true) {
             BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s is under online mode")
-            if (premiumPlayer == null) { // why could this happen?
+            /*if (premiumPlayer == null) { // why could this happen?
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s premium data is null")
                 event.player.disconnect {
                     localization(event.player) { this.kickLoginError_profiling }
                 }
                 return
-            }
+            }*/
 
             if (databasePlayerByName != null) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.player.username}($ip)'s database data queried by name exists")
@@ -318,24 +322,6 @@ object BasicListener {
         val username = event.username.lowercase()
         BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) trying to join proxy server")
 
-        val databasePlayer = BloraPlugin.database.getPlayerByName(username)
-        if (databasePlayer != null) {
-            if (!event.connection.isActive) {
-                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
-                return
-            }
-            BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data exists, use database data to select player login mode")
-            if (databasePlayer.premiumUuid != null) {
-                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data saying they are online mode")
-                this.premiumData[username] = PremiumPlayer(databasePlayer.premiumUuid!!, username.lowercase())
-                event.result = PreLoginEvent.PreLoginComponentResult.forceOnlineMode()
-            } else {
-                BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data saying they are offline mode")
-                event.result = PreLoginEvent.PreLoginComponentResult.forceOfflineMode()
-            }
-            return
-        }
-
         if (BloraPlugin.configuration.authorization.checkUsername) {
             if (!event.connection.isActive) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
@@ -444,6 +430,23 @@ object BasicListener {
             val fetchResult = PremiumAuthorizer.fetchUserByName(username)
 
             if (fetchResult is PremiumFetcher.FetchResult.Exists) { // consider player as online players
+                val databasePlayer = BloraPlugin.database.getPlayerByName(username)
+                if (databasePlayer != null) {
+                    if (!event.connection.isActive) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
+                        return
+                    }
+                    BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data exists, use database data to select player login mode")
+                    if (databasePlayer.premiumUuid != null) {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data saying they are online mode")
+                        this.premiumData[username] = PremiumPlayer(databasePlayer.premiumUuid!!, username.lowercase())
+                        event.result = PreLoginEvent.PreLoginComponentResult.forceOnlineMode()
+                    } else {
+                        BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) data saying they are offline mode")
+                        event.result = PreLoginEvent.PreLoginComponentResult.forceOfflineMode()
+                    }
+                    return
+                }
                 if (!event.connection.isActive) {
                     BloraPlugin.log.info("[LOGIN SYSTEM] Player ${event.username}($ip) login process interrupted because the connection is not active")
                     return

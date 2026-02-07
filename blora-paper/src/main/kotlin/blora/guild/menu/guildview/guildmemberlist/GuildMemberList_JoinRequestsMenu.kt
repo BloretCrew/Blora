@@ -71,6 +71,14 @@ fun guildMemberList_joinRequestsMenu(menu: Menu, guild: GuildDao): MenuPage<*, *
                 }
                 if (!clickContext.click.isLeftClick && !clickContext.click.isRightClick)
                     return@clickEvent
+                if (guild.members.size >= guild.maxMembers && clickContext.click.isLeftClick) {
+                    clickContext.viewer.send {
+                        localization(clickContext.viewer) {
+                            this.guild.guildJoin_invite_reviewMembers_limit
+                        }
+                    }
+                    return@clickEvent
+                }
                 if (!DB.getRolePermissions(viewContext.viewer.uniqueId, guild.gid).reviewPlayer) {
                     clickContext.stack.pop()
                     return@clickEvent

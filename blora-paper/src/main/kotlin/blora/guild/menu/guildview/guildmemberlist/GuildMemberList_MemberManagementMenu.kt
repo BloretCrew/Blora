@@ -98,6 +98,33 @@ fun guildMemberList_memberManagementMenu(menu: Menu, guild: GuildDao, member: Gu
                         clickContext.menu.rerender()
                         return@clickEvent
                     }
+                    val targetJoinedGuilds = DB.listGuildForPlayer(member.player)
+                    if (targetJoinedGuilds.filter { it.owner == member.player }.size >= CONF.guild.playerMaxOwn) {
+                        clickContext.viewer.send {
+                            localization(
+                                player = clickContext.viewer,
+                                tags = {
+                                    parsedPlaceholder("player", DB.getPlayerDisplayName(member.player))
+                                }
+                            ) {
+                                this.guild.owner_transferErrorOwnedLimit
+                            }
+                        }
+                        return@clickEvent
+                    }
+                    if (targetJoinedGuilds.size >= CONF.guild.playerMaxJoin) {
+                        clickContext.viewer.send {
+                            localization(
+                                player = clickContext.viewer,
+                                tags = {
+                                    parsedPlaceholder("player", DB.getPlayerDisplayName(member.player))
+                                }
+                            ) {
+                                this.guild.owner_transferErrorJoinedLimit
+                            }
+                        }
+                        return@clickEvent
+                    }
                     val viewer = clickContext.viewer
                     if (CONF.guild.ownerTransferCooldownDays > 0) {
                         if (guild.lastOwnerTransferDate.plusDays(CONF.guild.ownerTransferCooldownDays.toLong()) >= LocalDate.now()) {

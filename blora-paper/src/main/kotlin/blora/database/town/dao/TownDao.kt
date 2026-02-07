@@ -110,7 +110,7 @@ class TownDao(id: EntityID<Int>) : IntEntity(id) {
             }
         }
         if (guild.blocklist.contains(player)) {
-            for ((permission, status) in (this.permissionContainers.find { it == TownTarget.Blocked }
+            for ((permission, status) in (this.permissionContainers.find { it.target == TownTarget.Blocked }
                 ?: TownPermissionContainer.defaultBlockedPermissionContainer()).permissions) {
                 if (status == TownPermissionStatus.NOT_SET)
                     continue
@@ -137,7 +137,7 @@ class TownDao(id: EntityID<Int>) : IntEntity(id) {
                     }
                 }
             }
-            for ((permission, status) in (this.permissionContainers.find { it == TownTarget.Member }
+            for ((permission, status) in (this.permissionContainers.find { it.target == TownTarget.Member }
                 ?: TownPermissionContainer.defaultMemberPermissionContainer()).permissions) {
                 if (status == TownPermissionStatus.NOT_SET)
                     continue
@@ -145,14 +145,14 @@ class TownDao(id: EntityID<Int>) : IntEntity(id) {
             }
         }
         if (GuildDao.isPlayerInAnyGuild(player, guild.allys)) {
-            for ((permission, status) in (this.permissionContainers.find { it == TownTarget.Ally }
+            for ((permission, status) in (this.permissionContainers.find { it.target == TownTarget.Ally }
                 ?: TownPermissionContainer.defaultAllyPermissionContainer()).permissions) {
                 if (status == TownPermissionStatus.NOT_SET)
                     continue
                 permissions[permission] = status
             }
         }
-        for ((permission, status) in (this.permissionContainers.find { it == TownTarget.Public }
+        for ((permission, status) in (this.permissionContainers.find { it.target == TownTarget.Public }
             ?: TownPermissionContainer.defaultPublicPermissionContainer()).permissions) {
             if (status == TownPermissionStatus.NOT_SET)
                 continue

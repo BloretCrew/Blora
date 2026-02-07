@@ -32,6 +32,7 @@ import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.componentPlaceholder
 import plutoproject.adventurekt.text.parsedPlaceholder
 import java.time.LocalDateTime
+import kotlin.math.floor
 
 
 fun guildBank_storeDialog(
@@ -63,7 +64,7 @@ fun guildBank_storeDialog(
                     }
                 },
                 start = 0f,
-                end = ThirdPartys.vaultApi.getBalance(viewer).toFloat(),
+                end = floor(ThirdPartys.vaultApi.getBalance(viewer).toFloat()),
                 initial = 0f,
                 step = 1f
             )

@@ -265,7 +265,7 @@ object TownListener : Listener {
     private fun handleEnterOrExitMessage(event: PlayerMoveEvent) {
         val fromChunkTown = event.from.chunk.getClaimedTown()
         val toChunkTown = event.to.chunk.getClaimedTown()
-        if (fromChunkTown == toChunkTown) // in same chunk
+        if (event.from.chunk.x == event.to.chunk.x && event.from.chunk.z == event.to.chunk.z) // in same chunk
             return
         if (fromChunkTown != null && (toChunkTown == null || fromChunkTown.townId != toChunkTown.townId)) {
             val fromTown = TownDao.getByTownId(fromChunkTown.townId)

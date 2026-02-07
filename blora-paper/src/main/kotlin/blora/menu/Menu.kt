@@ -102,7 +102,7 @@ class Menu(
     fun clickHandler(event: InventoryClickEvent) {
         if (event.inventory.holder != this)
             return
-        if (event.action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+        if (event.action == InventoryAction.MOVE_TO_OTHER_INVENTORY || event.action == InventoryAction.COLLECT_TO_CURSOR) {
             event.isCancelled = true
             return
         }

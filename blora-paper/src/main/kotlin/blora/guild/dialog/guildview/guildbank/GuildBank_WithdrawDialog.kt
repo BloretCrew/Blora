@@ -24,6 +24,7 @@ import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.parsedPlaceholder
 import java.time.LocalDateTime
+import kotlin.math.floor
 
 
 fun guildBank_withdrawDialog(
@@ -55,7 +56,7 @@ fun guildBank_withdrawDialog(
                     }
                 },
                 start = 0f,
-                end = guild.bankBalance.toFloat(),
+                end = floor(guild.bankBalance.toFloat()),
                 initial = 0f,
                 step = 1f
             )

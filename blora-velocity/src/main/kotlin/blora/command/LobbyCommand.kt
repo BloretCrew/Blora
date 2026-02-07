@@ -1,6 +1,7 @@
 package blora.command
 
 import blora.BloraPlugin
+import blora.authorization.BloraAuthorization
 import blora.extension.localization
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.proxy.Player
@@ -20,7 +21,15 @@ object LobbyCommand {
                     .requires { it.hasPermission("blora.command.lobby") }
                     .executes {
                         if (it.source is Player) {
-                            (it.source as Player).createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
+                            val player = it.source as Player
+                            if (!BloraAuthorization.isAuthorized(player))
+                                return@executes 1
+                            val currentServerOptional = player.currentServer
+                            if (currentServerOptional.isPresent) {
+                                if (currentServerOptional.get().serverInfo.name == BloraPlugin.limboServer.serverInfo.name)
+                                    return@executes 1
+                            }
+                            player.createConnectionRequest(BloraPlugin.lobbyServer).fireAndForget()
                         } else {
                             it.source.send {
                                 localization {
