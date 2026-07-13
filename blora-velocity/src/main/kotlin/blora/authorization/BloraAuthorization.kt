@@ -112,6 +112,8 @@ object BloraAuthorization {
                 )
             )
             player.currentServer.ifPresent {
+                if (it.serverInfo.name == BloraPlugin.configuration.server.limbo)
+                    return@ifPresent
                 val databasePlayer = BloraPlugin.database.getPlayerByName(player.username.lowercase())!!
                 BloraPlugin.database.trans {
                     databasePlayer.lastServer = it.server.serverInfo.name
