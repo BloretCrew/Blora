@@ -8,18 +8,6 @@ object Permissions {
 
     val Admin = "bloret.admin"
 
-    object Guild {
-
-        val Create = "bloret.guild.create"
-        val Join = "bloret.guild.join"
-
-        fun registerPermissions() {
-            registerPermission(Create, 2)
-            registerPermission(Join, 2)
-        }
-
-    }
-
     object Mail {
 
         val CreateSystemMail = "bloret.mail.create.systemmail"
@@ -48,8 +36,6 @@ object Permissions {
         val Mail = "bloret.command.mail"
         val Redeem = "bloret.command.redeem"
         val Tell = "bloret.command.tell"
-        val Guild = "bloret.command.guild"
-        val Town = "bloret.command.town"
         val Lead = "bloret.command.lead"
         val LeadCoins = "bloret.command.lead.coins"
         val LeadBlroius = "bloret.command.lead.blorius"
@@ -60,8 +46,6 @@ object Permissions {
             registerPermission(Mail, 1)
             registerPermission(Redeem, 1)
             registerPermission(Tell, 1)
-            registerPermission(Guild, 1)
-            registerPermission(Town, 1)
             registerPermission(Lead, 1)
             registerPermission(LeadCoins, 1)
             registerPermission(LeadBlroius, 1)
@@ -71,7 +55,6 @@ object Permissions {
     }
 
     fun registerPermissions() {
-        Guild.registerPermissions()
         Mail.registerPermissions()
         Chat.registerPermissions()
         Commands.registerPermissions()

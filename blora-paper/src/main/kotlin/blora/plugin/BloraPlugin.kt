@@ -3,18 +3,14 @@ package blora.plugin
 import blora.chat.PlayerInventoryView
 import blora.command.BloraCommandLibWrapper
 import blora.command.defaults.BloraCommand
-import blora.command.defaults.GuildCommand
 import blora.command.defaults.LeadCommand
 import blora.command.defaults.MailCommand
 import blora.command.defaults.RedeemCommand
-import blora.command.defaults.TownCommand
 import blora.command.hook.VanillaCommandHooker
 import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
-import blora.configuration.GuildVitalityShopConfiguration
 import blora.database.BloraDatabase
 import blora.entity.QuickEntityLibWrapper
-import blora.guild.GuildVitalityManager
 import blora.injector.BloraInjector
 import blora.internal.api.QuickEntityLib
 import blora.internal.api.scheduler.BukkitMain
@@ -62,7 +58,6 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
 
         VanillaCommandHooker.hookEnableStage()
         PlayerInventoryView.startJob()
-        GuildVitalityManager.startJob()
         BloraInjector.init()
 
         connectDatabase()
@@ -76,14 +71,11 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
 
         registerCommands()
         registerListeners()
-
-        GuildVitalityShopConfiguration.loadOrCreate()
     }
 
     override fun onDisable() {
         this.shutdownHooks.forEach { it.hook() }
         PlayerInventoryView.stopJob()
-        GuildVitalityManager.stopJob()
         BloraInjector.close()
         this.database.disconnect()
         this.client.close()
@@ -155,8 +147,6 @@ internal fun registerCommands() {
     BloraCommand.register()
     MailCommand.register()
     RedeemCommand.register()
-    GuildCommand.register()
-    TownCommand.register()
     LeadCommand.register()
 }
 
@@ -166,8 +156,6 @@ internal fun registerListeners() {
     }
     BasicListener.register()
     ChatListener.register()
-    GuildListener.register()
-    TownListener.register()
     SystemMailListener.register()
     VanillaCommandsRemoverListener.register()
 }

@@ -6,7 +6,7 @@ import org.jetbrains.exposed.sql.javatime.datetime
 object MailTable : IntIdTable("blora_mails") {
 
     val receiver = uuid("receiver")
-    val sender = text("sender") // 3 types: player:uuid, guild:guildId, system
+    val sender = text("sender") // types: player:uuid, system, unknown
     val title = text("title") // should be mini message parsable string
     val contents = text("contents") // should be mini message parsable string
     val attachment = text("attachment") // should be json

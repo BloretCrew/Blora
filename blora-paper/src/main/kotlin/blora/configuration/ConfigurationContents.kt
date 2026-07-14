@@ -6,99 +6,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ConfigurationContents(
-    val town: Town = Town(),
-    val guild: Guild = Guild(),
     val chat: Chat = Chat(),
     val mail: Mail = Mail(),
     val messaging: Messaging = Messaging(),
     val security: Security = Security(),
     val modules: Modules = Modules(),
     val database: Database = Database(),
-)
-
-@Serializable
-data class Town(
-    val townsPerGuild: Int = 1,
-    val minIdLength: Int = 2,
-    val maxIdLength: Int = 5,
-    val firstChunkPrice: Double = 1000.0,
-    val pricePerChunk: Double = 200.0,
-    val giveBackFirstChunk: Double = 800.0,
-    val giveBackPerChunk: Double = 150.0
-)
-
-@Serializable
-data class Guild(
-    val level: GuildLevel = GuildLevel(),
-    val vitality: GuildVitality = GuildVitality(),
-    val notifyDelaySeconds: Int = 2,
-    val ownerTransferCooldownDays: Int = 30,
-    val playerMaxJoin: Int = 3,
-    val playerMaxOwn: Int = 1,
-    val minIdLength: Int = 2,
-    val maxIdLength: Int = 5,
-    val createCost: Int = 500
-)
-
-@Serializable
-data class GuildVitality(
-    val bloriusExchangeMaxTimes: Int = 6,
-    val bloriusExchangePrice: Int = 100,
-    val bloriusExchangeValue: Double = 20.0,
-    val guildVitalityFrequency: Int = 30, // unit: minutes
-    val guildVitalityFormula: String = "guild:balance * 0.05 + guild:members * 10 + guild:level * 10",
-    val playerOnlineDuration: Int = 4, // unit: hours
-    val playerOnlineVitalityFormula: String = "50 + papi:player_level * 2",
-    val newPlayerJoinVitalityFormula: String = "100",
-    val bankBalanceNewMaxVitalityFormula: String = "delta * 0.05",
-    val playerContributionVitalityFormula: String = "delta * 0.05",
-)
-
-@Serializable
-data class GuildLevel(
-    val basic: GuildLevelBasic = GuildLevelBasic(),
-    val overrides: Map<Int, GuildLevelIncrementOverride> = mapOf(
-        3 to GuildLevelIncrementOverride(
-            member = 20
-        ),
-        5 to GuildLevelIncrementOverride(
-            member = 30,
-            claim = 50,
-            upgradeCost = 100
-        )
-    )
-)
-
-@Serializable
-data class GuildLevelBasic(
-    val member: GuildLevelMember = GuildLevelMember(),
-    val claim: GuildLevelClaim = GuildLevelClaim(),
-    val upgradeCost: GuildLevelUpgradeCost = GuildLevelUpgradeCost()
-)
-
-@Serializable
-data class GuildLevelIncrementOverride(
-    val member: Int? = null,
-    val claim: Int? = null,
-    val upgradeCost: Int? = null,
-)
-
-@Serializable
-data class GuildLevelMember(
-    val base: Int = 50,
-    val increment: Int = 10
-)
-
-@Serializable
-data class GuildLevelClaim(
-    val base: Int = 20,
-    val increment: Int = 10
-)
-
-@Serializable
-data class GuildLevelUpgradeCost(
-    val base: Int = 100,
-    val increment: Int = 10
 )
 
 @Serializable

@@ -13,7 +13,6 @@ dependencies {
     compileOnly(libs.aurora.levels)
     compileOnly(libs.xconomy)
     compileOnly(files("libs/Vault-1.7.3.jar"))
-    compileOnly(files("libs/Residence5.1.7.6.jar"))
 
     compileOnly(libs.kotlinx.coroutines)
     compileOnly(libs.krontab)
