@@ -103,11 +103,15 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
 
     fun reloadConfiguration() {
         this.configurationLoader.load()
+        BloraLocalization.saveDefaultLocalization()
+        BloraLocalization.loadLocalizations()
         if (this.configuration.security.ensureAuthorized) {
             UnauthorizedListener.register()
         } else {
             UnauthorizedListener.unregister()
         }
+        // Custom placeholders / mention-all keyword may change with config.
+        ChatListener.refreshAllCompletions()
     }
 
 }

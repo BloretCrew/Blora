@@ -47,6 +47,7 @@ object BloraLocalization {
     }
 
     fun loadLocalizations() {
+        localizations.clear()
         val files = BloraPlugin.localeDirectory.listFiles() ?: return
         for (file in files) {
             if (file.isFile) {

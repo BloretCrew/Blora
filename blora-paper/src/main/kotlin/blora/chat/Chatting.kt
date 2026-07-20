@@ -7,6 +7,7 @@ import blora.plugin.BloraPlugin
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.ClickCallback
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.*
 import plutoproject.adventurekt.text.style.*
@@ -18,6 +19,7 @@ object Chatting {
         sender: Player,
         viewer: Player,
         rawMessage: String,
+        itemInMainHand: ItemStack = sender.inventory.itemInMainHand.clone(),
         replacements: ComponentReplacements.() -> Unit
     ): Component = component {
         replacements(replacements)
@@ -25,7 +27,6 @@ object Chatting {
             player = viewer,
             tags = {
                 if (rawMessage.contains("<item>")) { // only add placeholder when need to reduce memory usage
-                    val itemInMainHand = sender.inventory.itemInMainHand.clone()
                     if (!itemInMainHand.type.isAir) {
                         componentPlaceholder("item") {
                             localization(
@@ -129,6 +130,7 @@ object Chatting {
         sender: Player,
         viewer: Player,
         rawMessage: String,
+        itemInMainHand: ItemStack = sender.inventory.itemInMainHand.clone(),
         replacements: ComponentReplacements.() -> Unit
     ): Component = component {
         replacements {
@@ -137,7 +139,6 @@ object Chatting {
                 match("<((?:[^'\"<>]|'[^']*'|\"[^\"]*\")*)>")
                 replacement { matchResult, builder ->
                     val content = matchResult.group(1)
-                    val itemInMainHand = sender.inventory.itemInMainHand.clone()
 
                     if (content == "item" && !itemInMainHand.isEmpty) {
                         component {

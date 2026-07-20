@@ -9,8 +9,6 @@ import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.mini
 import plutoproject.adventurekt.text.parsedPlaceholder
-import plutoproject.adventurekt.text.space
-import plutoproject.adventurekt.text.text
 
 object TellCommand {
 
@@ -78,9 +76,10 @@ object TellCommand {
                                             return@executes 1
                                         }
                                         val message = StringArgumentType.getString(it, "message")
+                                        val chatConfig = BloraPlugin.configuration.chat
                                         player.send {
                                             mini(
-                                                BloraPlugin.configuration.chat.privateMessageSendFormat
+                                                chatConfig.privateMessageSendFormat
                                                     .replace("<sender>", player.username)
                                                     .replace("<receiver>", target.username)
                                             ) {
@@ -89,39 +88,34 @@ object TellCommand {
                                         }
                                         target.send {
                                             mini(
-                                                BloraPlugin.configuration.chat.privateMessageReceiveFormat
+                                                chatConfig.privateMessageReceiveFormat
                                                     .replace("<sender>", player.username)
                                                     .replace("<receiver>", target.username)
                                             ) {
                                                 parsedPlaceholder("message", message)
                                             }
                                         }
-                                        val text = component {
-                                            text {
-                                                player.username
-                                            }
-                                            space()
-                                            text {
-                                                "向玩家"
-                                            }
-                                            space()
-                                            text {
-                                                target.username
-                                            }
-                                            space()
-                                            text {
-                                                "私聊："
-                                            }
-                                            text {
-                                                message
+                                        val spyText = component {
+                                            mini(
+                                                chatConfig.privateMessageSpyFormat
+                                                    .replace("<sender>", player.username)
+                                                    .replace("<receiver>", target.username)
+                                            ) {
+                                                parsedPlaceholder("message", message)
                                             }
                                         }
                                         BloraPlugin.proxyServer.allPlayers
-                                            .filter { player -> player.hasPermission("blora.admin.sneakytell") }
-                                            .forEach { player ->
-                                                player.sendMessage(text)
+                                            .filter { online ->
+                                                online != player &&
+                                                    online != target &&
+                                                    online.hasPermission(SpyCommand.PERMISSION) &&
+                                                    PrivateMessageSpy.isEnabled(online)
                                             }
-                                        BloraPlugin.proxyServer.consoleCommandSource.sendMessage(text)
+                                            .forEach { online ->
+                                                online.sendMessage(spyText)
+                                            }
+                                        // Console always receives spy copies for audit.
+                                        BloraPlugin.proxyServer.consoleCommandSource.sendMessage(spyText)
                                         return@executes 1
                                     }
                             )

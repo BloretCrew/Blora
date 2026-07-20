@@ -3,6 +3,7 @@ package blora.listener
 import blora.BloraPlugin
 import blora.authorization.AuthorizationFunctions
 import blora.authorization.BloraAuthorization
+import blora.command.PrivateMessageSpy
 import blora.authorization.premium.PremiumAuthorizer
 import blora.authorization.premium.PremiumPlayer
 import blora.authorization.premium.fetcher.PremiumFetcher
@@ -275,6 +276,9 @@ object BasicListener {
         }
 
         BloraPlugin.log.info("[LOGIN SYSTEM] Finishing data updating for player ${event.player.username}($ip)")
+
+        // Warm spy cache from persisted player_options (default off if unset).
+        PrivateMessageSpy.load(event.player)
 
         // join player to authorization list
         BloraAuthorization.join(event.player)
@@ -611,6 +615,7 @@ object BasicListener {
     @Subscribe
     fun onDisconnect(event: DisconnectEvent) {
         BloraAuthorization.clear(event.player)
+        PrivateMessageSpy.clear(event.player)
         this.passedLoginStatus.remove(event.player)
         this.premiumData.remove(event.player.username.lowercase())
     }

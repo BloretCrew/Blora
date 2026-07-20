@@ -15,7 +15,9 @@ val PLAYER_OPTIONS_JSON = Json {
 
 @Serializable
 data class PlayerOptions(
-    var alwaysLobby: OptionStatus = OptionStatus.NOT_SET
+    var alwaysLobby: OptionStatus = OptionStatus.NOT_SET,
+    /** Whether private-message spy (/spy) is enabled. Default off. */
+    var privateMessageSpy: Boolean = false,
 )
 
 enum class OptionStatus {

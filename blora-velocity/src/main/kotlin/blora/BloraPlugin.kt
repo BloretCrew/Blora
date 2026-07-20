@@ -4,6 +4,7 @@ import blora.authorization.BloraAuthorization
 import blora.command.BloxyCommand
 import blora.command.LobbyCommand
 import blora.command.OptionsCommand
+import blora.command.SpyCommand
 import blora.command.TellCommand
 import blora.configuration.BloraConfiguration
 import blora.configuration.ConfigurationContents
@@ -138,6 +139,7 @@ class BloraPlugin @Inject constructor(
         OptionsCommand.register()
         BloxyCommand.register()
         TellCommand.register()
+        SpyCommand.register()
         LobbyCommand.register()
     }
 
@@ -196,6 +198,8 @@ class BloraPlugin @Inject constructor(
 
         fun reloadConfiguration() {
             this.instance.configuration.load()
+            BloraLocalization.saveDefaultLocalization()
+            BloraLocalization.loadLocalizations()
         }
 
     }

@@ -26,6 +26,9 @@ data class Dialogs(
 data class Chat(
     val privateMessageReceiveFormat: String = "<click:suggest_command:'/tell <sender> '><hover:show_text:'<yellow>点击复制'><sender> -> 您</hover></click>：<message>",
     val privateMessageSendFormat: String = "您 -> <receiver>：<message>",
+    val privateMessageSpyFormat: String = "<sender> 向玩家 <receiver> 私聊：<message>",
+    val privateMessageSpyEnabledMessage: String = "<green>已开启私聊监听",
+    val privateMessageSpyDisabledMessage: String = "<red>已关闭私聊监听",
 )
 
 @Serializable
