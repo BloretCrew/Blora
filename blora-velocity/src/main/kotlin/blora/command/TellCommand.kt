@@ -29,15 +29,23 @@ object TellCommand {
                     .then(
                         BrigadierCommand.requiredArgumentBuilder("player", StringArgumentType.word())
                             .suggests { context, builder ->
-                                val filter: (Player) -> Boolean = if (context.source is Player) {
-                                    { player ->
-                                        player != context.source
+                                // Filter by the characters already typed (builder.remaining),
+                                // otherwise the client always sees the full default-order player list.
+                                val prefix = builder.remaining.lowercase()
+                                val source = context.source
+                                BloraPlugin.proxyServer.allPlayers
+                                    .asSequence()
+                                    .filter { player ->
+                                        if (source is Player) player != source else true
                                     }
-                                } else {
-                                    { true }
-                                }
-                                BloraPlugin.proxyServer.allPlayers.filter(filter).map { it.username }
-                                    .forEach(builder::suggest)
+                                    .map { it.username }
+                                    .filter { name ->
+                                        prefix.isEmpty() || name.lowercase().startsWith(prefix)
+                                    }
+                                    .sortedBy { it.lowercase() }
+                                    .forEach { name ->
+                                        builder.suggest(name)
+                                    }
                                 builder.buildFuture()
                             }
                             .then(
