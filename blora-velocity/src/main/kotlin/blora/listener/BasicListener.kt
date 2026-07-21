@@ -3,6 +3,7 @@ package blora.listener
 import blora.BloraPlugin
 import blora.authorization.AuthorizationFunctions
 import blora.authorization.BloraAuthorization
+import blora.command.PrivateMessageService
 import blora.command.PrivateMessageSpy
 import blora.authorization.premium.PremiumAuthorizer
 import blora.authorization.premium.PremiumPlayer
@@ -616,6 +617,7 @@ object BasicListener {
     fun onDisconnect(event: DisconnectEvent) {
         BloraAuthorization.clear(event.player)
         PrivateMessageSpy.clear(event.player)
+        PrivateMessageService.clear(event.player)
         this.passedLoginStatus.remove(event.player)
         this.premiumData.remove(event.player.username.lowercase())
     }

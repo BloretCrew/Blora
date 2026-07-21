@@ -9,6 +9,8 @@ data class LocalizationContents(
     val commandErrorMust_be_player: String = "只有玩家可以运行这个命令",
     val commandErrorPlayer_not_exists: String = "玩家不存在",
     val commandErrorTarget_cannot_be_yourself: String = "你不能给你自己发私聊",
+    val commandErrorNo_one_to_reply: String = "没有可以回复的私聊对象",
+    val commandErrorReply_target_offline: String = "对方已离线，无法回复",
     val kickLoginUsername_too_short: String = "你的用户名长度低于 <length> 个字符，请更改为符合要求的名称",
     val kickLoginUsername_too_long: String = "你的用户名长度多于 <length> 个字符，请更改为符合要求的名称",
     val kickLoginUsername_contains_invalid_characters: String = "用户名必须符合“<regex>”的格式",

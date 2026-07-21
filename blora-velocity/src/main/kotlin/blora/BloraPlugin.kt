@@ -4,6 +4,8 @@ import blora.authorization.BloraAuthorization
 import blora.command.BloxyCommand
 import blora.command.LobbyCommand
 import blora.command.OptionsCommand
+import blora.command.PrivateMessageLogger
+import blora.command.ReplyCommand
 import blora.command.SpyCommand
 import blora.command.TellCommand
 import blora.configuration.BloraConfiguration
@@ -118,11 +120,16 @@ class BloraPlugin @Inject constructor(
     fun onShutdown(event: ProxyShutdownEvent) {
         BloraAuthorization.clearAll()
         this.playerAuthorizationRefreshmentJob.cancel()
+        PrivateMessageLogger.close()
     }
 
     private fun initFolders() {
         if (!localeDirectory.exists()) {
             localeDirectory.mkdirs()
+        }
+        val messageLogDir = File(dataDirectory.toFile(), "logs${File.separator}messages")
+        if (!messageLogDir.exists()) {
+            messageLogDir.mkdirs()
         }
     }
 
@@ -139,6 +146,7 @@ class BloraPlugin @Inject constructor(
         OptionsCommand.register()
         BloxyCommand.register()
         TellCommand.register()
+        ReplyCommand.register()
         SpyCommand.register()
         LobbyCommand.register()
     }
