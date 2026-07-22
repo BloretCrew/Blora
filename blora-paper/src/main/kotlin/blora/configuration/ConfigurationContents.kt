@@ -30,6 +30,38 @@ data class Chat(
     val commandPlaceholderFormat: String = "<dark_gray>[<yellow><command><dark_gray>]</dark_gray>",
     val copyPlaceholderFormat: String = "<dark_gray>[<dark_green><text><dark_gray>]</dark_gray>",
     val linkPlaceholderFormat: String = "<dark_gray>[<blue><u><link><dark_gray>]</dark_gray>",
+    /**
+     * Commands that cannot be used in chat `<cmd:...>` suggestions.
+     * Match is case-insensitive against the first token (with or without leading `/`,
+     * with or without namespace, e.g. `kill`, `/kill`, `minecraft:kill`).
+     */
+    val commandPlaceholderDenyList: List<String> = listOf(
+        "kill",
+        "killall",
+        "stop",
+        "restart",
+        "op",
+        "deop",
+        "ban",
+        "ban-ip",
+        "pardon",
+        "pardon-ip",
+        "whitelist",
+        "gamemode",
+        "gm",
+        "give",
+        "xp",
+        "experience",
+        "clear",
+        "execute",
+        "function",
+        "datapack",
+        "reload",
+        "luckperms",
+        "lp",
+        "perms",
+        "permission",
+    ),
     val placeholders: Map<String, String> = mutableMapOf(
         "blorius" to "<dark_gray>[<blue><papi:playerpoints_points> 络琅<dark_gray>]"
     ),

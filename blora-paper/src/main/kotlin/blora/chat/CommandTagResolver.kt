@@ -32,6 +32,8 @@ object CommandTagResolver : TagResolver {
             }
         if (!command.startsWith("/"))
             return null
+        if (CommandPlaceholderDeny.isDenied(command))
+            return null
         val pointered = ctx.target()
         val player: Player? = pointered as? Player
         return Tag.selfClosingInserting {

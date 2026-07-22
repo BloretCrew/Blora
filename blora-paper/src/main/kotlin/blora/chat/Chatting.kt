@@ -231,10 +231,14 @@ object Chatting {
                                 it
                             }
                         }
-                        component {
-                            mini(BloraPlugin.configuration.chat.commandPlaceholderFormat) {
-                                parsedPlaceholder("command", command)
-                            } with suggestCommand(command)
+                        if (CommandPlaceholderDeny.isDenied(command)) {
+                            Component.text(matchResult.group(0))
+                        } else {
+                            component {
+                                mini(BloraPlugin.configuration.chat.commandPlaceholderFormat) {
+                                    parsedPlaceholder("command", command)
+                                } with suggestCommand(command)
+                            }
                         }
                     } else if (content.startsWith("link:") && content.substring(5).matches(LinkTagResolver.URL_REGEX)) {
                         val link = content.substring(5)

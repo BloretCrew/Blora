@@ -5,7 +5,7 @@ import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.audience.send
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.mini
-import plutoproject.adventurekt.text.parsedPlaceholder
+import plutoproject.adventurekt.text.unparsedPlaceholder
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
@@ -37,7 +37,8 @@ object PrivateMessageService {
                     .replace("<sender>", sender.username)
                     .replace("<receiver>", target.username)
             ) {
-                parsedPlaceholder("message", message)
+                // Message body is plain text — no MiniMessage injection from players.
+                unparsedPlaceholder("message", message)
             }
         }
         target.send {
@@ -46,7 +47,7 @@ object PrivateMessageService {
                     .replace("<sender>", sender.username)
                     .replace("<receiver>", target.username)
             ) {
-                parsedPlaceholder("message", message)
+                unparsedPlaceholder("message", message)
             }
         }
 
@@ -59,7 +60,7 @@ object PrivateMessageService {
                     .replace("<sender>", sender.username)
                     .replace("<receiver>", target.username)
             ) {
-                parsedPlaceholder("message", message)
+                unparsedPlaceholder("message", message)
             }
         }
         BloraPlugin.proxyServer.allPlayers
