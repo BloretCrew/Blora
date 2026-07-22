@@ -21,6 +21,7 @@ import plutoproject.adventurekt.text.mini
 import plutoproject.adventurekt.text.newline
 import plutoproject.adventurekt.text.space
 import plutoproject.adventurekt.text.text
+import kotlin.math.min
 import net.minecraft.world.item.ItemStack as NMSItemStack
 
 data class Attachment(
@@ -40,78 +41,72 @@ data class Attachment(
 
     fun isClaimableOnThisServer(): Boolean {
         return (this.coins == 0u || BloraPlugin.configuration.mail.coinsClaimable) &&
-                (this.blorius == 0u || BloraPlugin.configuration.mail.bloriusClaimable) &&
-                (this.items.isEmpty() || BloraPlugin.configuration.mail.itemsClaimable)
+            (this.blorius == 0u || BloraPlugin.configuration.mail.bloriusClaimable) &&
+            (this.items.isEmpty() || BloraPlugin.configuration.mail.itemsClaimable)
     }
 
+    /**
+     * Simulate packing items into a clone of storage contents (main inventory only).
+     */
     fun doPlayerHaveEnoughSpaceToClaim(player: Player): Boolean {
         if (this.items.isEmpty())
             return true
-        var stacks = 0
-        for ((item, amount) in this.items) {
-            val realAmount = amount.toInt()
-            if (realAmount > item.maxStackSize || realAmount < 0) {
-                val times = (amount / item.maxStackSize.toUInt() + if (amount % item.maxStackSize.toUInt() != 0u) {
-                    1u
-                } else {
-                    0u
-                }).toInt()
-                if (times < 0) // these items won't be given to player, so skip these stacks
-                    continue
-                stacks += times
-            } else {
-                stacks += 1
+        val storage = player.inventory.storageContents.map { it?.clone() }.toTypedArray()
+        for ((template, amountU) in this.items) {
+            var remaining = amountU.toLong()
+            if (remaining <= 0L) continue
+            val maxStack = template.maxStackSize.coerceAtLeast(1)
+            // Fill existing stacks first
+            for (i in storage.indices) {
+                if (remaining <= 0L) break
+                val slot = storage[i] ?: continue
+                if (slot.isEmpty) continue
+                if (!slot.isSimilar(template)) continue
+                val free = maxStack - slot.amount
+                if (free <= 0) continue
+                val add = min(free.toLong(), remaining).toInt()
+                slot.amount += add
+                remaining -= add
+            }
+            // Then empty slots
+            for (i in storage.indices) {
+                if (remaining <= 0L) break
+                val slot = storage[i]
+                if (slot != null && !slot.isEmpty) continue
+                val chunk = min(maxStack.toLong(), remaining).toInt()
+                storage[i] = template.clone().apply { amount = chunk }
+                remaining -= chunk
+            }
+            if (remaining > 0L) {
+                return false
             }
         }
-        var emptySlots = 0
-        player.inventory.contents.forEach { stack ->
-            if (stack == null) {
-                emptySlots++
-                return@forEach
-            }
-            if (stack.isEmpty)
-                emptySlots++
-        }
-        return emptySlots >= stacks
+        return true
     }
 
     fun claimToPlayer(player: Player) {
         if (coins > 0u) {
-            ThirdPartys.vaultApi.depositPlayer(player, this.coins.toDouble())
-        }
-        if (blorius > 0u) {
-            if (this.blorius.toInt() < 0) {
-                val rest = blorius - Int.MAX_VALUE.toUInt()
-                ThirdPartys.playerPoints.give(player.uniqueId, Int.MAX_VALUE)
-                ThirdPartys.playerPoints.give(player.uniqueId, rest.toInt())
-            } else {
-                ThirdPartys.playerPoints.give(player.uniqueId, this.blorius.toInt())
+            val response = ThirdPartys.vaultApi.depositPlayer(player, this.coins.toDouble())
+            if (!response.transactionSuccess()) {
+                throw IllegalStateException("Vault deposit failed: ${response.errorMessage}")
             }
         }
-        for ((item, amount) in this.items) {
-            val realAmount = amount.toInt()
-            if (realAmount > item.maxStackSize || realAmount < 0) {
-                val times = amount / item.maxStackSize.toUInt() + if (amount % item.maxStackSize.toUInt() != 0u) {
-                    1u
-                } else {
-                    0u
-                }
-                if (times.toInt() < 0) // if still too big, not give items to player
-                    continue
-                for (i in 0 until times.toInt()) {
-                    if (i == times.toInt() - 1) {
-                        val currentAmount = (amount % item.maxStackSize.toUInt()).toInt()
-                        if (currentAmount <= 0)
-                            continue
-                        player.give(item.clone().apply { this.amount = currentAmount })
-                    } else {
-                        if (item.maxStackSize <= 0)
-                            continue
-                        player.give(item.clone().apply { this.amount = item.maxStackSize })
-                    }
-                }
-            } else {
-                player.give(item.clone().apply { this.amount = amount.toInt() })
+        if (blorius > 0u) {
+            var remaining = blorius.toLong()
+            while (remaining > 0L) {
+                val chunk = min(remaining, Int.MAX_VALUE.toLong()).toInt()
+                ThirdPartys.playerPoints.give(player.uniqueId, chunk)
+                remaining -= chunk
+            }
+        }
+        for ((item, amountU) in this.items) {
+            var remaining = amountU.toLong()
+            if (remaining <= 0L) continue
+            val maxStack = item.maxStackSize.coerceAtLeast(1).toLong()
+            while (remaining > 0L) {
+                val chunk = min(remaining, maxStack).toInt()
+                player.give(item.clone().apply { this.amount = chunk })
+                remaining -= chunk
             }
         }
     }
@@ -186,8 +181,8 @@ data class Attachment(
     fun toJson(): String {
         val jsonObject = JsonObject(
             mapOf(
-                "coins" to JsonPrimitive(coins),
-                "blorius" to JsonPrimitive(blorius),
+                "coins" to JsonPrimitive(coins.toLong()),
+                "blorius" to JsonPrimitive(blorius.toLong()),
                 "items" to JsonArray(
                     this.items.map {
                         JsonObject(
@@ -201,7 +196,7 @@ data class Attachment(
                                         .result()
                                         .get()
                                 ),
-                                "amount" to JsonPrimitive(it.second)
+                                "amount" to JsonPrimitive(it.second.toLong())
                             )
                         )
                     }
@@ -218,25 +213,40 @@ data class Attachment(
 
     companion object {
 
+        private const val MAX_AMOUNT = 1_000_000_000L
+
         fun fromJson(text: String): Attachment {
             val jsonObject = STORE_DATA_JSON.decodeFromString<JsonObject>(text)
-            val coins = jsonObject["coins"]?.jsonPrimitive?.int?.toUInt() ?: 0u
-            val blorius = jsonObject["blorius"]?.jsonPrimitive?.int?.toUInt() ?: 0u
-            val items = jsonObject["items"]!!.jsonArray.map { itemElement ->
+            val coins = parseAmount(jsonObject["coins"])
+            val blorius = parseAmount(jsonObject["blorius"])
+            val items = jsonObject["items"]?.jsonArray?.mapNotNull { itemElement ->
                 val itemObject = itemElement.jsonObject
-                val itemStack = CraftItemStack.asBukkitCopy(
-                    NMSItemStack.CODEC.decode(
-                        JsonOps.INSTANCE,
-                        convertKotlinxToGson(itemObject["item"]!!)
-                    ).result().get().first
-                )
-                return@map itemStack to itemObject["amount"]!!.jsonPrimitive.int.toUInt()
-            }
+                val itemNode = itemObject["item"] ?: return@mapNotNull null
+                val decoded = NMSItemStack.CODEC.decode(
+                    JsonOps.INSTANCE,
+                    convertKotlinxToGson(itemNode)
+                ).result()
+                if (decoded.isEmpty) return@mapNotNull null
+                val itemStack = CraftItemStack.asBukkitCopy(decoded.get().first)
+                val amount = parseAmount(itemObject["amount"])
+                if (amount == 0u) return@mapNotNull null
+                itemStack to amount
+            }?.toMutableList() ?: mutableListOf()
             return Attachment(
                 coins,
                 blorius,
-                items.toMutableList()
+                items
             )
+        }
+
+        private fun parseAmount(element: JsonElement?): UInt {
+            if (element == null) return 0u
+            val primitive = element.jsonPrimitive
+            val longVal = primitive.longOrNull
+                ?: primitive.contentOrNull?.toLongOrNull()
+                ?: return 0u
+            if (longVal < 0L || longVal > MAX_AMOUNT) return 0u
+            return longVal.toUInt()
         }
 
     }

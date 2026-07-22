@@ -109,24 +109,82 @@ class BloraDatabase(
         }
     }
 
-    fun redeemCode(player: UUID, redeem: String) {
-        trans {
-            val result = RedeemDao.find {
-                RedeemTable.code eq redeem.lowercase()
+    /**
+     * Atomically consumes a redeem code and creates the reward mail in one transaction.
+     * Callers must only notify the player on [blora.redeem.RedeemResult.Success].
+     */
+    fun redeemCode(
+        player: UUID,
+        redeem: String,
+        mailTitle: String,
+        mailContents: String,
+        mailSenderName: String,
+    ): blora.redeem.RedeemResult {
+        val codeKey = redeem.lowercase()
+        return try {
+            trans {
+                if (!tryAcquireRewardLock(player, "redeem", codeKey)) {
+                    BloraPlugin.slF4JLogger.warn(
+                        "[SECURITY] Concurrent redeem rejected for $player code=$codeKey"
+                    )
+                    return@trans blora.redeem.RedeemResult.Failed
+                }
+
+                val code = RedeemDao.find {
+                    RedeemTable.code eq codeKey
+                }.firstOrNull()
+                if (code == null) {
+                    return@trans blora.redeem.RedeemResult.NotFound
+                }
+
+                val alreadyUsed = !PlayerRedeemDao.find {
+                    PlayerRedeemTable.player eq player and (PlayerRedeemTable.code eq codeKey)
+                }.empty()
+                if (alreadyUsed) {
+                    return@trans blora.redeem.RedeemResult.AlreadyUsedByPlayer
+                }
+
+                if (code.oneUse) {
+                    val rows = RedeemTable.update({
+                        (RedeemTable.id eq code.id) and
+                            (RedeemTable.oneUse eq true) and
+                            (RedeemTable.used eq false)
+                    }) {
+                        it[used] = true
+                    }
+                    if (rows != 1) {
+                        return@trans blora.redeem.RedeemResult.OneUseAlreadyConsumed
+                    }
+                }
+
+                try {
+                    PlayerRedeemDao.new {
+                        this.player = player
+                        this.code = codeKey
+                    }
+                } catch (_: Exception) {
+                    return@trans blora.redeem.RedeemResult.AlreadyUsedByPlayer
+                }
+
+                val attachmentSnapshot = code.parseAttachment.clone()
+                val mail = MailDao.new {
+                    this.receiver = player
+                    this.parsedSender = Sender.System(mailSenderName)
+                    this.title = mailTitle
+                    this.contents = mailContents
+                    this.parsedAttachment = attachmentSnapshot
+                    this.creator = code.creator
+                    this.createdAt = LocalDateTime.now()
+                    this.systemMailId = null
+                    this.visible = true
+                    this.isRead = false
+                    this.isClaim = attachmentSnapshot.hasNoContent()
+                }
+                blora.redeem.RedeemResult.Success(mail)
             }
-            val code = result.firstOrNull()
-            if (code == null)
-                return@trans
-            if (code.oneUse && code.used)
-                return@trans
-            if (code.oneUse) {
-                code.used = true
-                code.flush()
-            }
-            PlayerRedeemDao.new {
-                this.player = player
-                this.code = redeem.lowercase()
-            }
+        } catch (ex: Exception) {
+            BloraPlugin.slF4JLogger.error("redeemCode failed for $player code=$codeKey", ex)
+            blora.redeem.RedeemResult.Failed
         }
     }
 
@@ -159,6 +217,35 @@ class BloraDatabase(
                 RedeemTable.code eq code.lowercase()
             }.count() > 0
         }
+    }
+
+    /**
+     * Single-statement claim acquisition.
+     * @return true if this caller won the claim (rows updated == 1)
+     */
+    fun tryBeginMailClaim(mailId: Int, receiver: UUID): Boolean {
+        return trans {
+            val rows = MailTable.update({
+                (MailTable.id eq mailId) and
+                    (MailTable.receiver eq receiver) and
+                    (MailTable.isClaim eq false)
+            }) {
+                it[isClaim] = true
+            }
+            rows == 1
+        }
+    }
+
+    /**
+     * Takes a transaction-scoped PostgreSQL advisory lock for a reward operation.
+     * Hash collisions can only serialize unrelated rewards; they cannot bypass the lock.
+     */
+    private fun Transaction.tryAcquireRewardLock(player: UUID, type: String, rewardId: String): Boolean {
+        val playerKey = player.hashCode()
+        val rewardKey = "$type:$rewardId".hashCode()
+        return exec("SELECT pg_try_advisory_xact_lock($playerKey, $rewardKey)") { result ->
+            result.next() && result.getBoolean(1)
+        } == true
     }
 
     // System Mail
@@ -194,6 +281,56 @@ class BloraDatabase(
                 MailTable.receiver eq player and
                         (MailTable.systemMailId eq systemMailId)
             }.count() > 0
+        }
+    }
+
+    /**
+     * Atomically checks and creates one system mail for a player without requiring a unique index.
+     * Lock contention or any database failure is fail-closed and creates no mail.
+     */
+    fun tryReceiveSystemMail(player: UUID, systemMailId: String, visible: Boolean): MailDao? {
+        return try {
+            trans {
+                if (!tryAcquireRewardLock(player, "system-mail", systemMailId)) {
+                    BloraPlugin.slF4JLogger.warn(
+                        "[SECURITY] Concurrent system mail delivery rejected for $player mail=$systemMailId"
+                    )
+                    return@trans null
+                }
+
+                val alreadyReceived = !MailDao.find {
+                    (MailTable.receiver eq player) and
+                        (MailTable.systemMailId eq systemMailId)
+                }.empty()
+                if (alreadyReceived) {
+                    return@trans null
+                }
+
+                val systemMail = SystemMailDao.find {
+                    SystemMailTable.identifier eq systemMailId
+                }.firstOrNull() ?: return@trans null
+                val attachmentSnapshot = systemMail.parsedAttachment.clone()
+
+                MailDao.new {
+                    this.receiver = player
+                    this.parsedSender = Sender.System(systemMail.sender ?: "")
+                    this.title = systemMail.title
+                    this.contents = systemMail.contents
+                    this.parsedAttachment = attachmentSnapshot
+                    this.creator = systemMail.creator
+                    this.createdAt = systemMail.sendingDate ?: LocalDateTime.now()
+                    this.systemMailId = systemMail.identifier
+                    this.visible = visible
+                    this.isRead = false
+                    this.isClaim = attachmentSnapshot.hasNoContent()
+                }
+            }
+        } catch (ex: Exception) {
+            BloraPlugin.slF4JLogger.error(
+                "tryReceiveSystemMail failed for $player mail=$systemMailId",
+                ex
+            )
+            null
         }
     }
 

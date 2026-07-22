@@ -168,7 +168,7 @@ class BloraClient(
                 }
             })
         PacketHandlerManager.register(
-            PacketType.PLAYER_AUTHORIZATION_RESPONSE,
+            PacketType.PLAYER_AUTHORIZATION_UPDATE,
             object : PacketHandler<PlayerAuthorizationUpdatePacket> {
                 override fun handlePacket(
                     connection: BloraConnection,

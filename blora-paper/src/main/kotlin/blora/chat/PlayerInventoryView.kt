@@ -188,20 +188,43 @@ object PlayerInventoryView : Listener {
     }
 
     fun stopJob() {
-        views.values.flatten().forEach(Menu::destroy)
-        enderChestViews.values.flatten().forEach(Menu::destroy)
-        views.clear()
-        enderChestViews.clear()
+        disposeAll()
     }
 
     fun startJob() {
         Bukkit.getPluginManager().registerEvents(this, BloraPlugin)
     }
 
+    private fun disposeAll() {
+        views.values.flatten().forEach { runCatching { it.destroy() } }
+        enderChestViews.values.flatten().forEach { runCatching { it.destroy() } }
+        views.clear()
+        enderChestViews.clear()
+    }
+
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
-        views.remove(event.player.uniqueId)?.forEach(Menu::destroy)
-        enderChestViews.remove(event.player.uniqueId)?.forEach(Menu::destroy)
+        // Dispose menus where this player is viewee or viewer.
+        val uuid = event.player.uniqueId
+        views.remove(uuid)?.forEach { runCatching { it.destroy() } }
+        enderChestViews.remove(uuid)?.forEach { runCatching { it.destroy() } }
+        // Also drop menus opened by this player as viewer.
+        views.forEach { (_, menus) ->
+            menus.removeAll { menu ->
+                if (menu.viewer.uniqueId == uuid) {
+                    runCatching { menu.destroy() }
+                    true
+                } else false
+            }
+        }
+        enderChestViews.forEach { (_, menus) ->
+            menus.removeAll { menu ->
+                if (menu.viewer.uniqueId == uuid) {
+                    runCatching { menu.destroy() }
+                    true
+                } else false
+            }
+        }
     }
 
 }

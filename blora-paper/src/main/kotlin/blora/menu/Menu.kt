@@ -123,16 +123,24 @@ class Menu(
         }
         event.isCancelled = true
 
+        val rawSlot = event.rawSlot
+        val click = event.click
+        val action = event.action
+        val pageAtClick = this.stack.current()
         // run delay 1 tick to prevent failed to set cursor item
         Bukkit.getScheduler().runTaskLater(
             BloraPlugin,
             Runnable {
-                this.stack.current().fireClickEvent(
-                    event.rawSlot,
+                // Re-validate session before executing delayed menu action.
+                if (!this.viewer.isOnline) return@Runnable
+                if (this.viewer.openInventory.topInventory.holder != this) return@Runnable
+                if (this.stack.current() !== pageAtClick) return@Runnable
+                pageAtClick.fireClickEvent(
+                    rawSlot,
                     MenuContext(
                         this,
-                        event.click,
-                        event.action
+                        click,
+                        action
                     )
                 )
             },

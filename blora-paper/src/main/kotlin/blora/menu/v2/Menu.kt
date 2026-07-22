@@ -109,14 +109,20 @@ class Menu(
         }
         event.isCancelled = true
 
-        // run delay 1 tick to prevent failed to set cursor item
+        val rawSlot = event.rawSlot
+        val snapshotAtClick = this.snapshot
+        // Capture immutable click identity; do not hold the live event across ticks.
+        val clickEvent = event
         Bukkit.getScheduler().runTaskLater(
             BloraPlugin,
             Runnable {
-                this.snapshot.fireMenuClickEvent(
-                    event.rawSlot,
+                if (!this.viewer.isOnline) return@Runnable
+                if (this.viewer.openInventory.topInventory.holder != this) return@Runnable
+                if (this.snapshot !== snapshotAtClick) return@Runnable
+                snapshotAtClick.fireMenuClickEvent(
+                    rawSlot,
                     this,
-                    event
+                    clickEvent
                 )
             },
             1L

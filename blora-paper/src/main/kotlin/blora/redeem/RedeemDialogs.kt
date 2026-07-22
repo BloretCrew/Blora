@@ -212,15 +212,66 @@ fun redeemDialog(
                         )
                         return@DynamicCustomClickTypeInjected
                     }
-                    RedeemModule.redeemCode(player, code)
-                    player.send {
-                        localization(
-                            player = player,
-                            tags = {
-                                parsedPlaceholder("redeem", code)
+                    when (val result = RedeemModule.redeemCode(player, code)) {
+                        is RedeemResult.Success -> {
+                            player.send {
+                                localization(
+                                    player = player,
+                                    tags = {
+                                        parsedPlaceholder("redeem", code)
+                                    }
+                                ) {
+                                    this.redeem.redeemSuccess
+                                }
                             }
-                        ) {
-                            this.redeem.redeemSuccess
+                        }
+                        RedeemResult.NotFound -> {
+                            player.openDialog(
+                                redeemDialog(
+                                    player,
+                                    component {
+                                        localization(player) {
+                                            this.redeem.dialogRedeemWarningNot_exists
+                                        }
+                                    }
+                                )
+                            )
+                        }
+                        RedeemResult.AlreadyUsedByPlayer -> {
+                            player.openDialog(
+                                redeemDialog(
+                                    player,
+                                    component {
+                                        localization(player) {
+                                            this.redeem.dialogRedeemWarningRedeemed
+                                        }
+                                    }
+                                )
+                            )
+                        }
+                        RedeemResult.OneUseAlreadyConsumed -> {
+                            player.openDialog(
+                                redeemDialog(
+                                    player,
+                                    component {
+                                        localization(player) {
+                                            this.redeem.dialogRedeemWarningUsed
+                                        }
+                                    }
+                                )
+                            )
+                        }
+                        RedeemResult.Failed -> {
+                            player.openDialog(
+                                redeemDialog(
+                                    player,
+                                    component {
+                                        localization(player) {
+                                            this.redeem.dialogRedeemWarningNot_exists
+                                        }
+                                    }
+                                )
+                            )
                         }
                     }
                 }

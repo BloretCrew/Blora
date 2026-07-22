@@ -1006,17 +1006,11 @@ fun playerViewMail(player: Player, mail: MailDao, warningMessage: Component? = n
                                     return@DynamicCustomClickTypeInjected
                                 }
 
-                                // CAS: only one concurrent claim wins; mark claimed before giving rewards.
-                                val claimStarted = BloraPlugin.database.trans {
-                                    val fresh = MailDao.findById(mail.id.value)
-                                        ?: return@trans false
-                                    if (fresh.isClaim) {
-                                        return@trans false
-                                    }
-                                    fresh.isClaim = true
-                                    fresh.flush()
-                                    true
-                                }
+                                // Atomic claim: UPDATE ... WHERE is_claim=false AND receiver=?
+                                val claimStarted = BloraPlugin.database.tryBeginMailClaim(
+                                    mailId = mail.id.value,
+                                    receiver = player.uniqueId
+                                )
                                 if (!claimStarted) {
                                     mail.isClaim = true
                                     player.send {
@@ -1035,29 +1029,17 @@ fun playerViewMail(player: Player, mail: MailDao, warningMessage: Component? = n
                                         }
                                     }
                                 } catch (ex: Exception) {
-                                    // Roll back claim flag so the player can try again.
-                                    BloraPlugin.database.trans {
-                                        val fresh = MailDao.findById(mail.id.value)
-                                            ?: return@trans
-                                        fresh.isClaim = false
-                                        fresh.flush()
-                                    }
-                                    mail.isClaim = false
-                                    BloraPlugin.slF4JLogger.warn(
-                                        "Failed to claim mail attachment for ${player.name}: ${ex.message}",
+                                    // Do NOT unclaim: partial external rewards cannot be rolled back.
+                                    // Leave isClaim=true and log for admin recovery.
+                                    BloraPlugin.slF4JLogger.error(
+                                        "Mail claim rewards failed for ${player.name} mail=${mail.id.value}: ${ex.message}",
                                         ex
                                     )
-                                    player.openDialog(
-                                        playerViewMail(
-                                            player,
-                                            mail,
-                                            component {
-                                                localization(player) {
-                                                    this.mail.mailErrorClaimInventory_not_enought
-                                                }
-                                            }
-                                        )
-                                    )
+                                    player.send {
+                                        localization(player) {
+                                            this.mail.mailErrorClaimNot_claimable_in_this_server
+                                        }
+                                    }
                                 }
                             }
                         )

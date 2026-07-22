@@ -74,11 +74,18 @@ object BloraPlugin : JavaPlugin(), blora.internal.api.QuickLib {
     }
 
     override fun onDisable() {
-        this.shutdownHooks.forEach { it.hook() }
-        PlayerInventoryView.stopJob()
-        BloraInjector.close()
-        this.database.disconnect()
-        this.client.close()
+        this.shutdownHooks.forEach { hook ->
+            runCatching { hook.hook() }
+                .onFailure { slF4JLogger.error("Shutdown hook failed", it) }
+        }
+        runCatching { PlayerInventoryView.stopJob() }
+        runCatching { BloraInjector.close() }
+        if (this::databaseLoader.isInitialized) {
+            runCatching { this.database.disconnect() }
+        }
+        if (this::client.isInitialized) {
+            runCatching { this.client.close() }
+        }
     }
 
     override fun getCommandLib(): blora.internal.api.command.BloraCommandLib {
