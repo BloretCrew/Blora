@@ -155,6 +155,15 @@ object ChatListener : Listener {
             onlineByName[player.name] = player
         }
         val itemInMainHand = sender.inventory.itemInMainHand.clone()
+        // Capture inv/enderchest once at send time; store by id with TTL for later clicks.
+        val inventorySnapshotId =
+            if (rawMessage.contains("<inv>")) {
+                PlayerInventoryView.storeInventory(PlayerInventoryView.captureInventory(sender))
+            } else null
+        val enderChestSnapshotId =
+            if (rawMessage.contains("<enderchest>")) {
+                PlayerInventoryView.storeEnderChest(PlayerInventoryView.captureEnderChest(sender))
+            } else null
         val canMentionAll = sender.hasPermission(Permissions.Chat.MentionAll)
         val hasMiniMessage = sender.hasPermission(Permissions.Chat.MiniMessage)
         val chatConfig = BloraPlugin.configuration.chat
@@ -182,6 +191,8 @@ object ChatListener : Listener {
                 rawMessage = rawMessage,
                 mentionNamesByLength = mentionNamesByLength,
                 itemInMainHand = itemInMainHand,
+                inventorySnapshotId = inventorySnapshotId,
+                enderChestSnapshotId = enderChestSnapshotId,
                 canMentionAll = canMentionAll,
                 hasMiniMessage = hasMiniMessage,
                 mentionAllKeyword = mentionAllKeyword,
@@ -273,6 +284,8 @@ object ChatListener : Listener {
         rawMessage: String,
         mentionNamesByLength: List<String>,
         itemInMainHand: ItemStack,
+        inventorySnapshotId: java.util.UUID?,
+        enderChestSnapshotId: java.util.UUID?,
         canMentionAll: Boolean,
         hasMiniMessage: Boolean,
         mentionAllKeyword: String,
@@ -349,6 +362,8 @@ object ChatListener : Listener {
                                     viewer = viewer,
                                     rawMessage = rawMessage,
                                     itemInMainHand = itemInMainHand,
+                                    inventorySnapshotId = inventorySnapshotId,
+                                    enderChestSnapshotId = enderChestSnapshotId,
                                     replacements = mentionReplacements,
                                 )
                             } else {
@@ -357,6 +372,8 @@ object ChatListener : Listener {
                                     viewer = viewer,
                                     rawMessage = rawMessage,
                                     itemInMainHand = itemInMainHand,
+                                    inventorySnapshotId = inventorySnapshotId,
+                                    enderChestSnapshotId = enderChestSnapshotId,
                                     replacements = mentionReplacements,
                                 )
                             }

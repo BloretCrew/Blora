@@ -31,6 +31,11 @@ data class Chat(
     val copyPlaceholderFormat: String = "<dark_gray>[<dark_green><text><dark_gray>]</dark_gray>",
     val linkPlaceholderFormat: String = "<dark_gray>[<blue><u><link><dark_gray>]</dark_gray>",
     /**
+     * How long chat `<inv>` / `<enderchest>` snapshots stay openable after the message is sent (seconds).
+     * Default 2 hours. Set to 0 or negative to never expire (not recommended for memory).
+     */
+    val inventorySnapshotTtlSeconds: Long = 2 * 60 * 60,
+    /**
      * Commands that cannot be used in chat `<cmd:...>` suggestions.
      * Match is case-insensitive against the first token (with or without leading `/`,
      * with or without namespace, e.g. `kill`, `/kill`, `minecraft:kill`).

@@ -176,6 +176,7 @@ data class LocalizationContents(
     val chatViewEnderChest: String = "<viewee> 的末影箱",
     val chatViewInventoryTooltip: String = "点击查看",
     val chatViewEnderChestTooltip: String = "点击查看",
+    val chatViewSnapshotExpired: String = "<#f38ba8>该展示已过期，无法查看。",
     val chatErrorMuted: String = "您已经被禁言",
     val dialogInputBooleanYes: String = "是",
     val dialogInputBooleanNo: String = "否",

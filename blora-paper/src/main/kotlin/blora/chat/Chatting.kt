@@ -12,6 +12,7 @@ import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.*
 import plutoproject.adventurekt.text.style.*
 import java.net.URLDecoder
+import java.util.UUID
 
 object Chatting {
 
@@ -20,6 +21,8 @@ object Chatting {
         viewer: Player,
         rawMessage: String,
         itemInMainHand: ItemStack = sender.inventory.itemInMainHand.clone(),
+        inventorySnapshotId: UUID? = null,
+        enderChestSnapshotId: UUID? = null,
         replacements: ComponentReplacements.() -> Unit
     ): Component = component {
         replacements(replacements)
@@ -59,7 +62,7 @@ object Chatting {
                         }
                     }
                 }
-                if (rawMessage.contains("<inv>")) {
+                if (rawMessage.contains("<inv>") && inventorySnapshotId != null) {
                     componentPlaceholder("inv") {
                         localization(
                             player = viewer,
@@ -77,7 +80,7 @@ object Chatting {
                         ) {
                             if (it != viewer)
                                 return@callback
-                            PlayerInventoryView.view(viewer, sender)
+                            PlayerInventoryView.viewById(viewer, inventorySnapshotId)
                         } with showText {
                             localization(viewer) {
                                 this.chatViewInventoryTooltip
@@ -85,7 +88,7 @@ object Chatting {
                         }
                     }
                 }
-                if (rawMessage.contains("<enderchest>")) {
+                if (rawMessage.contains("<enderchest>") && enderChestSnapshotId != null) {
                     componentPlaceholder("enderchest") {
                         localization(
                             player = viewer,
@@ -103,7 +106,7 @@ object Chatting {
                         ) {
                             if (it != viewer)
                                 return@callback
-                            PlayerInventoryView.viewEnderChest(viewer, sender)
+                            PlayerInventoryView.viewEnderChestById(viewer, enderChestSnapshotId)
                         } with showText {
                             localization(viewer) {
                                 this.chatViewEnderChestTooltip
@@ -131,6 +134,8 @@ object Chatting {
         viewer: Player,
         rawMessage: String,
         itemInMainHand: ItemStack = sender.inventory.itemInMainHand.clone(),
+        inventorySnapshotId: UUID? = null,
+        enderChestSnapshotId: UUID? = null,
         replacements: ComponentReplacements.() -> Unit
     ): Component = component {
         replacements {
@@ -170,7 +175,7 @@ object Chatting {
                                 PlayerItemView.view(viewer, itemInMainHand)
                             }
                         }
-                    } else if (content == "inv") {
+                    } else if (content == "inv" && inventorySnapshotId != null) {
                         component {
                             localization(
                                 player = viewer,
@@ -188,14 +193,14 @@ object Chatting {
                             ) {
                                 if (it != viewer)
                                     return@callback
-                                PlayerInventoryView.view(viewer, sender)
+                                PlayerInventoryView.viewById(viewer, inventorySnapshotId)
                             } with showText {
                                 localization(viewer) {
                                     this.chatViewInventoryTooltip
                                 }
                             }
                         }
-                    } else if (content == "enderchest") {
+                    } else if (content == "enderchest" && enderChestSnapshotId != null) {
                         component {
                             localization(
                                 player = viewer,
@@ -213,7 +218,7 @@ object Chatting {
                             ) {
                                 if (it != viewer)
                                     return@callback
-                                PlayerInventoryView.viewEnderChest(viewer, sender)
+                                PlayerInventoryView.viewEnderChestById(viewer, enderChestSnapshotId)
                             } with showText {
                                 localization(viewer) {
                                     this.chatViewEnderChestTooltip
