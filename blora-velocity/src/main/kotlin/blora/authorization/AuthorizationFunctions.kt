@@ -7,12 +7,15 @@ import blora.extension.disconnect
 import blora.extension.localization
 import blora.extension.notNull
 import blora.extension.sendPacket
+import blora.database.player.PlayerTable
 import blora.options.OptionStatus
-import blora.security.PasswordHasher
 import blora.security.PasswordManager
+import blora.security.SecurePasswordHasher
 import blora.security.strategy.PasswordStrategyResult
 import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.update
 import plutoproject.adventurekt.component
 
 object AuthorizationFunctions {
@@ -97,10 +100,16 @@ object AuthorizationFunctions {
 
     fun autoShowLoginDialog(player: Player) {
         if (BloraAuthorization.isAuthorized(player)) {
+            AuthFlow.clear(player)
             this.transferPlayerToSuitableServer(player)
         } else {
             val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
-            if (databasePlayer.hashedPassword1 != "%unregistered%") {
+            if (!SecurePasswordHasher.isUnregistered(
+                    databasePlayer.hashedPassword1,
+                    databasePlayer.hashedPassword2,
+                    databasePlayer.hashedPassword3
+                )
+            ) {
                 showLoginDialog(player)
             } else {
                 showRegisterDialog(player)
@@ -109,22 +118,30 @@ object AuthorizationFunctions {
     }
 
     fun showEulaDialog(player: Player) {
+        AuthFlow.open(player, AuthDialogKind.EULA)
         player.sendPacket(eulaDialog(player).asPacket())
     }
 
     fun showLoginDialog(player: Player, warningMessage: Component? = null) {
+        AuthFlow.open(player, AuthDialogKind.LOGIN)
         player.sendPacket(loginDialog(player, warningMessage).asPacket())
     }
 
     fun showRegisterDialog(player: Player, warningMessage: Component? = null) {
+        AuthFlow.open(player, AuthDialogKind.REGISTER)
         player.sendPacket(registerDialog(player, warningMessage).asPacket())
     }
 
     fun showChangePasswordDialog(player: Player, warningMessage: Component? = null) {
+        AuthFlow.open(player, AuthDialogKind.CHANGE_PASSWORD)
         player.sendPacket(changePasswordDialog(player, warningMessage).asPacket())
     }
 
     fun eulaDialogCallback(player: Player, accepted: Boolean) {
+        if (!AuthFlow.consume(player, AuthDialogKind.EULA)) {
+            BloraPlugin.log.warn("[SECURITY] Rejected EULA action from ${player.username} (bad auth flow)")
+            return
+        }
         if (accepted) {
             val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
             BloraPlugin.database.trans {
@@ -142,13 +159,28 @@ object AuthorizationFunctions {
     }
 
     fun loginDialogCallback(player: Player, value: String) {
+        if (BloraAuthorization.isAuthorized(player)) {
+            return
+        }
+        if (!AuthFlow.consume(player, AuthDialogKind.LOGIN)) {
+            BloraPlugin.log.warn("[SECURITY] Rejected login action from ${player.username} (bad auth flow)")
+            showLoginDialog(player)
+            return
+        }
         BloraPlugin.database.getPlayerByName(player.username).notNull {
-            if (PasswordHasher.hash(value) != this.hashedPassword()) {
+            if (!SecurePasswordHasher.verify(
+                    value,
+                    this.hashedPassword1,
+                    this.hashedPassword2,
+                    this.hashedPassword3
+                )
+            ) {
                 val retries = (BloraAuthorization.passwordRetries.getOrDefault(player, 0) + 1).also {
                     BloraAuthorization.passwordRetries[player] = it
                 }
+                // "max N failures" → kick when retries >= maxRetries
                 if (BloraPlugin.configuration.security.maxRetries > 0
-                    && retries > BloraPlugin.configuration.security.maxRetries
+                    && retries >= BloraPlugin.configuration.security.maxRetries
                 ) {
                     player.disconnect {
                         localization(player) {
@@ -163,7 +195,18 @@ object AuthorizationFunctions {
                     })
                 }
             } else {
+                // Upgrade legacy hash on successful login.
+                if (SecurePasswordHasher.needsUpgrade(this.hashedPassword2, this.hashedPassword3)) {
+                    val (h1, h2, h3) = SecurePasswordHasher.hashNew(value)
+                    BloraPlugin.database.trans {
+                        this@notNull.hashedPassword1 = h1
+                        this@notNull.hashedPassword2 = h2
+                        this@notNull.hashedPassword3 = h3
+                        this@notNull.flush()
+                    }
+                }
                 BloraAuthorization.passwordRetries.remove(player)
+                AuthFlow.clear(player)
                 BloraAuthorization.authorize(player)
                 transferPlayerToSuitableServer(player)
             }
@@ -171,30 +214,55 @@ object AuthorizationFunctions {
     }
 
     fun registerDialogCallback(player: Player, password: String, confirm: String) {
+        if (BloraAuthorization.isAuthorized(player)) {
+            BloraPlugin.log.warn("[SECURITY] Rejected register from authorized player ${player.username}")
+            return
+        }
+        if (!AuthFlow.consume(player, AuthDialogKind.REGISTER)) {
+            BloraPlugin.log.warn("[SECURITY] Rejected register action from ${player.username} (bad auth flow)")
+            // Do not open register for already-registered accounts.
+            autoShowLoginDialog(player)
+            return
+        }
         if (password != confirm) {
             showRegisterDialog(player, component {
                 localization(player) {
                     this.warningRegisterConfirm_not_same
                 }
             })
-        } else {
-            val result = PasswordManager.securePassword(player, password)
-            if (result != PasswordStrategyResult.Success) {
-                result as PasswordStrategyResult.Failure
-                showRegisterDialog(player, result.reason)
-            } else {
-                val (hash1, hash2, hash3) = PasswordHasher.hash(password)
-                val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
-                BloraPlugin.database.trans {
-                    databasePlayer.hashedPassword1 = hash1
-                    databasePlayer.hashedPassword2 = hash2
-                    databasePlayer.hashedPassword3 = hash3
-                    databasePlayer.flush()
-                }
-                BloraAuthorization.authorize(player)
-                transferPlayerToSuitableServer(player)
+            return
+        }
+        val result = PasswordManager.securePassword(player, password)
+        if (result != PasswordStrategyResult.Success) {
+            result as PasswordStrategyResult.Failure
+            showRegisterDialog(player, result.reason)
+            return
+        }
+        val (hash1, hash2, hash3) = SecurePasswordHasher.hashNew(password)
+        val username = player.username.lowercase()
+        val updated = BloraPlugin.database.trans {
+            // Atomic: only set password when still fully unregistered.
+            PlayerTable.update({
+                (PlayerTable.username eq username) and
+                    (PlayerTable.hashedPassword1 eq SecurePasswordHasher.UNREGISTERED) and
+                    (PlayerTable.hashedPassword2 eq SecurePasswordHasher.UNREGISTERED) and
+                    (PlayerTable.hashedPassword3 eq SecurePasswordHasher.UNREGISTERED)
+            }) {
+                it[hashedPassword1] = hash1
+                it[hashedPassword2] = hash2
+                it[hashedPassword3] = hash3
             }
         }
+        if (updated != 1) {
+            BloraPlugin.log.warn(
+                "[SECURITY] Register rejected for ${player.username}: account already has a password or missing row"
+            )
+            showLoginDialog(player)
+            return
+        }
+        AuthFlow.clear(player)
+        BloraAuthorization.authorize(player)
+        transferPlayerToSuitableServer(player)
     }
 
     fun changePasswordDialogCallback(
@@ -206,9 +274,17 @@ object AuthorizationFunctions {
         if (!BloraAuthorization.isAuthorized(player)) {
             return
         }
+        if (!AuthFlow.consume(player, AuthDialogKind.CHANGE_PASSWORD)) {
+            BloraPlugin.log.warn("[SECURITY] Rejected change-password action from ${player.username}")
+            return
+        }
         val databasePlayer = BloraPlugin.database.getPlayerByName(player.username) ?: return
-        if (databasePlayer.hashedPassword1 == "%unregistered%") {
-            // Should rarely reach here (command already gates this); keep premium-aware message.
+        if (SecurePasswordHasher.isUnregistered(
+                databasePlayer.hashedPassword1,
+                databasePlayer.hashedPassword2,
+                databasePlayer.hashedPassword3
+            )
+        ) {
             player.sendMessage(
                 component {
                     localization(player) {
@@ -222,7 +298,13 @@ object AuthorizationFunctions {
             )
             return
         }
-        if (PasswordHasher.hash(oldPassword) != databasePlayer.hashedPassword()) {
+        if (!SecurePasswordHasher.verify(
+                oldPassword,
+                databasePlayer.hashedPassword1,
+                databasePlayer.hashedPassword2,
+                databasePlayer.hashedPassword3
+            )
+        ) {
             showChangePasswordDialog(player, component {
                 localization(player) {
                     this.warningChangepassword_old_incorrect
@@ -246,19 +328,20 @@ object AuthorizationFunctions {
             })
             return
         }
-        val result = PasswordManager.securePassword(player, newPassword)
-        if (result != PasswordStrategyResult.Success) {
-            result as PasswordStrategyResult.Failure
-            showChangePasswordDialog(player, result.reason)
+        val strategy = PasswordManager.securePassword(player, newPassword)
+        if (strategy != PasswordStrategyResult.Success) {
+            strategy as PasswordStrategyResult.Failure
+            showChangePasswordDialog(player, strategy.reason)
             return
         }
-        val (hash1, hash2, hash3) = PasswordHasher.hash(newPassword)
+        val (hash1, hash2, hash3) = SecurePasswordHasher.hashNew(newPassword)
         BloraPlugin.database.trans {
             databasePlayer.hashedPassword1 = hash1
             databasePlayer.hashedPassword2 = hash2
             databasePlayer.hashedPassword3 = hash3
             databasePlayer.flush()
         }
+        AuthFlow.clear(player)
         player.sendMessage(
             component {
                 localization(player) {

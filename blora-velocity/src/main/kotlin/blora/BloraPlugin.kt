@@ -91,8 +91,14 @@ class BloraPlugin @Inject constructor(
         this.database.initTables()
 
         this.playerAuthorizationRefreshmentJob = coroutineScope.launch {
-            delay(1000)
-            BloraAuthorization.refreshUnauthorizedPlayers()
+            while (isActive) {
+                delay(1000)
+                runCatching {
+                    BloraAuthorization.refreshUnauthorizedPlayers()
+                }.onFailure {
+                    log.error("Failed to refresh unauthorized players", it)
+                }
+            }
         }
     }
 
@@ -123,6 +129,8 @@ class BloraPlugin @Inject constructor(
         BloraAuthorization.clearAll()
         this.playerAuthorizationRefreshmentJob.cancel()
         PrivateMessageLogger.close()
+        runCatching { this.bloraServer.close() }
+        runCatching { this.database.disconnect() }
     }
 
     private fun initFolders() {

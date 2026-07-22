@@ -2,6 +2,7 @@ package blora.command
 
 import blora.BloraPlugin
 import blora.extension.localization
+import blora.security.SecurePasswordHasher
 import com.mojang.brigadier.arguments.StringArgumentType
 import com.velocitypowered.api.command.BrigadierCommand
 import plutoproject.adventurekt.audience.send
@@ -10,7 +11,7 @@ import plutoproject.adventurekt.text.parsedPlaceholder
 object ResetPasswordCommand {
 
     private const val PERMISSION = "blora.admin"
-    private const val UNREGISTERED = "%unregistered%"
+    private val UNREGISTERED = SecurePasswordHasher.UNREGISTERED
 
     fun register() {
         val commandManager = BloraPlugin.proxyServer.commandManager
@@ -48,7 +49,12 @@ object ResetPasswordCommand {
                                     return@executes 1
                                 }
 
-                                if (databasePlayer.hashedPassword1 == UNREGISTERED) {
+                                if (SecurePasswordHasher.isUnregistered(
+                                        databasePlayer.hashedPassword1,
+                                        databasePlayer.hashedPassword2,
+                                        databasePlayer.hashedPassword3
+                                    )
+                                ) {
                                     source.send {
                                         localization {
                                             this.commandErrorResetpassword_not_registered

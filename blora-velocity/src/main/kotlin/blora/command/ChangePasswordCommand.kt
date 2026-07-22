@@ -4,6 +4,7 @@ import blora.BloraPlugin
 import blora.authorization.AuthorizationFunctions
 import blora.authorization.BloraAuthorization
 import blora.extension.localization
+import blora.security.SecurePasswordHasher
 import com.velocitypowered.api.command.BrigadierCommand
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.audience.send
@@ -26,7 +27,12 @@ object ChangePasswordCommand {
                             return@executes 1
                         }
                         val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)
-                        if (databasePlayer == null || databasePlayer.hashedPassword1 == "%unregistered%") {
+                        val unregistered = databasePlayer == null || SecurePasswordHasher.isUnregistered(
+                            databasePlayer.hashedPassword1,
+                            databasePlayer.hashedPassword2,
+                            databasePlayer.hashedPassword3
+                        )
+                        if (unregistered) {
                             player.send {
                                 localization(player) {
                                     // Online-mode / premium accounts may never set a password.

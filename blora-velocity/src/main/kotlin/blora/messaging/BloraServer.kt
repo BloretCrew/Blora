@@ -64,18 +64,24 @@ class BloraServer(
         this.channelFuture = bootstrap.bind(port).sync()
 
         pingPongJob = scope.launch {
-            delay(1000L)
-            val waitingRemoval = mutableListOf<Channel>()
-            val current = System.currentTimeMillis()
-            for ((channel, lastPong) in pongs) {
-                if ((current - lastPong) > 30000L) {
-                    BloraPlugin.log.info("由于连接超时，断开了一个 Blora 通讯服务器的连接")
-                    channel.close()
-                    waitingRemoval.add(channel)
+            while (isActive) {
+                delay(1000L)
+                runCatching {
+                    val waitingRemoval = mutableListOf<Channel>()
+                    val current = System.currentTimeMillis()
+                    for ((channel, lastPong) in pongs) {
+                        if ((current - lastPong) > 30000L) {
+                            BloraPlugin.log.info("由于连接超时，断开了一个 Blora 通讯服务器的连接")
+                            channel.close()
+                            waitingRemoval.add(channel)
+                        }
+                    }
+                    waitingRemoval.forEach(pongs::remove)
+                    broadcast(PingPacket())
+                }.onFailure {
+                    BloraPlugin.log.error("Ping/pong heartbeat failed", it)
                 }
             }
-            waitingRemoval.forEach(pongs::remove)
-            broadcast(PingPacket())
         }
 
         Runtime.getRuntime().addShutdownHook(Thread(this::close))
@@ -97,7 +103,16 @@ class BloraServer(
         val byteBuf = Unpooled.buffer()
         byteBuf.writeInt(packet.type.id)
         packet.encode(byteBuf)
-        this.channels.keys.forEach { channel -> channel.writeAndFlush(byteBuf) }
+        val channels = this.channels.keys.toList()
+        if (channels.isEmpty()) {
+            byteBuf.release()
+            return
+        }
+        // Each channel must receive its own buffer reference (shared buf would be freed after first write).
+        channels.forEachIndexed { index, channel ->
+            val payload = if (index == channels.lastIndex) byteBuf else byteBuf.retainedDuplicate()
+            channel.writeAndFlush(payload)
+        }
     }
 
     fun close() {

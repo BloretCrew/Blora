@@ -1,6 +1,7 @@
 package blora.listener
 
 import blora.BloraPlugin
+import blora.authorization.AuthFlow
 import blora.authorization.AuthorizationFunctions
 import blora.authorization.BloraAuthorization
 import blora.command.PrivateMessageService
@@ -46,44 +47,58 @@ object BasicListener {
     fun onPacketReceive(event: PacketReceiveEvent) {
         val packet = event.packet
         if (packet is CustomClickAction) {
-            if (packet.id == "minecraft:blora_eula_accept") {
-                AuthorizationFunctions.eulaDialogCallback(event.player, true)
-            } else if (packet.id == "minecraft:blora_eula_reject") {
-                AuthorizationFunctions.eulaDialogCallback(event.player, false)
-            } else if (packet.id == "minecraft:blora_login") {
-                AuthorizationFunctions.loginDialogCallback(
-                    event.player,
-                    ((packet.payload as NbtCompound)["blora_password"] as NbtString).value
+            try {
+                handleCustomClick(event.player, packet)
+            } catch (ex: Exception) {
+                BloraPlugin.log.warn(
+                    "[SECURITY] Bad custom click from ${event.player.username} id=${packet.id}: ${ex.message}"
                 )
-            } else if (packet.id == "minecraft:blora_register") {
-                AuthorizationFunctions.registerDialogCallback(
-                    event.player,
-                    ((packet.payload as NbtCompound)["blora_password"] as NbtString).value,
-                    ((packet.payload as NbtCompound)["blora_confirm_password"] as NbtString).value
-                )
-            } else if (packet.id == "minecraft:blora_change_password") {
-                val payload = packet.payload as NbtCompound
-                AuthorizationFunctions.changePasswordDialogCallback(
-                    event.player,
-                    (payload["blora_old_password"] as NbtString).value,
-                    (payload["blora_password"] as NbtString).value,
-                    (payload["blora_confirm_password"] as NbtString).value
-                )
-            } else if (packet.id == "minecraft:blora_change_password_cancel") {
-                // dialog closes via after_action; nothing else to do
-            } else if (packet.id == "minecraft:blora_exit") {
+            }
+        }
+    }
+
+    private fun handleCustomClick(player: com.velocitypowered.api.proxy.Player, packet: CustomClickAction) {
+        val payload = packet.payload as? NbtCompound
+        when (packet.id) {
+            "minecraft:blora_eula_accept" -> AuthorizationFunctions.eulaDialogCallback(player, true)
+            "minecraft:blora_eula_reject" -> AuthorizationFunctions.eulaDialogCallback(player, false)
+            "minecraft:blora_login" -> {
+                val password = (payload?.get("blora_password") as? NbtString)?.value ?: return
+                if (password.length > BloraPlugin.configuration.security.maxPasswordLength) return
+                AuthorizationFunctions.loginDialogCallback(player, password)
+            }
+            "minecraft:blora_register" -> {
+                val password = (payload?.get("blora_password") as? NbtString)?.value ?: return
+                val confirm = (payload?.get("blora_confirm_password") as? NbtString)?.value ?: return
+                if (password.length > BloraPlugin.configuration.security.maxPasswordLength) return
+                if (confirm.length > BloraPlugin.configuration.security.maxPasswordLength) return
+                AuthorizationFunctions.registerDialogCallback(player, password, confirm)
+            }
+            "minecraft:blora_change_password" -> {
+                val oldPassword = (payload?.get("blora_old_password") as? NbtString)?.value ?: return
+                val password = (payload?.get("blora_password") as? NbtString)?.value ?: return
+                val confirm = (payload?.get("blora_confirm_password") as? NbtString)?.value ?: return
+                val max = BloraPlugin.configuration.security.maxPasswordLength
+                if (oldPassword.length > max || password.length > max || confirm.length > max) return
+                AuthorizationFunctions.changePasswordDialogCallback(player, oldPassword, password, confirm)
+            }
+            "minecraft:blora_change_password_cancel" -> {
+                AuthFlow.clear(player)
+            }
+            "minecraft:blora_exit" -> {
                 if (!BloraPlugin.configuration.administration.debug) {
-                    event.player.disconnect {
-                        localization(event.player) {
+                    player.disconnect {
+                        localization(player) {
                             this.kickLoginExit
                         }
                     }
                 }
-            } else if (packet.id == "minecraft:blora_player_options_exit") {
-                OptionsFunctions.updatePlayerOptions(event.player, packet.payload as NbtCompound)
+            }
+            "minecraft:blora_player_options_exit" -> {
+                if (!BloraAuthorization.isAuthorized(player)) return
+                if (payload != null) OptionsFunctions.updatePlayerOptions(player, payload)
             }
         }
-
     }
 
     @Subscribe
@@ -626,6 +641,7 @@ object BasicListener {
     @Subscribe
     fun onDisconnect(event: DisconnectEvent) {
         BloraAuthorization.clear(event.player)
+        AuthFlow.clear(event.player)
         PrivateMessageSpy.clear(event.player)
         PrivateMessageService.clear(event.player)
         this.passedLoginStatus.remove(event.player)
