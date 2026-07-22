@@ -1,6 +1,7 @@
 package blora.command
 
 import blora.BloraPlugin
+import blora.authorization.BloraAuthorization
 import blora.extension.localization
 import blora.security.SecurePasswordHasher
 import com.mojang.brigadier.arguments.StringArgumentType
@@ -69,6 +70,7 @@ object ResetPasswordCommand {
                                     databasePlayer.hashedPassword3 = UNREGISTERED
                                     databasePlayer.flush()
                                 }
+                                BloraAuthorization.requireManualLogin(databasePlayer.uuid)
 
                                 source.send {
                                     localization(

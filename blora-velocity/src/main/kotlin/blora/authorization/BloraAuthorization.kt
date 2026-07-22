@@ -7,6 +7,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.velocitypowered.api.proxy.Player
 import plutoproject.adventurekt.component
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.toJavaDuration
 
@@ -20,6 +21,7 @@ object BloraAuthorization {
         .initialCapacity(48)
         .expireAfterWrite(20.minutes.toJavaDuration())
         .build<UUID, LoginSession>()
+    private val manualLoginRequired = ConcurrentHashMap.newKeySet<UUID>()
     val passwordRetries = mutableMapOf<Player, Int>()
 
     fun refreshUnauthorizedPlayers() {
@@ -54,20 +56,37 @@ object BloraAuthorization {
         BloraPlugin.server.broadcast(packet)
     }
 
+    /**
+     * Invalidates remembered sessions and disables every automatic-login path until
+     * the player successfully enters a password or completes registration.
+     */
+    fun requireManualLogin(uuid: UUID) {
+        this.cachePool.invalidate(uuid)
+        this.manualLoginRequired.add(uuid)
+    }
+
+    fun completeManualLogin(uuid: UUID) {
+        this.manualLoginRequired.remove(uuid)
+        this.cachePool.invalidate(uuid)
+    }
+
     fun getPlayersUnderIp(ip: String): List<Player> {
         return ips.getOrDefault(ip, listOf()).toList() // use toList to copy a list to prevent modify the original data
     }
 
     fun join(player: Player) {
         if (!this.status.containsKey(player)) {
-            this.status[player] = player.isOnlineMode && BloraPlugin.configuration.security.allowOnlinePlayerAutoLogin
+            val requiresManualLogin = this.manualLoginRequired.contains(player.uniqueId)
+            this.status[player] = !requiresManualLogin &&
+                player.isOnlineMode &&
+                BloraPlugin.configuration.security.allowOnlinePlayerAutoLogin
             if (!this.ips.containsKey(player.remoteAddress.address.hostAddress)) {
                 this.ips[player.remoteAddress.address.hostAddress] = mutableListOf()
             }
             this.ips[player.remoteAddress.address.hostAddress]!!.add(player)
             this.playerIps[player] = player.remoteAddress.address.hostAddress
 
-            if (BloraPlugin.configuration.security.sameIpAutoLogin) {
+            if (!requiresManualLogin && BloraPlugin.configuration.security.sameIpAutoLogin) {
                 BloraPlugin.log.info("[LOGIN SYSTEM] Same IP auto login feature enabled")
                 val session = this.cachePool.getIfPresent(player.uniqueId)
                 if (session != null) {
@@ -104,13 +123,17 @@ object BloraAuthorization {
             }
         }
         if (status == true) {
-            this.cachePool.put(
-                player.uniqueId, LoginSession(
-                    player.uniqueId,
-                    player.remoteAddress.address.hostAddress,
-                    System.currentTimeMillis()
+            if (!this.manualLoginRequired.contains(player.uniqueId)) {
+                this.cachePool.put(
+                    player.uniqueId, LoginSession(
+                        player.uniqueId,
+                        player.remoteAddress.address.hostAddress,
+                        System.currentTimeMillis()
+                    )
                 )
-            )
+            } else {
+                this.cachePool.invalidate(player.uniqueId)
+            }
             player.currentServer.ifPresent {
                 if (it.serverInfo.name == BloraPlugin.configuration.server.limbo)
                     return@ifPresent

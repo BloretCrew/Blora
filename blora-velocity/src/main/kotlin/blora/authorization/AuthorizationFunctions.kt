@@ -207,6 +207,7 @@ object AuthorizationFunctions {
                 }
                 BloraAuthorization.passwordRetries.remove(player)
                 AuthFlow.clear(player)
+                BloraAuthorization.completeManualLogin(player.uniqueId)
                 BloraAuthorization.authorize(player)
                 transferPlayerToSuitableServer(player)
             }
@@ -261,6 +262,7 @@ object AuthorizationFunctions {
             return
         }
         AuthFlow.clear(player)
+        BloraAuthorization.completeManualLogin(player.uniqueId)
         BloraAuthorization.authorize(player)
         transferPlayerToSuitableServer(player)
     }
@@ -341,6 +343,7 @@ object AuthorizationFunctions {
             databasePlayer.hashedPassword3 = hash3
             databasePlayer.flush()
         }
+        BloraAuthorization.requireManualLogin(player.uniqueId)
         AuthFlow.clear(player)
         player.sendMessage(
             component {
