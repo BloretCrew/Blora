@@ -2,10 +2,12 @@ package blora
 
 import blora.authorization.BloraAuthorization
 import blora.command.BloxyCommand
+import blora.command.ChangePasswordCommand
 import blora.command.LobbyCommand
 import blora.command.OptionsCommand
 import blora.command.PrivateMessageLogger
 import blora.command.ReplyCommand
+import blora.command.ResetPasswordCommand
 import blora.command.SpyCommand
 import blora.command.TellCommand
 import blora.configuration.BloraConfiguration
@@ -148,6 +150,8 @@ class BloraPlugin @Inject constructor(
         TellCommand.register()
         ReplyCommand.register()
         SpyCommand.register()
+        ResetPasswordCommand.register()
+        ChangePasswordCommand.register()
         LobbyCommand.register()
     }
 

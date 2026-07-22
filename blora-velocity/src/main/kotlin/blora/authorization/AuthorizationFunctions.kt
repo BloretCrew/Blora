@@ -120,6 +120,10 @@ object AuthorizationFunctions {
         player.sendPacket(registerDialog(player, warningMessage).asPacket())
     }
 
+    fun showChangePasswordDialog(player: Player, warningMessage: Component? = null) {
+        player.sendPacket(changePasswordDialog(player, warningMessage).asPacket())
+    }
+
     fun eulaDialogCallback(player: Player, accepted: Boolean) {
         if (accepted) {
             val databasePlayer = BloraPlugin.database.getPlayerByName(player.username)!!
@@ -140,9 +144,11 @@ object AuthorizationFunctions {
     fun loginDialogCallback(player: Player, value: String) {
         BloraPlugin.database.getPlayerByName(player.username).notNull {
             if (PasswordHasher.hash(value) != this.hashedPassword()) {
+                val retries = (BloraAuthorization.passwordRetries.getOrDefault(player, 0) + 1).also {
+                    BloraAuthorization.passwordRetries[player] = it
+                }
                 if (BloraPlugin.configuration.security.maxRetries > 0
-                    && BloraAuthorization.passwordRetries
-                        .getOrDefault(player, 0) > BloraPlugin.configuration.security.maxRetries
+                    && retries > BloraPlugin.configuration.security.maxRetries
                 ) {
                     player.disconnect {
                         localization(player) {
@@ -157,6 +163,7 @@ object AuthorizationFunctions {
                     })
                 }
             } else {
+                BloraAuthorization.passwordRetries.remove(player)
                 BloraAuthorization.authorize(player)
                 transferPlayerToSuitableServer(player)
             }
@@ -188,6 +195,77 @@ object AuthorizationFunctions {
                 transferPlayerToSuitableServer(player)
             }
         }
+    }
+
+    fun changePasswordDialogCallback(
+        player: Player,
+        oldPassword: String,
+        newPassword: String,
+        confirmPassword: String,
+    ) {
+        if (!BloraAuthorization.isAuthorized(player)) {
+            return
+        }
+        val databasePlayer = BloraPlugin.database.getPlayerByName(player.username) ?: return
+        if (databasePlayer.hashedPassword1 == "%unregistered%") {
+            // Should rarely reach here (command already gates this); keep premium-aware message.
+            player.sendMessage(
+                component {
+                    localization(player) {
+                        if (player.isOnlineMode || databasePlayer.premiumUuid != null) {
+                            this.commandErrorChangepassword_premium_no_password
+                        } else {
+                            this.commandErrorChangepassword_not_registered
+                        }
+                    }
+                }
+            )
+            return
+        }
+        if (PasswordHasher.hash(oldPassword) != databasePlayer.hashedPassword()) {
+            showChangePasswordDialog(player, component {
+                localization(player) {
+                    this.warningChangepassword_old_incorrect
+                }
+            })
+            return
+        }
+        if (newPassword != confirmPassword) {
+            showChangePasswordDialog(player, component {
+                localization(player) {
+                    this.warningRegisterConfirm_not_same
+                }
+            })
+            return
+        }
+        if (oldPassword == newPassword) {
+            showChangePasswordDialog(player, component {
+                localization(player) {
+                    this.warningChangepassword_same_as_old
+                }
+            })
+            return
+        }
+        val result = PasswordManager.securePassword(player, newPassword)
+        if (result != PasswordStrategyResult.Success) {
+            result as PasswordStrategyResult.Failure
+            showChangePasswordDialog(player, result.reason)
+            return
+        }
+        val (hash1, hash2, hash3) = PasswordHasher.hash(newPassword)
+        BloraPlugin.database.trans {
+            databasePlayer.hashedPassword1 = hash1
+            databasePlayer.hashedPassword2 = hash2
+            databasePlayer.hashedPassword3 = hash3
+            databasePlayer.flush()
+        }
+        player.sendMessage(
+            component {
+                localization(player) {
+                    this.commandSuccessChangepassword
+                }
+            }
+        )
     }
 
 }

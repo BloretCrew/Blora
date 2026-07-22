@@ -139,3 +139,84 @@ fun registerDialog(player: Player, warningMessages: Component? = null): Dialog {
         )
     )
 }
+
+fun changePasswordDialog(player: Player, warningMessages: Component? = null): Dialog {
+    return ConfirmationDialog(
+        title = component {
+            localization(player) {
+                this.titleDialogChange_password
+            }
+        },
+        body = if (warningMessages != null) {
+            listOf(
+                PlainMessageDialogBody(
+                    contents = component {
+                        raw { warningMessages }
+                    }
+                )
+            )
+        } else {
+            null
+        },
+        canCloseWithEscape = true,
+        pause = false,
+        inputs = listOf(
+            TextInputControl(
+                key = "blora_old_password",
+                label = component {
+                    localization(player) {
+                        this.inputDialogChange_passwordOld
+                    }
+                },
+                maxLength = BloraPlugin.configuration.security.maxPasswordLength,
+                multiline = Multiline(
+                    maxLines = 1
+                )
+            ),
+            TextInputControl(
+                key = "blora_password",
+                label = component {
+                    localization(player) {
+                        this.inputDialogChange_passwordNew
+                    }
+                },
+                maxLength = BloraPlugin.configuration.security.maxPasswordLength,
+                multiline = Multiline(
+                    maxLines = 1
+                )
+            ),
+            TextInputControl(
+                key = "blora_confirm_password",
+                label = component {
+                    localization(player) {
+                        this.inputDialogChange_passwordConfirm
+                    }
+                },
+                maxLength = BloraPlugin.configuration.security.maxPasswordLength,
+                multiline = Multiline(
+                    maxLines = 1
+                )
+            )
+        ),
+        yes = ClickAction(
+            label = component {
+                localization(player) {
+                    this.buttonConfirm
+                }
+            },
+            action = DynamicCustomClickType(
+                id = "blora_change_password",
+            )
+        ),
+        no = ClickAction(
+            label = component {
+                localization(player) {
+                    this.buttonCancel
+                }
+            },
+            action = DynamicCustomClickType(
+                id = "blora_change_password_cancel",
+            )
+        )
+    )
+}

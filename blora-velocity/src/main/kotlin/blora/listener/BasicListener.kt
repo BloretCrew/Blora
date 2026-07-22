@@ -61,6 +61,16 @@ object BasicListener {
                     ((packet.payload as NbtCompound)["blora_password"] as NbtString).value,
                     ((packet.payload as NbtCompound)["blora_confirm_password"] as NbtString).value
                 )
+            } else if (packet.id == "minecraft:blora_change_password") {
+                val payload = packet.payload as NbtCompound
+                AuthorizationFunctions.changePasswordDialogCallback(
+                    event.player,
+                    (payload["blora_old_password"] as NbtString).value,
+                    (payload["blora_password"] as NbtString).value,
+                    (payload["blora_confirm_password"] as NbtString).value
+                )
+            } else if (packet.id == "minecraft:blora_change_password_cancel") {
+                // dialog closes via after_action; nothing else to do
             } else if (packet.id == "minecraft:blora_exit") {
                 if (!BloraPlugin.configuration.administration.debug) {
                     event.player.disconnect {
