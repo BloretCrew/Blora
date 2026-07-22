@@ -11,6 +11,8 @@ data class CommandLocalizationContents(
     val commandMailSuccessDelete_mail: String = "成功删除系统邮件 <id>",
     val commandMailErrorSystem_mail_not_exists: String = "ID 为 <id> 的系统邮件不存在",
     val commandMailErrorPlayer_received_mail: String = "玩家 <player> 已经收到了 ID 为 <id> 的系统邮件",
+    val commandReloadSuccessSynced: String = "<green>配置与语言文件已重载，并已同步至代理与其他服务器",
+    val commandReloadSuccessLocal_only: String = "<yellow>本服配置与语言文件已重载（未连接代理，未同步其他服务器）",
 )
 
 @Serializable
@@ -127,7 +129,7 @@ data class MailLocalizationContents(
 data class RedeemLocalizationContents(
     val redeemNotExists: String = "兑换码不存在",
     val redeemCreate: String = "成功创建兑换码 <redeem>",
-    val redeemSuccess: String = "成功创建兑换码 <redeem>，请前往邮箱查看",
+    val redeemSuccess: String = "成功兑换兑换码 <redeem>，请前往邮箱查看",
     val redeemMailTitle: String = "兑换码奖励",
     val redeemMailSender: String = "百络谷",
     val redeemMailContents: String = "兑换码 <redeem> 的奖励，请注意查收。",

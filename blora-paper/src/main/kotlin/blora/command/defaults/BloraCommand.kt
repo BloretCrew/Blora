@@ -1,5 +1,6 @@
 package blora.command.defaults
 
+import blora.extension.localization
 import blora.internal.api.command.*
 import blora.internal.api.command.argument.Arguments
 import blora.messaging.packet.common.DebugMessagePacket
@@ -25,6 +26,7 @@ import net.benwoodworth.knbt.NbtShort
 import net.benwoodworth.knbt.NbtString
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
+import org.bukkit.entity.Player
 import plutoproject.adventurekt.component
 import plutoproject.adventurekt.text.text
 
@@ -74,7 +76,23 @@ object BloraCommand {
 
             literal("reload") {
                 executor {
-                    BloraPlugin.client.send(ReloadConfigurationPacket)
+                    // Reload this server immediately, then notify proxy / other backends.
+                    BloraPlugin.reloadConfiguration()
+                    val player = if (this.invoker.isPlayer) this.invoker.asBukkit as? Player else null
+                    if (BloraPlugin.client.isConnected()) {
+                        BloraPlugin.client.send(ReloadConfigurationPacket)
+                        this.invoker.sendMessage {
+                            localization(player) {
+                                this.command.commandReloadSuccessSynced
+                            }
+                        }
+                    } else {
+                        this.invoker.sendMessage {
+                            localization(player) {
+                                this.command.commandReloadSuccessLocal_only
+                            }
+                        }
+                    }
                 }
             }
 
