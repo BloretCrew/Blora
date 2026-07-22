@@ -16,6 +16,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
@@ -89,7 +90,7 @@ class Menu(
     fun clickHandler(event: InventoryClickEvent) {
         if (event.inventory.holder != this)
             return
-        if (event.action == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
+        if (event.action == InventoryAction.MOVE_TO_OTHER_INVENTORY || event.action == InventoryAction.COLLECT_TO_CURSOR) {
             event.isCancelled = true
             return
         }
@@ -120,6 +121,16 @@ class Menu(
             },
             1L
         )
+    }
+
+    @EventHandler
+    fun dragHandler(event: InventoryDragEvent) {
+        if (event.inventory.holder != this)
+            return
+        val topSize = event.view.topInventory.size
+        if (event.rawSlots.any { it < topSize }) {
+            event.isCancelled = true
+        }
     }
 
     @EventHandler

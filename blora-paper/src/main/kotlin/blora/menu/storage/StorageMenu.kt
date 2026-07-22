@@ -14,6 +14,7 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
@@ -108,7 +109,16 @@ class StorageMenu(
         if (event.inventory.holder != this)
             return
         event.isCancelled = true
-        // TODO: fix enderchest problem
+    }
+
+    @EventHandler
+    fun onInventoryDrag(event: InventoryDragEvent) {
+        if (event.inventory.holder != this)
+            return
+        val topSize = event.view.topInventory.size
+        if (event.rawSlots.any { it < topSize }) {
+            event.isCancelled = true
+        }
     }
 
     @EventHandler

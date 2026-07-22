@@ -1006,15 +1006,58 @@ fun playerViewMail(player: Player, mail: MailDao, warningMessage: Component? = n
                                     return@DynamicCustomClickTypeInjected
                                 }
 
-                                BloraPlugin.database.trans {
-                                    mail.isClaim = true
-                                    mail.flush()
-                                }
-                                mail.parsedAttachment.claimToPlayer(player)
-                                player.send {
-                                    localization(player) {
-                                        this.mail.mailClaim_attachment
+                                // CAS: only one concurrent claim wins; mark claimed before giving rewards.
+                                val claimStarted = BloraPlugin.database.trans {
+                                    val fresh = MailDao.findById(mail.id.value)
+                                        ?: return@trans false
+                                    if (fresh.isClaim) {
+                                        return@trans false
                                     }
+                                    fresh.isClaim = true
+                                    fresh.flush()
+                                    true
+                                }
+                                if (!claimStarted) {
+                                    mail.isClaim = true
+                                    player.send {
+                                        localization(player) {
+                                            this.mail.mailClaim_attachment
+                                        }
+                                    }
+                                    return@DynamicCustomClickTypeInjected
+                                }
+                                mail.isClaim = true
+                                try {
+                                    mail.parsedAttachment.claimToPlayer(player)
+                                    player.send {
+                                        localization(player) {
+                                            this.mail.mailClaim_attachment
+                                        }
+                                    }
+                                } catch (ex: Exception) {
+                                    // Roll back claim flag so the player can try again.
+                                    BloraPlugin.database.trans {
+                                        val fresh = MailDao.findById(mail.id.value)
+                                            ?: return@trans
+                                        fresh.isClaim = false
+                                        fresh.flush()
+                                    }
+                                    mail.isClaim = false
+                                    BloraPlugin.slF4JLogger.warn(
+                                        "Failed to claim mail attachment for ${player.name}: ${ex.message}",
+                                        ex
+                                    )
+                                    player.openDialog(
+                                        playerViewMail(
+                                            player,
+                                            mail,
+                                            component {
+                                                localization(player) {
+                                                    this.mail.mailErrorClaimInventory_not_enought
+                                                }
+                                            }
+                                        )
+                                    )
                                 }
                             }
                         )
