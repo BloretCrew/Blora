@@ -35,3 +35,6 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Local build dependencies ###
+/blora-velocity/libs/velocity-proxy-3.4.0-SNAPSHOT.jar

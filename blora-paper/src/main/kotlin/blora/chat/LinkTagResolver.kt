@@ -17,6 +17,19 @@ object LinkTagResolver : TagResolver {
 
     val URL_REGEX = "^(https?://)?([\\w-]+\\.)+[\\w-]+(:\\d+)?(/[\\w\\-.~!*'();:@%&=+$,?#/]*)?$".toRegex()
 
+    fun parseValidUrl(argument: String): String? {
+        val url = argument.removeMatchingQuotes()
+        return url.takeIf { it.matches(URL_REGEX) }
+    }
+
+    fun safeDecode(url: String): String {
+        return try {
+            URLDecoder.decode(url, "UTF-8")
+        } catch (_: IllegalArgumentException) {
+            url
+        }
+    }
+
     override fun resolve(
         name: String,
         arguments: ArgumentQueue,
@@ -33,8 +46,8 @@ object LinkTagResolver : TagResolver {
                     builder = builder.append(":").append(arguments.pop())
                 return@let builder.toString()
             }
-        if (!url.matches(URL_REGEX))
-            return null
+            .let(::parseValidUrl)
+            ?: return null
         val pointered = ctx.target()
         val player: Player? = pointered as? Player
         return Tag.selfClosingInserting {
@@ -42,7 +55,7 @@ object LinkTagResolver : TagResolver {
                 localization(
                     player = player,
                     tags = {
-                        unparsedPlaceholder("link", URLDecoder.decode(url, "UTF-8"))
+                        unparsedPlaceholder("link", safeDecode(url))
                     }
                 ) {
                     BloraPlugin.configuration.chat.linkPlaceholderFormat
@@ -53,6 +66,14 @@ object LinkTagResolver : TagResolver {
 
     override fun has(name: String): Boolean {
         return name == "link"
+    }
+
+    private fun String.removeMatchingQuotes(): String {
+        return if (length >= 2 && ((startsWith('"') && endsWith('"')) || (startsWith('\'') && endsWith('\'')))) {
+            substring(1, length - 1)
+        } else {
+            this
+        }
     }
 
 }

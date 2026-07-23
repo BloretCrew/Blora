@@ -21,10 +21,12 @@ object Permissions {
     object Chat {
 
         val MiniMessage = "bloret.chat.mini_message"
+        val Papi = "bloret.chat.papi"
         val MentionAll = "bloret.chat.mention_all"
 
         fun registerPermissions() {
             registerPermission(MentionAll, 0)
+            registerPermission(Papi, 0)
             registerPermission(MiniMessage, 2)
         }
 

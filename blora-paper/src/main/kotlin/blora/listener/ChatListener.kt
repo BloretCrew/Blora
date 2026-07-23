@@ -59,23 +59,13 @@ object ChatListener : Listener {
         this.registered = false
     }
 
-    private fun staticCompletions(): List<String> {
-        return buildList {
-            this.add("<item>")
-            this.add("<inv>")
-            this.add("<enderchest>")
-            this.add("<cmd:...>")
-            this.add("<link:...>")
-            this.add("<copy:...>")
-            for ((key, _) in BloraPlugin.configuration.chat.placeholders) {
-                this.add("<$key>")
-            }
-        }
+    private fun staticCompletions(player: Player): List<String> {
+        return ChatPlaceholderSyntax.completions(player.hasPermission(Permissions.Chat.Papi))
     }
 
     private fun listAllPlaceholders(player: Player, onlineNames: Collection<String>): List<String> {
         return buildList {
-            this.addAll(staticCompletions())
+            this.addAll(staticCompletions(player))
             if (BloraPlugin.configuration.chat.mentionAllKeyword.isNotBlank() &&
                 player.hasPermission(Permissions.Chat.MentionAll)
             ) {
@@ -148,6 +138,9 @@ object ChatListener : Listener {
 
         val sender = event.player
         val rawMessage = event.message
+        val hasMiniMessage = sender.hasPermission(Permissions.Chat.MiniMessage)
+        val hasPapi = sender.hasPermission(Permissions.Chat.Papi)
+        val parsedMessage = ChatPlaceholderSyntax.normalize(rawMessage, hasPapi)
         // Snapshot once: avoid O(n) getOnlinePlayers / inventory reads inside the hot path.
         val onlinePlayers = Bukkit.getOnlinePlayers().toList()
         val onlineByName = HashMap<String, Player>(onlinePlayers.size * 2)
@@ -157,15 +150,14 @@ object ChatListener : Listener {
         val itemInMainHand = sender.inventory.itemInMainHand.clone()
         // Capture inv/enderchest once at send time; store by id with TTL for later clicks.
         val inventorySnapshotId =
-            if (rawMessage.contains("<inv>")) {
+            if (parsedMessage.contains("<inv>")) {
                 PlayerInventoryView.storeInventory(PlayerInventoryView.captureInventory(sender))
             } else null
         val enderChestSnapshotId =
-            if (rawMessage.contains("<enderchest>")) {
+            if (parsedMessage.contains("<enderchest>")) {
                 PlayerInventoryView.storeEnderChest(PlayerInventoryView.captureEnderChest(sender))
             } else null
         val canMentionAll = sender.hasPermission(Permissions.Chat.MentionAll)
-        val hasMiniMessage = sender.hasPermission(Permissions.Chat.MiniMessage)
         val chatConfig = BloraPlugin.configuration.chat
         val mentionAllKeyword = chatConfig.mentionAllKeyword
 
@@ -188,13 +180,14 @@ object ChatListener : Listener {
             deliverChat(
                 sender = sender,
                 viewer = viewer,
-                rawMessage = rawMessage,
+                rawMessage = parsedMessage,
                 mentionNamesByLength = mentionNamesByLength,
                 itemInMainHand = itemInMainHand,
                 inventorySnapshotId = inventorySnapshotId,
                 enderChestSnapshotId = enderChestSnapshotId,
                 canMentionAll = canMentionAll,
                 hasMiniMessage = hasMiniMessage,
+                hasPapi = hasPapi,
                 mentionAllKeyword = mentionAllKeyword,
             )
         }
@@ -288,6 +281,7 @@ object ChatListener : Listener {
         enderChestSnapshotId: java.util.UUID?,
         canMentionAll: Boolean,
         hasMiniMessage: Boolean,
+        hasPapi: Boolean,
         mentionAllKeyword: String,
     ) {
         val chatConfig = BloraPlugin.configuration.chat
@@ -364,6 +358,7 @@ object ChatListener : Listener {
                                     itemInMainHand = itemInMainHand,
                                     inventorySnapshotId = inventorySnapshotId,
                                     enderChestSnapshotId = enderChestSnapshotId,
+                                    allowPapi = hasPapi,
                                     replacements = mentionReplacements,
                                 )
                             } else {
@@ -374,6 +369,7 @@ object ChatListener : Listener {
                                     itemInMainHand = itemInMainHand,
                                     inventorySnapshotId = inventorySnapshotId,
                                     enderChestSnapshotId = enderChestSnapshotId,
+                                    allowPapi = hasPapi,
                                     replacements = mentionReplacements,
                                 )
                             }

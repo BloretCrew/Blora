@@ -14,6 +14,11 @@ import plutoproject.adventurekt.text.with
 
 object CommandTagResolver : TagResolver {
 
+    fun parseAllowedCommand(argument: String): String? {
+        val command = argument.removeMatchingQuotes()
+        return command.takeIf { it.startsWith("/") && !CommandPlaceholderDeny.isDenied(it) }
+    }
+
     override fun resolve(
         name: String,
         arguments: ArgumentQueue,
@@ -30,10 +35,8 @@ object CommandTagResolver : TagResolver {
                     builder = builder.append(":").append(arguments.pop())
                 return@let builder.toString()
             }
-        if (!command.startsWith("/"))
-            return null
-        if (CommandPlaceholderDeny.isDenied(command))
-            return null
+            .let(::parseAllowedCommand)
+            ?: return null
         val pointered = ctx.target()
         val player: Player? = pointered as? Player
         return Tag.selfClosingInserting {
@@ -52,6 +55,14 @@ object CommandTagResolver : TagResolver {
 
     override fun has(name: String): Boolean {
         return name == "cmd"
+    }
+
+    private fun String.removeMatchingQuotes(): String {
+        return if (length >= 2 && ((startsWith('"') && endsWith('"')) || (startsWith('\'') && endsWith('\'')))) {
+            substring(1, length - 1)
+        } else {
+            this
+        }
     }
 
 }
