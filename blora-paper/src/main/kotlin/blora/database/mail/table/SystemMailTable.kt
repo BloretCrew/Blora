@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.javatime.datetime
 
 object SystemMailTable : IntIdTable("blora_system_mails") {
 
-    val identifier = text("identifier")
+    val identifier = text("identifier").uniqueIndex()
     val sender = text("sender").nullable() // customizable system sender name
     val title = text("title") // should be mini message parsable string
     val contents = text("contents") // should be mini message parsable string

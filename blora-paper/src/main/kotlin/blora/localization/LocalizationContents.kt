@@ -20,6 +20,8 @@ data class MailLocalizationContents(
     val mailClaim_attachment: String = "已领取邮件的附件",
     val mailErrorClaimInventory_not_enought: String = "<red>背包空间不足，无法领取",
     val mailErrorClaimNot_claimable_in_this_server: String = "<red>当前邮件存在无法在目前服务器领取的附件",
+    val mailErrorClaimFailed: String = "<red>附件发放失败，请联系管理员处理（邮件已标记为已领取，请勿重复尝试）",
+    val mailErrorClaimAlready_claimed: String = "<yellow>该邮件附件已被领取",
     val mailNotify: String = "您收到了一份新的邮件！<yellow>[点击查看]",
     val mailNotifyHover: String = "<title><newline><newline><bold>发件人：</bold><sender>",
     val mailJoinUnreadTips: String = "您有 <amount> 份未读邮件！<yellow>[点击查看]",

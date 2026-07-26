@@ -5,7 +5,7 @@ import org.jetbrains.exposed.sql.javatime.datetime
 
 object RedeemTable : IntIdTable("blora_redeem_codes") {
 
-    val code = text("code")
+    val code = text("code").uniqueIndex()
     val attachment = text("attachment")
     val creator = uuid("creator")
     val createdAt = datetime("created_at")

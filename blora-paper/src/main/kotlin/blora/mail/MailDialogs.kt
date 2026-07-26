@@ -1012,15 +1012,14 @@ fun playerViewMail(player: Player, mail: MailDao, warningMessage: Component? = n
                                     receiver = player.uniqueId
                                 )
                                 if (!claimStarted) {
-                                    mail.isClaim = true
+                                    // Lost the CAS race or already claimed — do not use success text.
                                     player.send {
                                         localization(player) {
-                                            this.mail.mailClaim_attachment
+                                            this.mail.mailErrorClaimAlready_claimed
                                         }
                                     }
                                     return@DynamicCustomClickTypeInjected
                                 }
-                                mail.isClaim = true
                                 try {
                                     mail.parsedAttachment.claimToPlayer(player)
                                     player.send {
@@ -1029,15 +1028,18 @@ fun playerViewMail(player: Player, mail: MailDao, warningMessage: Component? = n
                                         }
                                     }
                                 } catch (ex: Exception) {
-                                    // Do NOT unclaim: partial external rewards cannot be rolled back.
-                                    // Leave isClaim=true and log for admin recovery.
+                                    // Do NOT unclaim: partial external rewards (Vault/Points/items)
+                                    // cannot be rolled back safely — re-claim would allow dupe.
+                                    // Leave isClaim=true; admin must recover manually from this log.
                                     BloraPlugin.slF4JLogger.error(
-                                        "Mail claim rewards failed for ${player.name} mail=${mail.id.value}: ${ex.message}",
+                                        "[MAIL_CLAIM_FAILED] player=${player.name} uuid=${player.uniqueId} " +
+                                            "mail=${mail.id.value} attachment=${mail.attachment} " +
+                                            "reason=${ex.message}",
                                         ex
                                     )
                                     player.send {
                                         localization(player) {
-                                            this.mail.mailErrorClaimNot_claimable_in_this_server
+                                            this.mail.mailErrorClaimFailed
                                         }
                                     }
                                 }

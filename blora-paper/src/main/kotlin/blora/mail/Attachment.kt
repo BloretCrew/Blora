@@ -95,7 +95,12 @@ data class Attachment(
             var remaining = blorius.toLong()
             while (remaining > 0L) {
                 val chunk = min(remaining, Int.MAX_VALUE.toLong()).toInt()
-                ThirdPartys.playerPoints.give(player.uniqueId, chunk)
+                val ok = ThirdPartys.playerPoints.give(player.uniqueId, chunk)
+                if (!ok) {
+                    throw IllegalStateException(
+                        "PlayerPoints give failed for ${player.uniqueId} amount=$chunk remaining=$remaining"
+                    )
+                }
                 remaining -= chunk
             }
         }
@@ -112,8 +117,7 @@ data class Attachment(
     }
 
     fun itemsContainsLike(item: ItemStack): Boolean {
-        val itemCopy = item.clone().apply { amount = 1 }
-        return this.items.any { it.first == itemCopy }
+        return this.items.any { it.first.isSimilar(item) }
     }
 
     fun buildMailComponent(): Component {

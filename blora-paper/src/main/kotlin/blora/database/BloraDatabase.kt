@@ -75,7 +75,78 @@ class BloraDatabase(
             // Redeem
             SchemaUtils.create(RedeemTable)
             SchemaUtils.create(PlayerRedeemTable)
+
+            // Existing DBs may already have rows that would block new unique indexes.
+            // Prefer "better" rows where possible (visible / actived), else oldest id.
+            // Dedupe + index creation share this transaction: any failure rolls both back.
+            dedupeBeforeUniqueIndexes()
+
+            // Applies newly declared unique indexes / missing columns on existing tables.
+            SchemaUtils.createMissingTablesAndColumns(
+                PlayerTable,
+                PlayerLoginTable,
+                PlayerInfoTable,
+                PlayerOnlineDataTable,
+                MailTable,
+                SystemMailTable,
+                RedeemTable,
+                PlayerRedeemTable,
+            )
         }
+    }
+
+    /**
+     * Removes historical duplicates so unique indexes can be created safely.
+     * Runs inside [initTables]'s transaction — failure rolls back create + dedupe together.
+     */
+    private fun Transaction.dedupeBeforeUniqueIndexes() {
+        // blora_player_used_redeems (player, code)
+        exec(
+            """
+            DELETE FROM blora_player_used_redeems a
+            USING blora_player_used_redeems b
+            WHERE a.player = b.player
+              AND a.code = b.code
+              AND a.id > b.id
+            """.trimIndent()
+        )
+        // blora_redeem_codes (code)
+        exec(
+            """
+            DELETE FROM blora_redeem_codes a
+            USING blora_redeem_codes b
+            WHERE a.code = b.code
+              AND a.id > b.id
+            """.trimIndent()
+        )
+        // blora_system_mails (identifier) — prefer actived=true, then lower id
+        exec(
+            """
+            DELETE FROM blora_system_mails a
+            USING blora_system_mails b
+            WHERE a.identifier = b.identifier
+              AND (
+                    (a.actived = false AND b.actived = true)
+                 OR (a.actived = b.actived AND a.id > b.id)
+              )
+            """.trimIndent()
+        )
+        // blora_mails (receiver, system_mail_id) — only non-null system mails; nulls stay multi-row in PG
+        // Prefer visible=true, then lower id
+        exec(
+            """
+            DELETE FROM blora_mails a
+            USING blora_mails b
+            WHERE a.system_mail_id IS NOT NULL
+              AND b.system_mail_id IS NOT NULL
+              AND a.receiver = b.receiver
+              AND a.system_mail_id = b.system_mail_id
+              AND (
+                    (a.visible = false AND b.visible = true)
+                 OR (a.visible = b.visible AND a.id > b.id)
+              )
+            """.trimIndent()
+        )
     }
 
     // Player Login
@@ -322,7 +393,9 @@ class BloraDatabase(
                     this.systemMailId = systemMail.identifier
                     this.visible = visible
                     this.isRead = false
-                    this.isClaim = attachmentSnapshot.hasNoContent()
+                    // Invisible = never-acquirable placeholder (trigger fail path).
+                    // Mark claimed so we never leave unclaimable rewards sitting in DB.
+                    this.isClaim = !visible || attachmentSnapshot.hasNoContent()
                 }
             }
         } catch (ex: Exception) {

@@ -7,4 +7,9 @@ object PlayerRedeemTable : IntIdTable("blora_player_used_redeems") {
     val player = uuid("player")
     val code = text("code")
 
+    init {
+        // Prevents double-redeem if application locks regress.
+        uniqueIndex(player, code)
+    }
+
 }

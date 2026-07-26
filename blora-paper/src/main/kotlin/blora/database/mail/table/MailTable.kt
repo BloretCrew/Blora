@@ -17,4 +17,10 @@ object MailTable : IntIdTable("blora_mails") {
     val isRead = bool("is_read").default(false)
     val isClaim = bool("is_claim").default(false)
 
+    init {
+        // PostgreSQL treats NULLs as distinct, so redeem mails (system_mail_id=null) stay multi-row.
+        // Blocks duplicate system-mail delivery for the same player.
+        uniqueIndex(receiver, systemMailId)
+    }
+
 }
